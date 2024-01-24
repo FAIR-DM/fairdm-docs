@@ -17,7 +17,7 @@ import toml
 sys.path.insert(0, os.path.abspath("../"))
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
-os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
+# os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
 
 django.setup()
 
@@ -109,6 +109,10 @@ autodoc2_skip_module_regexes = [
     r".*migrations.*",
     r".*tests.*",
 ]
+
+# autodoc2_parse_docstrings = True
+
+# autodoc2_docstring_parser_regexes = [("myst", r".*choices*")]
 
 # Any additional Sphinx extension modules go here
 extensions = [
