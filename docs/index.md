@@ -1,1 +1,0 @@
-# Geoluminate Docs Template

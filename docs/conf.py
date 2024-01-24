@@ -23,7 +23,7 @@ django.setup()
 
 
 # Project information --------------------------------------
-package_meta = toml.load("pyproject.toml")["tool"]["poetry"]
+package_meta = toml.load("../pyproject.toml")["tool"]["poetry"]
 project = package_meta["name"].title()
 version = package_meta["version"]  # The short X.Y version.
 release = version
@@ -37,15 +37,37 @@ current_file_path = Path(__file__).parent.absolute()
 
 geoluminate_docs_static = current_file_path / "_static"
 
+geoluminate_project_brand = Path("../project/static/img/brand/")
+
 # https://sphinx-book-theme.readthedocs.io/en/stable/
 html_theme = "sphinx_book_theme"
-html_static_path = ["docs/_static", str(geoluminate_docs_static)]
+html_static_path = [
+    "_static",
+    # str(geoluminate_project_brand),
+    # str(geoluminate_docs_static),
+]
 # html_title = None
 html_short_title = ""
-html_logo = str(geoluminate_docs_static / "logo.svg")
-html_favicon = str(geoluminate_docs_static / "icon.svg")
+
+
 html_show_copyright = True
 html_last_updated_fmt = "%b %d, %Y"
+
+# BRANDING / LOGO
+
+project_logo = geoluminate_project_brand / "logo.svg"
+
+if project_logo.exists():
+    html_logo = str(project_logo)
+else:
+    html_logo = str(geoluminate_docs_static / "logo.svg")
+
+icon = geoluminate_project_brand / "icon.svg"
+
+if icon.exists():
+    html_favicon = str(icon)
+else:
+    html_favicon = str(geoluminate_docs_static / "icon.svg")
 
 
 # https://sphinx-book-theme.readthedocs.io/en/stable/reference.html
@@ -87,10 +109,6 @@ autodoc2_skip_module_regexes = [
     r".*migrations.*",
     r".*tests.*",
 ]
-
-
-# Specify a minimal Sphinx version here.
-# needs_sphinx = '1.0'
 
 # Any additional Sphinx extension modules go here
 extensions = [
