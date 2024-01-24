@@ -6,7 +6,7 @@ This repo contains necessary packages and files to build consistent documentatio
 
 The following command will add this repo to the dev dependencies of your poetry project:
 
-    poetry add -G dev https://github.com/Geoluminate/geoluminate-docs.git 
+    poetry add -G dev git+https://github.com/Geoluminate/geoluminate-docs.git 
 
 ### Usage
 
