@@ -2,7 +2,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import importlib
 import os
 import sys
 from datetime import datetime
@@ -18,6 +17,7 @@ sys.path.insert(0, os.path.abspath("../"))
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.local.settings")
+
 
 django.setup()
 
