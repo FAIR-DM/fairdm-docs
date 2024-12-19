@@ -16,7 +16,7 @@ import toml
 sys.path.insert(0, os.path.abspath("../"))
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.local.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 
 django.setup()
@@ -126,7 +126,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx_copybutton",
     "sphinxext.opengraph",
-    # "autodoc2",
+    "autodoc2",
     "sphinx_comments",
     "myst_parser",
     "sphinx_tippy",

@@ -18,6 +18,7 @@
 _test*.py
 /node_modules
 test.html
+__pycache__/
 
 # Project files
 .ropeproject
