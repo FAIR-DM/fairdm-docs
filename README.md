@@ -1,12 +1,12 @@
-# Geoluminate Docs
+# FairDM Documentation Tools
 
-This repo contains necessary packages and files to build consistent documentation across the Geoluminate apps and projects.
+This repository contains tools and packages that help build consistent documentation throughout the FairDM ecosystem.
 
 ### Install
 
 The following command will add this repo to the dev dependencies of your poetry project:
 
-    poetry add -G dev git+https://github.com/Geoluminate/geoluminate-docs.git 
+    poetry add -G dev git+https://github.com/FAIR-DM/fairdm-docs 
 
 ### Usage
 
@@ -17,5 +17,5 @@ In your docs/conf.py file, add the following lines:
     # any overrides below here
 
 
-    <!-- import geoluminate_docs -->
+    <!-- import fairdm_docs -->
     <!-- geoluminate_docs.setup() -->
