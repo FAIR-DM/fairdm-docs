@@ -28,7 +28,7 @@ project = package_meta.get("name", "").title()
 version = package_meta.get("version", "")  # The short X.Y version.
 release = version
 authors = package_meta.get("authors", "")
-copyright = f"{datetime.now().year}, {authors.join(', ')}"
+copyright = f"{datetime.now().year}, {', '.join(authors)}"
 language = "en"
 
 # General configuration -------------------------------------
@@ -41,12 +41,9 @@ geoluminate_project_brand = Path("../project/static/img/brand/")
 
 # https://sphinx-book-theme.readthedocs.io/en/stable/
 html_theme = "sphinx_book_theme"
-html_static_path = [
-    "_static",
-    # str(geoluminate_project_brand),
-    # str(geoluminate_docs_static),
-]
-# html_title = None
+html_static_path = ["_static"]
+html_logo = "_static/logo.svg"
+html_favicon = "_static/icon.svg"
 html_short_title = ""
 
 
@@ -79,6 +76,7 @@ html_theme_options = {
     "use_issues_button": True,
     "use_edit_page_button": True,
     "home_page_in_toc": True,
+    "collapse_navbar": True,
     "extra_footer": (
         '<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License"'
         ' style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This documentation'
@@ -131,7 +129,7 @@ extensions = [
     "autodoc2",
     "sphinx_comments",
     "myst_parser",
-    "sphinx_tippy",
+    "sphinx_design",
 ]
 
 
@@ -211,7 +209,6 @@ autosectionlabel_prefix_document = True
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_css_files = ["tippy.css"]
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
 
