@@ -24,11 +24,11 @@ django.setup()
 
 # Project information --------------------------------------
 package_meta = toml.load("../pyproject.toml")["tool"]["poetry"]
-project = package_meta["name"].title()
-version = package_meta["version"]  # The short X.Y version.
+project = package_meta.get("name", "").title()
+version = package_meta.get("version", "")  # The short X.Y version.
 release = version
-authors = ["Sam Jennings"]
-copyright = f"{datetime.now().year}, {authors[0]}"
+authors = package_meta.get("authors", "")
+copyright = f"{datetime.now().year}, {authors.join(', ')}"
 language = "en"
 
 # General configuration -------------------------------------
@@ -73,7 +73,7 @@ else:
 # https://sphinx-book-theme.readthedocs.io/en/stable/reference.html
 # https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/index.html
 html_theme_options = {
-    "repository_url": package_meta["homepage"],
+    "repository_url": package_meta.get("homepage", ""),
     "use_repository_button": True,
     # "logo_only": True,
     "use_issues_button": True,
@@ -100,7 +100,9 @@ comments_config = {
 }
 
 
-autodoc2_packages = [f"../{package['include']}" for package in package_meta["packages"]]
+autodoc2_packages = [
+    f"../{package['include']}" for package in package_meta.get("packages", [])
+]
 
 autodoc2_render_plugin = "myst"
 
@@ -253,9 +255,8 @@ html_css_files = ["tippy.css"]
 # base URL from which the finished HTML is served.
 # html_use_opensearch = ''
 
-
 # Output file base name for HTML help builder.
-htmlhelp_basename = f"{package_meta['name']}doc"
+htmlhelp_basename = f"{package_meta.get('name', '')}_docs"
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -274,7 +275,7 @@ latex_elements = {
 latex_documents = [
     (
         "index",
-        f"{package_meta['name']}.tex",
+        f"{package_meta.get('name', 'documentation')}.tex",
         f"{project} Documentation",
         authors[0],
         "manual",
@@ -309,7 +310,7 @@ latex_documents = [
 man_pages = [
     (
         "index",
-        package_meta["name"],
+        package_meta.get("name", ""),
         f"{project} Documentation",
         authors[0],
         1,
@@ -328,11 +329,11 @@ man_pages = [
 texinfo_documents = [
     (
         "index",
-        package_meta["name"],
+        package_meta.get("name", ""),
         f"{project} Documentation",
         authors[0],
-        package_meta["name"],
-        "One line description of project.",
+        package_meta.get("name", ""),
+        package_meta.get("description", ""),
         "Miscellaneous",
     ),
 ]
@@ -348,3 +349,10 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
+
+
+# EPUB options
+# ------------
+# Bibliographic Dublin Core info.
+epub_title = project
+epub_theme = "sphinx_book_theme"
