@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "geoluminate-docs"
+name = "fairdm-docs"
 version = "0.0.1"
 description = "Template code for consistent docs across projects"
 authors = ["Sam <samuel.scott.jennings@gmail.com>"]
