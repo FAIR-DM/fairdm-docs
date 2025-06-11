@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 import django
-import toml
+import tomllib
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -23,7 +23,11 @@ django.setup()
 
 
 # Project information --------------------------------------
-package_meta = toml.load("../pyproject.toml")["tool"]["poetry"]
+with open("../pyproject.toml", "rb") as f:
+    data = tomllib.load(f)
+
+package_meta = data["tool"]["poetry"]
+
 project = package_meta.get("name", "").title()
 version = package_meta.get("version", "")  # The short X.Y version.
 release = version
@@ -98,9 +102,9 @@ comments_config = {
 }
 
 
-autodoc2_packages = [
-    f"../{package['include']}" for package in package_meta.get("packages", [])
-]
+# autodoc2_packages = [
+#     f"../{package['include']}" for package in package_meta.get("packages", [])
+# ]
 
 autodoc2_render_plugin = "myst"
 

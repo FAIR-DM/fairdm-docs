@@ -25,15 +25,18 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10"
 sphinx = ">=8.1"
-sphinx-copybutton = ">=0.5"
-sphinxext-opengraph = ">=0.9"
-sphinx-book-theme = {optional = true, version = ">1.1"}
+markdown = "^3.8"
 myst-parser = ">=4.0"
-sphinx-autobuild = ">=2024.10"
-sphinx-comments = ">=0.0.3"
-sphinx-autodoc2 = ">=0.5"
-sphinx-design = ">=0.6"
 pydata-sphinx-theme = {optional = true, version = ">=0.16.1"}
+sphinx-autobuild = ">=2024.10"
+sphinx-autodoc2 = ">=0.5"
+sphinx-book-theme = {optional = true, version = ">1.1"}
+sphinx-comments = ">=0.0.3"
+sphinx-copybutton = ">=0.5"
+sphinx-design = ">=0.6"
+sphinx-exec-code = "^0.16"
+sphinxext-opengraph = ">=0.9"
+sphinxcontrib-bibtex = "^2.6.3"
 
 [tool.poetry.extras]
 sphinx-book-theme = ["sphinx-book-theme"]
