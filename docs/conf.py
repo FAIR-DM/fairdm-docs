@@ -41,7 +41,7 @@ current_file_path = Path(__file__).parent.absolute()
 
 geoluminate_docs_static = current_file_path / "_static"
 
-geoluminate_project_brand = Path("../project/static/img/brand/")
+geoluminate_project_brand = Path("../assets/img/brand/")
 
 # https://sphinx-book-theme.readthedocs.io/en/stable/
 html_theme = "sphinx_book_theme"
@@ -57,7 +57,6 @@ html_last_updated_fmt = "%b %d, %Y"
 # BRANDING / LOGO
 
 project_logo = geoluminate_project_brand / "logo.svg"
-
 if project_logo.exists():
     html_logo = str(project_logo)
 else:
