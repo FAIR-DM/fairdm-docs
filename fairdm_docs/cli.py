@@ -26,10 +26,10 @@ app = typer.Typer(
 def is_port_available(port: int) -> bool:
     """
     Check if a port is available for binding.
-    
+
     Args:
         port: Port number to check
-        
+
     Returns:
         True if port is available, False if occupied
     """
@@ -44,10 +44,10 @@ def is_port_available(port: int) -> bool:
 def get_verbosity_flags(verbosity: str) -> list[str]:
     """
     Convert verbosity level to Sphinx command-line flags.
-    
+
     Args:
         verbosity: Verbosity level (full, quiet, errors-only)
-        
+
     Returns:
         List of Sphinx flags for the verbosity level
     """
@@ -71,20 +71,29 @@ def build(
 ) -> None:
     """
     Build Sphinx documentation with sensible defaults.
-    
+
     Reads configuration from [tool.fairdm.docs] in pyproject.toml.
     Falls back to convention-based defaults if not configured.
     """
     try:
         # Load and validate configuration
         config = load_config()
-        
-        # Get package directory for built-in conf.py
-        package_dir = Path(__file__).parent
-        
-        # Set Django environment variable for conf.py to use
+
+        # Determine which conf.py to use:
+        # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
+        local_conf_py = config.source_dir / "conf.py"
+        if local_conf_py.exists():
+            conf_dir = config.source_dir
+        else:
+            # Fall back to package's built-in conf.py
+            conf_dir = Path(__file__).parent
+
+        # Set environment variables for conf.py to use
         os.environ["FAIRDM_DOCS_DJANGO"] = "true" if config.django else "false"
-        
+        # Pass the project directory (where CLI was invoked) to conf.py
+        # This is needed because Sphinx changes cwd to the conf.py location
+        os.environ["FAIRDM_DOCS_PROJECT_DIR"] = str(Path.cwd().resolve())
+
         if live:
             # Check port availability (T042)
             if not is_port_available(config.port):
@@ -93,88 +102,93 @@ def build(
                     f"   Configure a different port in pyproject.toml:\n"
                     f"   [tool.fairdm.docs]\n"
                     f"   port = {config.port + 1}",
-                    err=True
+                    err=True,
                 )
                 raise typer.Exit(code=1)
-            
+
             # Start live preview server (T043, T044, T046)
             typer.echo(f"🔄 Starting live preview server on http://localhost:{config.port}")
             typer.echo("   Press Ctrl+C to stop the server\n")
-            
+
             # Prepare sphinx-autobuild command
             sphinx_autobuild_args = [
-                sys.executable, "-m", "sphinx_autobuild",
-                "--port", str(config.port),
+                sys.executable,
+                "-m",
+                "sphinx_autobuild",
+                "--port",
+                str(config.port),
                 "--open-browser",
-                "-c", str(package_dir),  # Use package's conf.py
+                "-c",
+                str(conf_dir),
                 str(config.source_dir),
                 str(config.build_dir),
             ]
-            
+
             # Add verbosity flags
             verbosity_flags = get_verbosity_flags(config.verbosity)
             if verbosity_flags:
                 sphinx_autobuild_args.extend(verbosity_flags)
-            
+
             try:
                 # Run sphinx-autobuild (blocks until Ctrl+C) (T045)
                 # Don't capture output so user can see what's happening
                 process = subprocess.run(sphinx_autobuild_args, check=False)
-                
+
                 # If process exited with error, show helpful message
                 if process.returncode != 0:
                     typer.echo(
                         f"\n❌ Live server exited with code {process.returncode}\n"
                         f"   Check the output above for error details.",
-                        err=True
+                        err=True,
                     )
-                
+
                 raise typer.Exit(code=process.returncode)
             except KeyboardInterrupt:
                 typer.echo("\n⚠️  Server stopped by user")
                 raise typer.Exit(code=0)
             except FileNotFoundError:
                 typer.echo(
-                    "❌ Error: sphinx-autobuild not found.\n"
-                    "   Install with: pip install sphinx-autobuild",
-                    err=True
+                    "❌ Error: sphinx-autobuild not found.\n   Install with: pip install sphinx-autobuild",
+                    err=True,
                 )
                 raise typer.Exit(code=1)
-        
+
         # Build with Sphinx
         typer.echo("📚 Building documentation...")
-        
+
         # Import sphinx.cmd.build here to avoid import errors if not installed
         try:
             from sphinx.cmd.build import main as sphinx_build
         except ImportError:
             typer.echo("❌ Error: Sphinx not found. Install with: pip install sphinx", err=True)
             raise typer.Exit(code=1)
-        
+
         # Prepare Sphinx arguments
         verbosity_flags = get_verbosity_flags(config.verbosity)
-        
+
         # Create build directory if it doesn't exist
         config.build_dir.parent.mkdir(parents=True, exist_ok=True)
-        
+
         sphinx_args = [
-            "-b", "html",                    # HTML builder
-            "-c", str(package_dir),          # Use package's conf.py
-            *verbosity_flags,                 # Verbosity flags
-            str(config.source_dir),          # Source directory
-            str(config.build_dir),           # Output directory
+            "-b",
+            "html",  # HTML builder
+            "-c",
+            str(conf_dir),
+            *verbosity_flags,  # Verbosity flags
+            str(config.source_dir),  # Source directory
+            str(config.build_dir),  # Output directory
         ]
-        
+
         # Run Sphinx build
         exit_code = sphinx_build(sphinx_args)
-        
+
         if exit_code == 0:
             typer.echo(f"✅ Build complete! Output: {config.build_dir}")
         else:
             typer.echo("❌ Build failed. See errors above.", err=True)
-        
+
         raise typer.Exit(code=exit_code)
-        
+
     except ConfigError as e:
         typer.echo(str(e), err=True)
         raise typer.Exit(code=1)
@@ -187,52 +201,63 @@ def build(
 def check() -> None:
     """
     Validate documentation for quality issues.
-    
+
     Currently checks:
     - Broken internal and external links (linkcheck)
-    
+
     Exits with code 0 if validation passes, code 1 if errors found.
     """
     try:
         # Load and validate configuration (T053)
         config = load_config()
-        
-        # Get package directory for built-in conf.py
-        package_dir = Path(__file__).parent
-        
-        # Set Django environment variable for conf.py to use
+
+        # Determine which conf.py to use:
+        # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
+        local_conf_py = config.source_dir / "conf.py"
+        if local_conf_py.exists():
+            conf_dir = config.source_dir
+        else:
+            # Fall back to package's built-in conf.py
+            conf_dir = Path(__file__).parent
+
+        # Set environment variables for conf.py to use
         os.environ["FAIRDM_DOCS_DJANGO"] = "true" if config.django else "false"
-        
+        # Pass the project directory (where CLI was invoked) to conf.py
+        # This is needed because Sphinx changes cwd to the conf.py location
+        os.environ["FAIRDM_DOCS_PROJECT_DIR"] = str(Path.cwd().resolve())
+
         typer.echo("🔍 Checking documentation for broken links...")
-        
+
         # Import sphinx.cmd.build here to avoid import errors if not installed
         try:
             from sphinx.cmd.build import main as sphinx_build
         except ImportError:
             typer.echo("❌ Error: Sphinx not found. Install with: pip install sphinx", err=True)
             raise typer.Exit(code=1)
-        
+
         # Prepare linkcheck output directory (T054)
         linkcheck_dir = config.build_dir.parent / "linkcheck"
         linkcheck_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Prepare Sphinx linkcheck arguments
         verbosity_flags = get_verbosity_flags(config.verbosity)
-        
+
         sphinx_args = [
-            "-b", "linkcheck",               # Linkcheck builder
-            "-c", str(package_dir),          # Use package's conf.py
-            *verbosity_flags,                 # Verbosity flags
-            str(config.source_dir),          # Source directory
-            str(linkcheck_dir),              # Output directory for linkcheck
+            "-b",
+            "linkcheck",  # Linkcheck builder
+            "-c",
+            str(conf_dir),
+            *verbosity_flags,  # Verbosity flags
+            str(config.source_dir),  # Source directory
+            str(linkcheck_dir),  # Output directory for linkcheck
         ]
-        
+
         # Run Sphinx linkcheck
         exit_code = sphinx_build(sphinx_args)
-        
+
         # Parse linkcheck output (T055)
         output_file = linkcheck_dir / "output.txt"
-        
+
         if output_file.exists():
             broken_links = []
             with open(output_file, "r", encoding="utf-8") as f:
@@ -241,7 +266,7 @@ def check() -> None:
                     # Parse linkcheck output format: "filename.rst:line: [status] url: error"
                     if line and (": [broken]" in line or ": [redirected]" in line.lower()):
                         broken_links.append(line)
-            
+
             if broken_links:
                 # Display broken links (T056, T058)
                 typer.echo(f"\n❌ Found {len(broken_links)} broken link(s):\n", err=True)
@@ -261,7 +286,7 @@ def check() -> None:
             else:
                 typer.echo("❌ Link check failed. See errors above.", err=True)
                 raise typer.Exit(code=1)
-    
+
     except ConfigError as e:
         typer.echo(str(e), err=True)
         raise typer.Exit(code=1)

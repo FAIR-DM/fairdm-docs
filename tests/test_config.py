@@ -17,11 +17,11 @@ from fairdm_docs.config import (
     ERROR_MESSAGES,
     BuildConfiguration,
     ConfigError,
-    find_pyproject,
     load_config,
     load_pyproject,
     validate_config,
 )
+from fairdm_docs.utils import find_pyproject_toml
 
 
 class TestConfigurationLoading:
@@ -47,7 +47,7 @@ class TestConfigurationLoading:
         # Change to temp directory
         monkeypatch.chdir(tmp_path)
         
-        found = find_pyproject()
+        found = find_pyproject_toml()
         assert found == pyproject
         assert found.exists()
     
@@ -62,14 +62,14 @@ class TestConfigurationLoading:
         subdir.mkdir()
         monkeypatch.chdir(subdir)
         
-        found = find_pyproject()
+        found = find_pyproject_toml()
         assert found == pyproject
     
     def test_find_pyproject_not_found(self, tmp_path, monkeypatch):
         """Test find_pyproject returns None when not found."""
         monkeypatch.chdir(tmp_path)
         
-        found = find_pyproject()
+        found = find_pyproject_toml()
         assert found is None
     
     def test_load_pyproject_success(self, tmp_path, monkeypatch):

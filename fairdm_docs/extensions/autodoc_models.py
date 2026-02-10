@@ -92,8 +92,8 @@ class AutoDocModelDirective(SphinxDirective):
 
     def _get_template_env(self) -> Environment:
         """Get the Jinja2 template environment."""
-        # Find the templates directory
-        current_dir = Path(__file__).parent
+        # Find the templates directory (in the parent package, not extensions subpackage)
+        current_dir = Path(__file__).parent.parent
         templates_dir = current_dir / "_templates"
 
         if not templates_dir.exists():

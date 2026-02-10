@@ -6,6 +6,7 @@ Tests the _resolve_branding_assets() logic without requiring Django
 """
 
 import os
+import shutil
 from pathlib import Path
 
 
@@ -106,10 +107,9 @@ def test_branding_detection():
     
     # Cleanup
     print("\nCleaning up test assets...")
-    custom_logo.unlink()
-    custom_brand_dir.rmdir()
-    custom_brand_dir.parent.rmdir()
-    custom_brand_dir.parent.parent.rmdir()
+    # Use shutil.rmtree to remove directory with contents
+    if custom_brand_dir.parent.parent.exists():
+        shutil.rmtree(custom_brand_dir.parent.parent)
     print("✓ Cleanup complete")
     
     print("\n" + "=" * 60)

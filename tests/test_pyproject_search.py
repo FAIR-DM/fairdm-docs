@@ -37,9 +37,9 @@ version = "0.1.0"
             
             # Import after changing directory
             sys.path.insert(0, str(Path(__file__).parent.parent))
-            from fairdm_docs.conf import _find_pyproject
+            from fairdm_docs.utils import find_pyproject_toml
             
-            result = _find_pyproject()
+            result = find_pyproject_toml()
             
             assert result is not None
             assert result.exists()
@@ -72,9 +72,9 @@ name = "test-project"
             os.chdir(nested_dir)
             
             sys.path.insert(0, str(Path(__file__).parent.parent))
-            from fairdm_docs.conf import _find_pyproject
+            from fairdm_docs.utils import find_pyproject_toml
             
-            result = _find_pyproject()
+            result = find_pyproject_toml()
             
             assert result is not None
             assert result.parent == project_root
@@ -97,9 +97,9 @@ def test_find_pyproject_not_found():
             os.chdir(empty_dir)
             
             sys.path.insert(0, str(Path(__file__).parent.parent))
-            from fairdm_docs.conf import _find_pyproject
+            from fairdm_docs.utils import find_pyproject_toml
             
-            result = _find_pyproject()
+            result = find_pyproject_toml()
             
             assert result is None
             
@@ -121,10 +121,10 @@ def test_load_pyproject_raises_when_not_found():
             os.chdir(empty_dir)
             
             sys.path.insert(0, str(Path(__file__).parent.parent))
-            from fairdm_docs.conf import _load_pyproject
+            from fairdm_docs.utils import load_pyproject_toml
             
-            with pytest.raises(ValueError, match="pyproject.toml not found"):
-                _load_pyproject()
+            with pytest.raises(FileNotFoundError, match="pyproject.toml not found"):
+                load_pyproject_toml()
             
         finally:
             os.chdir(original_cwd)

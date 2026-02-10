@@ -21,7 +21,10 @@ applyTo: '**/*'
 fairdm-docs/
 ├── fairdm_docs/              # Main package (NOT 'docs/')
 │   ├── __init__.py
+│   ├── cli.py               # CLI tool with Typer
 │   ├── conf.py              # Base Sphinx configuration
+│   ├── config.py            # Configuration loading from pyproject.toml
+│   ├── utils.py             # Shared utilities (pyproject finding/loading)
 │   ├── _static/             # Default branding assets
 │   │   ├── logo.svg
 │   │   └── icon.svg
@@ -29,8 +32,7 @@ fairdm-docs/
 │   │   └── model.md.jinja   # Template for rendering Django models
 │   └── extensions/          # Custom Sphinx extensions
 │       ├── __init__.py
-│       ├── auto_django_model.py
-│       └── autodoc_models.py
+│       └── autodoc_models.py  # Jinja2-based Django model documentation
 ├── examples/                # Configuration examples
 ├── pyproject.toml
 ├── README.md
@@ -51,19 +53,39 @@ This is the core configuration file that:
 - Use `fairdm_*` prefix for package-specific variables (e.g., `fairdm_docs_static`, `fairdm_project_brand`)
 - Never use legacy `geoluminate_*` naming
 
-### `fairdm_docs/extensions/auto_django_model.py`
+### `fairdm_docs/utils.py`
 
-Custom Sphinx extension that provides the `{autodjango-model}` directive for documenting Django models from the FairDM registry.
+Shared utility functions for the package.
+
+**Key functions**:
+- `find_pyproject_toml()`: Searches upward for pyproject.toml
+- `load_pyproject_toml()`: Loads and parses TOML file
+- Handles both standard search and environment variable-based search (for Sphinx context)
+
+### `fairdm_docs/cli.py`
+
+Command-line interface built with Typer.
 
 **Key features**:
-- Generates documentation from model metadata
-- Auto-creates field tables with types, help text, validators
-- Handles Sample and Measurement models
-- Integrates with FairDM registry
+- `build` command: Build docs or start live preview server
+- `check` command: Validate documentation for broken links
+- Sets environment variables for Sphinx context
+- Port availability checking
+- Comprehensive error handling
+
+### `fairdm_docs/config.py`
+
+Configuration loading and validation from pyproject.toml.
+
+**Key features**:
+- `BuildConfiguration` dataclass with sensible defaults
+- Reads `[tool.fairdm.docs]` section
+- Validates configuration values
+- Error messages with actionable guidance
 
 ### `fairdm_docs/extensions/autodoc_models.py`
 
-New Jinja2-based extension that provides the `{autodoc-model}` directive.
+Jinja2-based extension that provides the `{autodoc-model}` directive for documenting Django models from the FairDM registry.
 
 **Key features**:
 - Uses Jinja2 templates from `fairdm_docs/_templates/`
@@ -178,7 +200,7 @@ Follow semantic versioning:
 - **MINOR**: New features, backward compatible
 - **PATCH**: Bug fixes, documentation updates
 
-Current version: `0.1.0` (alpha stage)
+Current version: `0.3.0` (unreleased - includes CLI tool)
 
 ## Package Distribution
 

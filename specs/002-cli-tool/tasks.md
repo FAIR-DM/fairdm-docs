@@ -103,17 +103,17 @@ feature: "002-cli-tool"
 - Server handles Ctrl+C gracefully and releases port
 
 **Tasks**:
-- [ ] T041 [US2] Implement is_port_available() helper function in fairdm_docs/cli.py to check port availability
-- [ ] T042 [US2] Add port availability check in build() function before starting live server
-- [ ] T043 [US2] Implement sphinx-autobuild subprocess invocation in build() when live=True
-- [ ] T044 [US2] Add sphinx-autobuild arguments: --port, --open-browser, source_dir, build_dir in live server code
-- [ ] T045 [US2] Implement signal handler for graceful shutdown (Ctrl+C) in build() live mode
-- [ ] T046 [US2] Add live server startup message with port and URL in build()
-- [ ] T047 [US2] Add port conflict error handling with config guidance message in build()
-- [ ] T048 [US2] Add test_build_live_starts_server in tests/test_cli.py (mock subprocess)
-- [ ] T049 [US2] Add test_build_live_checks_port_availability in tests/test_cli.py
-- [ ] T050 [US2] Add test_build_live_error_when_port_occupied in tests/test_cli.py (port conflict)
-- [ ] T051 [US2] Add test_build_live_uses_custom_port_from_config in tests/test_cli.py
+- [x] T041 [US2] Implement is_port_available() helper function in fairdm_docs/cli.py to check port availability
+- [x] T042 [US2] Add port availability check in build() function before starting live server
+- [x] T043 [US2] Implement sphinx-autobuild subprocess invocation in build() when live=True
+- [x] T044 [US2] Add sphinx-autobuild arguments: --port, --open-browser, source_dir, build_dir in live server code
+- [x] T045 [US2] Implement signal handler for graceful shutdown (Ctrl+C) in build() live mode
+- [x] T046 [US2] Add live server startup message with port and URL in build()
+- [x] T047 [US2] Add port conflict error handling with config guidance message in build()
+- [x] T048 [US2] Add test_build_live_starts_server in tests/test_cli.py (mock subprocess)
+- [x] T049 [US2] Add test_build_live_checks_port_availability in tests/test_cli.py
+- [x] T050 [US2] Add test_build_live_error_when_port_occupied in tests/test_cli.py (port conflict)
+- [x] T051 [US2] Add test_build_live_uses_custom_port_from_config in tests/test_cli.py
 
 **Completion Criteria**: User Story 2 acceptance scenarios all pass, live preview works with auto-reload
 
@@ -129,20 +129,20 @@ feature: "002-cli-tool"
 - Command exits with code 0 when no errors, code 1 when errors found
 
 **Tasks**:
-- [ ] T052 [US3] Implement check() command function in fairdm_docs/cli.py with Typer decorator
-- [ ] T053 [US3] Implement configuration loading in check() function (reuse load_config())
-- [ ] T054 [US3] Implement Sphinx linkcheck invocation using sphinx.cmd.build.main() with -b linkcheck in check()
-- [ ] T055 [US3] Add linkcheck output parsing to extract broken links from output.txt in check()
-- [ ] T056 [US3] Implement validation result formatting (file, line, URL, error) in check()
-- [ ] T057 [US3] Add success message when no broken links found in check()
-- [ ] T058 [US3] Add error summary with count of broken links in check()
-- [ ] T059 [US3] Set exit code to 0 for success, 1 for validation errors in check()
-- [ ] T060 [US3] Create test class TestCheckCommand in tests/test_cli.py
-- [ ] T061 [US3] Add test_check_passes_with_no_errors in tests/test_cli.py (all valid links)
-- [ ] T062 [US3] Add test_check_reports_broken_links in tests/test_cli.py (broken link detection)
-- [ ] T063 [US3] Add test_check_exits_zero_on_success in tests/test_cli.py
-- [ ] T064 [US3] Add test_check_exits_one_on_errors in tests/test_cli.py
-- [ ] T065 [US3] Add test_check_displays_file_and_line_numbers in tests/test_cli.py (output format)
+- [x] T052 [US3] Implement check() command function in fairdm_docs/cli.py with Typer decorator
+- [x] T053 [US3] Implement configuration loading in check() function (reuse load_config())
+- [x] T054 [US3] Implement Sphinx linkcheck invocation using sphinx.cmd.build.main() with -b linkcheck in check()
+- [x] T055 [US3] Add linkcheck output parsing to extract broken links from output.txt in check()
+- [x] T056 [US3] Implement validation result formatting (file, line, URL, error) in check()
+- [x] T057 [US3] Add success message when no broken links found in check()
+- [x] T058 [US3] Add error summary with count of broken links in check()
+- [x] T059 [US3] Set exit code to 0 for success, 1 for validation errors in check()
+- [x] T060 [US3] Create test class TestCheckCommand in tests/test_cli.py
+- [x] T061 [US3] Add test_check_passes_with_no_errors in tests/test_cli.py (all valid links)
+- [x] T062 [US3] Add test_check_reports_broken_links in tests/test_cli.py (broken link detection)
+- [x] T063 [US3] Add test_check_exits_zero_on_success in tests/test_cli.py
+- [x] T064 [US3] Add test_check_exits_one_on_errors in tests/test_cli.py
+- [x] T065 [US3] Add test_check_displays_file_and_line_numbers in tests/test_cli.py (output format)
 
 **Completion Criteria**: User Story 3 acceptance scenarios all pass, link validation works correctly
 
@@ -160,14 +160,14 @@ feature: "002-cli-tool"
 - Invalid configuration values trigger clear validation errors
 
 **Tasks**:
-- [ ] T066 [P] [US4] Add test_build_with_custom_build_dir in tests/test_cli.py
-- [ ] T067 [P] [US4] Add test_build_with_custom_source_dir in tests/test_cli.py
-- [ ] T068 [P] [US4] Add test_build_live_with_custom_port in tests/test_cli.py
-- [ ] T069 [P] [US4] Add test_build_with_verbosity_quiet in tests/test_cli.py
-- [ ] T070 [P] [US4] Add test_build_with_verbosity_errors_only in tests/test_cli.py
-- [ ] T071 [P] [US4] Add test_config_validation_error_message_format in tests/test_cli.py
-- [ ] T072 [P] [US4] Add test_invalid_port_shows_clear_error in tests/test_cli.py
-- [ ] T073 [P] [US4] Add test_invalid_verbosity_shows_clear_error in tests/test_cli.py
+- [x] T066 [P] [US4] Add test_build_with_custom_build_dir in tests/test_cli.py
+- [x] T067 [P] [US4] Add test_build_with_custom_source_dir in tests/test_cli.py
+- [x] T068 [P] [US4] Add test_build_live_with_custom_port in tests/test_cli.py
+- [x] T069 [P] [US4] Add test_build_with_verbosity_quiet in tests/test_cli.py
+- [x] T070 [P] [US4] Add test_build_with_verbosity_errors_only in tests/test_cli.py
+- [x] T071 [P] [US4] Add test_config_validation_error_message_format in tests/test_cli.py
+- [x] T072 [P] [US4] Add test_invalid_port_shows_clear_error in tests/test_cli.py
+- [x] T073 [P] [US4] Add test_invalid_verbosity_shows_clear_error in tests/test_cli.py
 
 **Completion Criteria**: User Story 4 acceptance scenarios all pass, all configuration options work correctly
 
@@ -178,17 +178,17 @@ feature: "002-cli-tool"
 **Purpose**: Documentation, examples, and final integration
 
 **Tasks**:
-- [ ] T074 [P] Update README.md with CLI usage section (installation, basic commands)
-- [ ] T075 [P] Add CLI command examples to README.md (build, build --live, check)
-- [ ] T076 [P] Add configuration examples to README.md ([tool.fairdm.docs] section)
-- [ ] T077 [P] Create examples/cli_usage.md with comprehensive CLI examples
-- [ ] T078 [P] Add troubleshooting section to README.md (common errors, solutions)
-- [ ] T079 Run poetry install to verify entry point registration works
-- [ ] T080 Manual test: Run fairdm-docs build in test project to verify end-to-end flow
-- [ ] T081 Manual test: Run fairdm-docs build --live to verify live server works
-- [ ] T082 Manual test: Run fairdm-docs check to verify validation works
-- [ ] T083 Manual test: Test error scenarios (no pyproject.toml, port conflict, missing source)
-- [ ] T084 Update CHANGELOG.md with new CLI feature entry
+- [x] T074 [P] Update README.md with CLI usage section (installation, basic commands)
+- [x] T075 [P] Add CLI command examples to README.md (build, build --live, check)
+- [x] T076 [P] Add configuration examples to README.md ([tool.fairdm.docs] section)
+- [x] T077 [P] Create examples/cli_usage.md with comprehensive CLI examples
+- [x] T078 [P] Add troubleshooting section to README.md (common errors, solutions)
+- [x] T079 Run poetry install to verify entry point registration works
+- [x] T080 Manual test: Run fairdm-docs build in test project to verify end-to-end flow
+- [x] T081 Manual test: Run fairdm-docs build --live to verify live server works
+- [x] T082 Manual test: Run fairdm-docs check to verify validation works
+- [x] T083 Manual test: Test error scenarios (no pyproject.toml, port conflict, missing source)
+- [x] T084 Update CHANGELOG.md with new CLI feature entry
 
 **Test Criteria**: All documentation updated, manual testing confirms everything works, package can be installed and CLI entry point works
 

@@ -1,10 +1,11 @@
 import os
 import sys
-import tomllib
 import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from fairdm_docs.utils import find_pyproject_toml, load_pyproject_toml
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -17,6 +18,7 @@ sys.path.append(parent)
 if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
     try:
         import django
+
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
         django.setup()
     except ImportError:
@@ -30,15 +32,16 @@ if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
 # HELPER FUNCTIONS FOR PEP 621 METADATA EXTRACTION
 # ============================================================================
 
+
 def _normalize_key(key: str) -> str:
     """
     Normalize dictionary keys to lowercase for case-insensitive lookups.
-    
+
     Handles PEP 621 case variations like 'Homepage' vs 'homepage'.
-    
+
     Args:
         key: Dictionary key to normalize
-        
+
     Returns:
         Lowercase version of the key
     """
@@ -48,12 +51,12 @@ def _normalize_key(key: str) -> str:
 def _get_case_insensitive(d: dict[str, Any], key: str, default: Any = None) -> Any:
     """
     Get value from dictionary with case-insensitive key lookup.
-    
+
     Args:
         d: Dictionary to search
         key: Key to find (case-insensitive)
         default: Default value if key not found
-        
+
     Returns:
         Value associated with key (any case variation) or default
     """
@@ -64,61 +67,16 @@ def _get_case_insensitive(d: dict[str, Any], key: str, default: Any = None) -> A
     return default
 
 
-def _find_pyproject() -> Path | None:
-    """
-    Find pyproject.toml by searching upward from confdir or current directory.
-    
-    Returns:
-        Path to pyproject.toml if found, None otherwise
-    """
-    # Try to use Sphinx's confdir if available (set during build)
-    start_dir = Path(globals().get("confdir", Path.cwd()))
-    
-    # Check current directory and all parents
-    for parent in [start_dir] + list(start_dir.parents):
-        pyproject = parent / "pyproject.toml"
-        if pyproject.exists():
-            return pyproject
-    
-    return None
-
-
-def _load_pyproject() -> dict[str, Any]:
-    """
-    Load and parse pyproject.toml from repository root.
-    
-    Raises:
-        ConfigurationError: If file not found or TOML syntax invalid
-        
-    Returns:
-        Parsed TOML data as dictionary
-    """
-    pyproject_path = _find_pyproject()
-    
-    if pyproject_path is None:
-        raise ValueError(
-            "pyproject.toml not found. "
-            "Ensure it exists at your project root directory. "
-            f"Searched from: {globals().get('confdir', Path.cwd())}"
-        )
-    
-    try:
-        with open(pyproject_path, "rb") as f:
-            return tomllib.load(f)
-    except tomllib.TOMLDecodeError as e:
-        raise ValueError(f"Invalid TOML syntax in pyproject.toml: {e}")
-
-
 def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
     """
     Extract project metadata from PEP 621 [project] section.
-    
+
     Args:
         data: Parsed pyproject.toml data
-        
+
     Raises:
         ValueError: If required [project].name field missing
-        
+
     Returns:
         Dictionary with extracted metadata (name, version, authors, description, urls)
     """
@@ -134,9 +92,9 @@ def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
             "PEP 621 [project] section required. "
             "Add [project] section with at least 'name' field to your pyproject.toml."
         )
-    
+
     project = data["project"]
-    
+
     # Required field: name
     name = project.get("name")
     if not name:
@@ -144,36 +102,36 @@ def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
             "Missing required 'project.name' in pyproject.toml. "
             "Add [project]\\nname = 'your-project-name'"
         )
-    
+
     # Optional fields with defaults
     version = project.get("version", "0.0.0")
-    
+
     # Handle dynamic versioning by checking tool.poetry as fallback
     if version == "0.0.0" and "dynamic" in project and "version" in project["dynamic"]:
         # Check if version exists in tool.poetry (common for transitional projects)
         if "tool" in data and "poetry" in data["tool"]:
             version = data["tool"]["poetry"].get("version", "0.0.0")
-    
+
     # Warn if version is still default
     if version == "0.0.0":
         warnings.warn(
             "project.version not found in pyproject.toml, using default '0.0.0'",
-            UserWarning
+            UserWarning,
         )
-    
+
     description = project.get("description", "")
     if not description:
         warnings.warn(
             "project.description not found in pyproject.toml, documentation may lack description",
-            UserWarning
+            UserWarning,
         )
-    
+
     # Parse authors (format: "Name <email>" or "Name")
     authors = project.get("authors", ["Unknown"])
     if authors == ["Unknown"]:
         warnings.warn(
             "project.authors not found in pyproject.toml, using default ['Unknown']",
-            UserWarning
+            UserWarning,
         )
     author_names = []
     for author in authors:
@@ -188,12 +146,12 @@ def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
                 author_names.append(author.strip())
         else:
             author_names.append("Unknown")
-    
+
     # Extract URLs with case-insensitive handling
     urls = project.get("urls", {})
     homepage = _get_case_insensitive(urls, "homepage", "")
     repository = _get_case_insensitive(urls, "repository", "")
-    
+
     return {
         "name": name,
         "version": version,
@@ -209,33 +167,33 @@ def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
 def _resolve_branding_assets() -> dict[str, str]:
     """
     Resolve branding asset paths with fallback chain.
-    
+
     Checks for project-specific branding in docs/_static/brand/,
     falls back to package defaults in fairdm_docs/_static/.
-    
+
     Returns:
         Dictionary with logo_path and favicon_path
     """
     current_file_path = Path(__file__).parent.absolute()
     fairdm_docs_static = current_file_path / "_static"
-    
+
     # Project branding location (within docs directory)
     project_brand = Path("_static/brand/")
-    
+
     # Check for project logo
     project_logo = project_brand / "logo.svg"
     if project_logo.exists():
         logo_path = str(project_logo)
     else:
         logo_path = str(fairdm_docs_static / "logo.svg")
-    
+
     # Check for project icon/favicon
     project_icon = project_brand / "icon.svg"
     if project_icon.exists():
         favicon_path = str(project_icon)
     else:
         favicon_path = str(fairdm_docs_static / "icon.svg")
-    
+
     return {
         "logo_path": logo_path,
         "favicon_path": favicon_path,
@@ -245,16 +203,16 @@ def _resolve_branding_assets() -> dict[str, str]:
 def _apply_theme_config(theme: str, metadata: dict[str, Any]) -> dict[str, Any]:
     """
     Generate theme-specific options based on selected theme.
-    
+
     Args:
         theme: Theme name (sphinx_book_theme or pydata_sphinx_theme)
         metadata: Extracted project metadata
-        
+
     Returns:
         Dictionary of theme-specific options
     """
     repository_url = metadata["urls"]["repository"] or metadata["urls"]["homepage"]
-    
+
     if theme == "pydata_sphinx_theme":
         # PyData theme options
         return {
@@ -266,7 +224,9 @@ def _apply_theme_config(theme: str, metadata: dict[str, Any]) -> dict[str, Any]:
                     "url": repository_url,
                     "icon": "fa-brands fa-github",
                 }
-            ] if repository_url else [],
+            ]
+            if repository_url
+            else [],
         }
     else:
         # sphinx_book_theme options (default)
@@ -281,9 +241,9 @@ def _apply_theme_config(theme: str, metadata: dict[str, Any]) -> dict[str, Any]:
                 '<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">'
                 '<img alt="Creative Commons License" style="border-width:0" '
                 'src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />'
-                'This documentation is licensed under a '
+                "This documentation is licensed under a "
                 '<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">'
-                'Creative Commons Attribution 4.0 International License</a>.'
+                "Creative Commons Attribution 4.0 International License</a>."
             ),
         }
 
@@ -291,37 +251,43 @@ def _apply_theme_config(theme: str, metadata: dict[str, Any]) -> dict[str, Any]:
 def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
     """
     Extract optional configuration from [tool.fairdm.docs] section.
-    
+
     Args:
         data: Parsed pyproject.toml data
-        
+
     Returns:
         Dictionary with optional configuration (theme, etc.)
     """
-    if "tool" not in data or "fairdm" not in data["tool"] or "docs" not in data["tool"]["fairdm"]:
+    if (
+        "tool" not in data
+        or "fairdm" not in data["tool"]
+        or "docs" not in data["tool"]["fairdm"]
+    ):
         return {}
-    
+
     config = data["tool"]["fairdm"]["docs"]
-    
+
     # Extract and validate theme setting
     theme = config.get("theme")
     if theme:
+        # Normalize theme name (allow both dashes and underscores)
+        theme = theme.replace("-", "_")
         known_themes = ["sphinx_book_theme", "pydata_sphinx_theme"]
         if theme not in known_themes:
             warnings.warn(
                 f"Unknown theme '{theme}' in [tool.fairdm.docs], using default sphinx_book_theme. "
                 f"Known themes: {', '.join(known_themes)}",
-                UserWarning
+                UserWarning,
             )
             theme = None
-    
+
     # Log unknown keys at debug level (informational only)
     known_keys = {"theme"}
     unknown_keys = set(config.keys()) - known_keys
     if unknown_keys:
         # Would use logging.debug in production, but warnings.warn for visibility in tests
         pass  # Debug-level logging would go here
-    
+
     return {
         "theme": theme,
     }
@@ -329,7 +295,20 @@ def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
 
 # Project information --------------------------------------
 # Load and extract metadata from pyproject.toml (PEP 621)
-pyproject_data = _load_pyproject()
+try:
+    pyproject_data = load_pyproject_toml(start_dir=None)
+except FileNotFoundError:
+    # Try with environment variable for Sphinx context
+    pyproject_path = find_pyproject_toml(use_env_var=True)
+    if pyproject_path:
+        pyproject_data = load_pyproject_toml(pyproject_path)
+    else:
+        raise ValueError(
+            "pyproject.toml not found. "
+            "Ensure it exists at your project root directory. "
+            f"Searched from: {Path.cwd()}"
+        )
+
 metadata = _extract_project_metadata(pyproject_data)
 fairdm_config = _extract_fairdm_config(pyproject_data)
 
@@ -413,9 +392,9 @@ extensions = [
     "sphinx_design",
 ]
 
-# Conditionally add Django-dependent extensions
-if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
-    extensions.append("fairdm_docs.extensions.autodoc_models")
+# # Conditionally add Django-dependent extensions
+# if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
+#     extensions.append("fairdm_docs.extensions.autodoc_models")
 
 
 # The master toctree document.
@@ -425,7 +404,7 @@ master_doc = "index"
 templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffixs = {
+source_suffix = {
     ".rst": "restructuredtext",
 }
 

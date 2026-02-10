@@ -5,22 +5,11 @@ Reads configuration from [tool.fairdm.docs] section in pyproject.toml,
 merges with sensible defaults, and validates all settings.
 """
 
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-# Use tomllib for Python 3.11+, tomli for 3.10
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    try:
-        import tomli as tomllib
-    except ImportError:
-        raise ImportError(
-            "tomli is required for Python < 3.11. "
-            "Install with: pip install tomli"
-        )
+from fairdm_docs.utils import find_pyproject_toml, load_pyproject_toml
 
 
 class ConfigError(Exception):
@@ -71,24 +60,6 @@ ERROR_MESSAGES = {
 }
 
 
-def find_pyproject() -> Optional[Path]:
-    """
-    Find pyproject.toml in current directory or parents.
-    
-    Returns:
-        Path to pyproject.toml if found, None otherwise
-    """
-    current = Path.cwd()
-    
-    # Check current directory and all parents
-    for parent in [current] + list(current.parents):
-        pyproject = parent / "pyproject.toml"
-        if pyproject.exists():
-            return pyproject
-    
-    return None
-
-
 def load_pyproject() -> Dict[str, Any]:
     """
     Load and parse pyproject.toml.
@@ -99,13 +70,15 @@ def load_pyproject() -> Dict[str, Any]:
     Raises:
         ConfigError: If pyproject.toml not found
     """
-    pyproject_path = find_pyproject()
+    pyproject_path = find_pyproject_toml()
     
     if pyproject_path is None:
         raise ConfigError(ERROR_MESSAGES["no_pyproject"])
     
-    with open(pyproject_path, "rb") as f:
-        return tomllib.load(f)
+    try:
+        return load_pyproject_toml(pyproject_path)
+    except FileNotFoundError:
+        raise ConfigError(ERROR_MESSAGES["no_pyproject"])
 
 
 def load_config() -> BuildConfiguration:
