@@ -64,6 +64,25 @@ def _get_case_insensitive(d: dict[str, Any], key: str, default: Any = None) -> A
     return default
 
 
+def _find_pyproject() -> Path | None:
+    """
+    Find pyproject.toml by searching upward from confdir or current directory.
+    
+    Returns:
+        Path to pyproject.toml if found, None otherwise
+    """
+    # Try to use Sphinx's confdir if available (set during build)
+    start_dir = Path(globals().get("confdir", Path.cwd()))
+    
+    # Check current directory and all parents
+    for parent in [start_dir] + list(start_dir.parents):
+        pyproject = parent / "pyproject.toml"
+        if pyproject.exists():
+            return pyproject
+    
+    return None
+
+
 def _load_pyproject() -> dict[str, Any]:
     """
     Load and parse pyproject.toml from repository root.
@@ -74,16 +93,18 @@ def _load_pyproject() -> dict[str, Any]:
     Returns:
         Parsed TOML data as dictionary
     """
-    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    pyproject_path = _find_pyproject()
+    
+    if pyproject_path is None:
+        raise ValueError(
+            "pyproject.toml not found. "
+            "Ensure it exists at your project root directory. "
+            f"Searched from: {globals().get('confdir', Path.cwd())}"
+        )
     
     try:
         with open(pyproject_path, "rb") as f:
             return tomllib.load(f)
-    except FileNotFoundError:
-        raise ValueError(
-            f"pyproject.toml not found at {pyproject_path}. "
-            "Ensure it exists at repository root."
-        )
     except tomllib.TOMLDecodeError as e:
         raise ValueError(f"Invalid TOML syntax in pyproject.toml: {e}")
 

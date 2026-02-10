@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **pyproject.toml Search** - Fixed `conf.py` to search for `pyproject.toml` in the user's project directory instead of the installed package location
+  - Now searches upward from the documentation source directory (typically `docs/`)
+  - Correctly handles installation via Poetry/pip where package is in site-packages
+  - Prevents `FileNotFoundError` when building documentation in other projects
+
 ### Added
 
 - **CLI Tool (`fairdm-docs`)** - New command-line interface for simplified documentation workflows

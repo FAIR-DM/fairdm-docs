@@ -39,12 +39,25 @@ poetry add --group dev "git+https://github.com/FAIR-DM/fairdm-docs[pydata-sphinx
 
 The simplest way to get started - no configuration files needed!
 
+**Prerequisites:** Ensure you have a `pyproject.toml` with at least a `[project]` section containing `name`:
+
+```toml
+[project]
+name = "my-project"
+version = "0.1.0"  # Optional
+```
+
 **1. Create documentation structure:**
 
-```bash
-mkdir docs
-echo "# My Documentation" > docs/index.md
-echo "Welcome to my project!" >> docs/index.md
+```plain
+your-project/
+├── docs/
+│   ├── index.md          # Required: main documentation file
+│   ├── conf.py           # Optional: advanced customization
+│   └── _static/          # Optional: custom CSS/images
+│       └── brand/        # Optional: logo.svg and icon.svg
+├── pyproject.toml        # Required: project metadata
+└── ...
 ```
 
 **2. Build documentation:**
@@ -62,6 +75,7 @@ poetry run fairdm-docs build --live
 ```
 
 This automatically:
+
 - Reads project metadata from `pyproject.toml`
 - Uses sensible defaults for everything
 - Opens a browser with live-reloading
@@ -110,24 +124,13 @@ html_theme_options.update({
 ```
 
 **Configuration precedence** (highest to lowest):
+
 1. Settings in `docs/conf.py` (if file exists)
 2. `[tool.fairdm.docs]` in `pyproject.toml`
 3. Package defaults
 
-### Project Structure
-
-```
-your-project/
-├── docs/
-│   ├── index.md          # Required: main documentation file
-│   ├── conf.py           # Optional: advanced customization
-│   └── _static/          # Optional: custom CSS/images
-│       └── brand/        # Optional: logo.svg and icon.svg
-├── pyproject.toml        # Required: project metadata
-└── ...
-```
-
 **Minimum requirements:**
+
 - `pyproject.toml` with `[project]` section containing `name`
 - `docs/index.md` with some content
 
@@ -138,9 +141,11 @@ your-project/
 The package automatically extracts metadata from the PEP 621 standard `[project]` section in your `pyproject.toml`:
 
 **Required fields:**
+
 - `name` - Project name (used for documentation title)
 
 **Optional fields** (with sensible defaults if missing):
+
 - `version` - Project version (default: "0.0.0")
 - `authors` - Author names for copyright (default: ["Unknown"])
 - `description` - Short description for meta tags
@@ -176,6 +181,7 @@ theme = "pydata_sphinx_theme"  # or "sphinx_book_theme"
 ```
 
 **Configuration precedence:**
+
 1. Your `docs/conf.py` overrides (highest priority)
 2. `[tool.fairdm.docs]` in pyproject.toml
 3. Package defaults (lowest priority)
@@ -234,6 +240,7 @@ For FairDM portals, use the `autodoc-model` directive to document models:
 
 ```{autodoc-model} myapp.MySample
 ```
+
 ```
 
 This generates complete documentation including:
@@ -337,6 +344,7 @@ fairdm-docs build
 ```
 
 This command:
+
 - Reads configuration from `[tool.fairdm.docs]` in `pyproject.toml` (optional)
 - Uses the package's built-in Sphinx configuration
 - Builds HTML documentation to `docs/_build/html` by default
@@ -351,6 +359,7 @@ fairdm-docs build --live
 ```
 
 This command:
+
 - Starts a web server on `http://localhost:5000` (configurable)
 - Automatically opens your documentation in a browser
 - Watches for file changes and rebuilds automatically
@@ -375,12 +384,14 @@ fairdm-docs check
 ```
 
 This command:
+
 - Checks all internal and external links in your documentation
 - Reports broken links with file locations and line numbers
 - Exits with code 0 if all links are valid
 - Exits with code 1 if broken links are found (useful for CI/CD)
 
 **Example output** when broken links are found:
+
 ```
 🔍 Checking documentation for broken links...
 ❌ Found 2 broken link(s):
@@ -390,6 +401,7 @@ This command:
 ```
 
 **CI/CD Integration**: Use in your continuous integration pipeline:
+
 ```yaml
 # Example GitHub Actions workflow
 - name: Check documentation links
@@ -419,11 +431,13 @@ django = true  # Enables Django model auto-documentation extensions
 ```
 
 When `django = true`:
+
 - Django is imported and configured automatically
 - `autodoc-models` extension is enabled for documenting Django models
 - Requires Django to be installed: `poetry add Django`
 
 When `django = false` (default):
+
 - No Django dependency required
 - Works in non-Django projects
 - Suitable for pure documentation sites
@@ -431,35 +445,41 @@ When `django = false` (default):
 ### Examples
 
 **Zero-config build** (no pyproject.toml changes needed):
+
 ```bash
 cd your-project
 fairdm-docs build
 ```
 
 **Live preview for development**:
+
 ```bash
 fairdm-docs build --live  # Opens browser, auto-reloads on changes
 ```
 
 **Custom output directory**:
+
 ```toml
 [tool.fairdm.docs]
 build_dir = "build/html"
 ```
 
 **Custom port for live server**:
+
 ```toml
 [tool.fairdm.docs]
 port = 8080
 ```
 
 **Quiet mode for CI/CD**:
+
 ```toml
 [tool.fairdm.docs]
 verbosity = "quiet"
 ```
 
 **Django project**:
+
 ```toml
 [tool.fairdm.docs]
 django = true
@@ -527,12 +547,14 @@ Repository = "https://github.com/myorg/my-portal"
 **Cause**: Django integration is enabled but Django is not installed.
 
 **Solution**: Either install Django or disable the integration:
+
 ```toml
 [tool.fairdm.docs]
 django = false  # Disable Django integration
 ```
 
 Or install Django:
+
 ```bash
 poetry add Django  # If using Poetry
 pip install Django  # If using pip
@@ -543,6 +565,7 @@ pip install Django  # If using pip
 **Cause**: Another service is using port 5000 (default live server port).
 
 **Solution**: Configure a different port:
+
 ```toml
 [tool.fairdm.docs]
 port = 8080  # Or any available port
@@ -553,6 +576,7 @@ port = 8080  # Or any available port
 **Cause**: sphinx-autobuild is not installed (required for `--live` flag).
 
 **Solution**: Install sphinx-autobuild:
+
 ```bash
 poetry add --group dev sphinx-autobuild
 # or
@@ -564,12 +588,14 @@ pip install sphinx-autobuild
 **Cause**: Documentation source directory doesn't exist.
 
 **Solution**: Create the directory and add at least an `index.md`:
+
 ```bash
 mkdir docs
 echo "# My Documentation" > docs/index.md
 ```
 
 Or configure a different source directory:
+
 ```toml
 [tool.fairdm.docs]
 source_dir = "documentation"  # Use your actual docs directory
@@ -577,9 +603,20 @@ source_dir = "documentation"  # Use your actual docs directory
 
 #### "No pyproject.toml found"
 
-**Cause**: Running `fairdm-docs` outside a Python project root.
+**Cause**: `fairdm-docs` cannot locate your project's `pyproject.toml` file.
 
-**Solution**: Navigate to your project root directory (where `pyproject.toml` exists):
+**How it searches**:
+
+- Starts from the documentation source directory (usually `docs/`)
+- Searches upward through parent directories until it finds `pyproject.toml`
+- Stops at the filesystem root if not found
+
+**Solution**:
+
+1. Ensure `pyproject.toml` exists in your project root directory
+2. Run `fairdm-docs build` from within your project (or any subdirectory)
+3. Verify the file is named exactly `pyproject.toml` (lowercase, no typos)
+
 ```bash
 cd /path/to/your/project
 fairdm-docs build
@@ -590,6 +627,7 @@ fairdm-docs build
 **Cause**: Invalid values in `[tool.fairdm.docs]` configuration.
 
 **Solution**: Check error message for specific field and valid values:
+
 - `port`: Must be between 1 and 65535
 - `verbosity`: Must be "full", "quiet", or "errors-only"
 - `source_dir` and `build_dir`: Must be valid directory paths
@@ -597,6 +635,7 @@ fairdm-docs build
 ### Getting Help
 
 If you encounter issues not covered here:
+
 1. Check the [GitHub Issues](https://github.com/FAIR-DM/fairdm-docs/issues)
 2. Review the [examples/](examples/) directory for working configurations
 3. Open a new issue with details about your setup and error message
@@ -612,6 +651,7 @@ If you encounter issues not covered here:
 ### Why This Change?
 
 PEP 621 is the Python packaging standard for project metadata. This migration:
+
 - Aligns with community standards
 - Supports build backends beyond Poetry
 - Enables case-insensitive URL key handling
