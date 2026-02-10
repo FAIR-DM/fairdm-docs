@@ -35,7 +35,7 @@ pydata-sphinx-theme = ['pydata-sphinx-theme (>=0.16.1)']
 fairdm-docs = "fairdm_docs.cli:main"
 
 [tool.poetry]
-version = "0.1.0"
+version = "1.0.0"
 packages = [{ include = "fairdm_docs" }]
 include = ["LICENSE", "README.md"]
 classifiers = [
