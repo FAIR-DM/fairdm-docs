@@ -5,7 +5,7 @@ license = "MIT"
 dynamic = ["version", "classifiers"]
 readme = "README.md"
 authors = [{ name = "Sam", email = "samuel.scott.jennings@gmail.com" }]
-requires-python = '>=3.11'
+requires-python = '>=3.10'
 dependencies = [
     'sphinx (>=8.1)',
     'markdown',
@@ -41,6 +41,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Documentation",

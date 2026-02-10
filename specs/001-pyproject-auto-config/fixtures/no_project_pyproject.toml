@@ -1,0 +1,9 @@
+# Missing [project] section entirely
+# Purpose: Test error handling for missing required section
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
