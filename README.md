@@ -272,6 +272,146 @@ For best results, your project should have:
 
 **Migration note:** Projects using only `[tool.poetry]` metadata must add the `[project]` section. See [Migration Guide](#migration-from-toolpoetry) below.
 
+## CLI Usage
+
+The `fairdm-docs` command-line tool provides a simplified interface for building documentation with sensible defaults.
+
+### Basic Build
+
+```bash
+fairdm-docs build
+```
+
+This command:
+- Reads configuration from `[tool.fairdm.docs]` in `pyproject.toml` (optional)
+- Uses the package's built-in Sphinx configuration
+- Builds HTML documentation to `docs/_build/html` by default
+- Works without any configuration in `pyproject.toml`
+
+### Live Preview Server
+
+Start a live-reloading preview server for real-time documentation development:
+
+```bash
+fairdm-docs build --live
+```
+
+This command:
+- Starts a web server on `http://localhost:5000` (configurable)
+- Automatically opens your documentation in a browser
+- Watches for file changes and rebuilds automatically
+- Hot-reloads the browser when changes are detected
+- Press `Ctrl+C` to stop the server
+
+**Port Configuration**: If port 5000 is already in use, configure a different port:
+
+```toml
+[tool.fairdm.docs]
+port = 8080  # Use any available port
+```
+
+The server will then start on `http://localhost:8080`.
+
+### Documentation Validation
+
+Validate your documentation for broken links before publishing:
+
+```bash
+fairdm-docs check
+```
+
+This command:
+- Checks all internal and external links in your documentation
+- Reports broken links with file locations and line numbers
+- Exits with code 0 if all links are valid
+- Exits with code 1 if broken links are found (useful for CI/CD)
+
+**Example output** when broken links are found:
+```
+🔍 Checking documentation for broken links...
+❌ Found 2 broken link(s):
+
+   docs/api.md:42: [broken] https://nowhere.invalid/: Connection failed
+   docs/guide.md:15: [broken] https://example.broken/: 404 Not Found
+```
+
+**CI/CD Integration**: Use in your continuous integration pipeline:
+```yaml
+# Example GitHub Actions workflow
+- name: Check documentation links
+  run: poetry run fairdm-docs check
+```
+
+### Configuration Options
+
+Add configuration to your `pyproject.toml`:
+
+```toml
+[tool.fairdm.docs]
+source_dir = "docs"              # Source directory (default: "docs")
+build_dir = "docs/_build/html"   # Output directory (default: "docs/_build/html")
+port = 5000                      # Port for live server (default: 5000)
+verbosity = "full"               # Output verbosity: "full", "quiet", or "errors-only"
+django = false                   # Enable Django integration (default: false)
+```
+
+### Django Integration
+
+By default, Django is **disabled** to allow documentation builds without Django installed. Enable it when documenting Django models:
+
+```toml
+[tool.fairdm.docs]
+django = true  # Enables Django model auto-documentation extensions
+```
+
+When `django = true`:
+- Django is imported and configured automatically
+- `autodoc-models` extension is enabled for documenting Django models
+- Requires Django to be installed: `poetry add Django`
+
+When `django = false` (default):
+- No Django dependency required
+- Works in non-Django projects
+- Suitable for pure documentation sites
+
+### Examples
+
+**Zero-config build** (no pyproject.toml changes needed):
+```bash
+cd your-project
+fairdm-docs build
+```
+
+**Live preview for development**:
+```bash
+fairdm-docs build --live  # Opens browser, auto-reloads on changes
+```
+
+**Custom output directory**:
+```toml
+[tool.fairdm.docs]
+build_dir = "build/html"
+```
+
+**Custom port for live server**:
+```toml
+[tool.fairdm.docs]
+port = 8080
+```
+
+**Quiet mode for CI/CD**:
+```toml
+[tool.fairdm.docs]
+verbosity = "quiet"
+```
+
+**Django project**:
+```toml
+[tool.fairdm.docs]
+django = true
+source_dir = "documentation"
+```
+
 ## Configuration Reference
 
 ### Auto-extracted from pyproject.toml (PEP 621)
@@ -324,7 +464,90 @@ Homepage = "https://my-portal.org"
 Repository = "https://github.com/myorg/my-portal"
 ```
 
-### Migration Steps
+## Troubleshooting
+
+### Common Issues
+
+#### "No module named 'django'"
+
+**Cause**: Django integration is enabled but Django is not installed.
+
+**Solution**: Either install Django or disable the integration:
+```toml
+[tool.fairdm.docs]
+django = false  # Disable Django integration
+```
+
+Or install Django:
+```bash
+poetry add Django  # If using Poetry
+pip install Django  # If using pip
+```
+
+#### "Port 5000 is already in use"
+
+**Cause**: Another service is using port 5000 (default live server port).
+
+**Solution**: Configure a different port:
+```toml
+[tool.fairdm.docs]
+port = 8080  # Or any available port
+```
+
+#### "sphinx-autobuild not found"
+
+**Cause**: sphinx-autobuild is not installed (required for `--live` flag).
+
+**Solution**: Install sphinx-autobuild:
+```bash
+poetry add --group dev sphinx-autobuild
+# or
+pip install sphinx-autobuild
+```
+
+#### "Source directory 'docs' not found"
+
+**Cause**: Documentation source directory doesn't exist.
+
+**Solution**: Create the directory and add at least an `index.md`:
+```bash
+mkdir docs
+echo "# My Documentation" > docs/index.md
+```
+
+Or configure a different source directory:
+```toml
+[tool.fairdm.docs]
+source_dir = "documentation"  # Use your actual docs directory
+```
+
+#### "No pyproject.toml found"
+
+**Cause**: Running `fairdm-docs` outside a Python project root.
+
+**Solution**: Navigate to your project root directory (where `pyproject.toml` exists):
+```bash
+cd /path/to/your/project
+fairdm-docs build
+```
+
+#### Configuration validation errors
+
+**Cause**: Invalid values in `[tool.fairdm.docs]` configuration.
+
+**Solution**: Check error message for specific field and valid values:
+- `port`: Must be between 1 and 65535
+- `verbosity`: Must be "full", "quiet", or "errors-only"
+- `source_dir` and `build_dir`: Must be valid directory paths
+
+### Getting Help
+
+If you encounter issues not covered here:
+1. Check the [GitHub Issues](https://github.com/FAIR-DM/fairdm-docs/issues)
+2. Review the [examples/](examples/) directory for working configurations
+3. Open a new issue with details about your setup and error message
+
+## Migration from [tool.poetry]
 
 1. **Add [project] section** to `pyproject.toml` with required `name` field
 2. **Copy metadata** from `[tool.poetry]` to `[project]` (use PEP 621 format for authors)

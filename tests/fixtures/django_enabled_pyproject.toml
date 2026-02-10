@@ -1,0 +1,14 @@
+# pyproject.toml with Django enabled
+
+[project]
+name = "test-project"
+version = "1.0.0"
+description = "Test project with Django integration enabled"
+requires-python = ">=3.11"
+
+[tool.fairdm.docs]
+django = true
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

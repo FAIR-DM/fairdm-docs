@@ -1,0 +1,17 @@
+# Invalid configuration values for testing validation
+
+[project]
+name = "test-project"
+version = "1.0.0"
+description = "Test project with invalid config"
+requires-python = ">=3.11"
+
+[tool.fairdm.docs]
+source_dir = "docs"
+build_dir = "docs/_build/html"
+port = 99999  # Invalid: exceeds max port number
+verbosity = "invalid-level"  # Invalid: not a valid verbosity option
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
