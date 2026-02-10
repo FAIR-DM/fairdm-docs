@@ -18,6 +18,8 @@ dependencies = [
     'sphinx-exec-code (>=0.16,<0.17)',
     'sphinxext-opengraph (>=0.9)',
     'sphinxcontrib-bibtex (>=2.6.3,<3.0.0)',
+    'typer (>=0.12.0)',
+    'tomli (>=2.0.0); python_version < "3.11"',
 ]
 
 [project.urls]
@@ -28,6 +30,9 @@ documentation = "https://github.com/FAIR-DM/fairdm-docs#readme"
 [project.optional-dependencies]
 sphinx-book-theme = ['sphinx-book-theme (>1.1)']
 pydata-sphinx-theme = ['pydata-sphinx-theme (>=0.16.1)']
+
+[project.scripts]
+fairdm-docs = "fairdm_docs.cli:main"
 
 [tool.poetry]
 version = "0.1.0"
@@ -53,6 +58,7 @@ requires-poetry = '>=2.0,<3.0'
 black = "^23.1.0"
 invoke = "^2.0.0"
 pre-commit = "^3.2.2"
+pytest = "^8.0.0"
 
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']

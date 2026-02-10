@@ -6,18 +6,24 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import django
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath("../"))
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-
-django.setup()
+# Conditionally setup Django if enabled in configuration
+if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
+    try:
+        import django
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+        django.setup()
+    except ImportError:
+        warnings.warn(
+            "Django integration enabled but Django is not installed. "
+            "Install Django or set django=false in [tool.fairdm.docs]"
+        )
 
 
 # ============================================================================
@@ -384,8 +390,11 @@ extensions = [
     "sphinx_comments",
     "myst_parser",
     "sphinx_design",
-    "fairdm_docs.extensions.autodoc_models",
 ]
+
+# Conditionally add Django-dependent extensions
+if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
+    extensions.append("fairdm_docs.extensions.autodoc_models")
 
 
 # The master toctree document.

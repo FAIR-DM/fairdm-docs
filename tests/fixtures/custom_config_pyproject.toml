@@ -1,0 +1,17 @@
+# Custom configuration with all settings specified
+
+[project]
+name = "test-project"
+version = "1.0.0"
+description = "Test project with custom fairdm-docs config"
+requires-python = ">=3.11"
+
+[tool.fairdm.docs]
+source_dir = "documentation"
+build_dir = "build/html"
+port = 8080
+verbosity = "quiet"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

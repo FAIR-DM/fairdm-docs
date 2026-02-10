@@ -1,0 +1,12 @@
+# Minimal pyproject.toml without [tool.fairdm.docs] section
+# Should use all default values
+
+[project]
+name = "test-project"
+version = "1.0.0"
+description = "Test project for fairdm-docs CLI"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

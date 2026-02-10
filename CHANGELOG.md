@@ -5,6 +5,55 @@ All notable changes to fairdm-docs will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **CLI Tool (`fairdm-docs`)** - New command-line interface for simplified documentation workflows
+  - `fairdm-docs build` - Build documentation with sensible defaults
+  - `fairdm-docs build --live` - Live preview server with auto-reload and browser sync
+  - `fairdm-docs check` - Validate documentation for broken links
+- **Configuration System** - TOML-based configuration in `[tool.fairdm.docs]`
+  - `source_dir` - Documentation source directory (default: "docs")
+  - `build_dir` - Build output directory (default: "docs/_build/html")
+  - `port` - Port for live server (default: 5000)
+  - `verbosity` - Output level: "full", "quiet", or "errors-only" (default: "full")
+  - `django` - Enable Django integration (default: false)
+- **Zero-Configuration Workflow** - Build documentation without any configuration
+- **Django Opt-In** - Django integration disabled by default, enable via `django = true`
+- **Live Preview Server** - Real-time documentation preview with:
+  - Auto-rebuild on file changes
+  - Hot browser reload via websockets
+  - Configurable port with availability checking
+  - Graceful shutdown handling (Ctrl+C)
+- **Link Validation** - Comprehensive link checking with:
+  - Broken link detection (internal and external)
+  - File and line number reporting
+  - CI/CD friendly exit codes (0=success, 1=errors)
+- **Comprehensive Testing** - 52 automated tests covering:
+  - Configuration loading and validation
+  - Build command functionality
+  - Live server operation
+  - Link validation
+  - Error handling and user feedback
+- **User Documentation** - Extensive README updates with:
+  - CLI usage guide
+  - Configuration reference
+  - Django integration guide
+  - Troubleshooting section
+  - Multiple usage examples
+
+### Changed
+
+- Django is now opt-in via configuration instead of always enabled
+- CLI provides clearer error messages with actionable guidance
+
+### Technical
+
+- Added dependencies: `typer` (CLI framework), `tomli` (Python <3.11 TOML support)
+- New modules: `fairdm_docs/cli.py`, `fairdm_docs/config.py`
+- Entry point: `fairdm-docs` command registered in `pyproject.toml`
+
 ## [0.2.0] - 2026-01-XX
 
 ### Breaking Changes
