@@ -1,25 +1,33 @@
-"""This module houses a sphinx extension that generates documentation for Sample and Measurement classes defined in the specified apps."""
+"""
+Sphinx extension for auto-generating documentation for Django models.
+
+This extension provides the `autodjango-model` directive that automatically
+generates documentation for FairDM Sample and Measurement models, including
+their fields, metadata, and configuration.
+"""
 
 import os
 
 import django
 from django.apps import apps
 from docutils import nodes
-
-# from sphinx.util.docfields import Field, GroupedField
 from fairdm.registry import registry
 from sphinx.addnodes import desc, desc_content, desc_signature
 from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util.logging import getLogger
 
-# from io import StringIO
-# import markdown
-
 logger = getLogger(__name__)
 
 
 def generate_data_model_docs(app: Sphinx):
+    """
+    Generate data model documentation files at build time.
+
+    This function is called during the builder-inited phase and creates
+    index files for samples and measurements that can be included in the
+    main documentation tree.
+    """
     docs_dir = app.srcdir
     out_dir = os.path.join(docs_dir, "data_models")
     os.makedirs(out_dir, exist_ok=True)

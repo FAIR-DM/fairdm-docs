@@ -1,0 +1,5 @@
+# Minimal PEP 621 pyproject.toml
+# Purpose: Test zero-config with only required project.name field
+
+[project]
+name = "test-minimal-portal"

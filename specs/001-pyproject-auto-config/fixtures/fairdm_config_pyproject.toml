@@ -1,0 +1,15 @@
+# PEP 621 with [tool.fairdm.docs] configuration
+# Purpose: Test TOML-based theme configuration (User Story 4)
+
+[project]
+name = "test-fairdm-config-portal"
+version = "2.0.0"
+description = "Test portal with FairDM docs configuration"
+authors = ["Config Tester <tester@example.com>"]
+
+[project.urls]
+homepage = "https://github.com/test-org/config-portal"
+repository = "https://github.com/test-org/config-portal"
+
+[tool.fairdm.docs]
+theme = "pydata_sphinx_theme"

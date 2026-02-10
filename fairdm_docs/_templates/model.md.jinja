@@ -1,0 +1,113 @@
+# {{ model._meta.verbose_name|title }}
+
+{% if model.config.description %}
+{{ model.config.description }}
+{% endif %}
+
+{% if model.config.keywords %}
+**Keywords:** {{ model.config.keywords|join(', ') }}
+{% endif %}
+
+## Model Information
+
+- **App:** `{{ model._meta.app_label }}`
+- **Model:** `{{ model.__name__ }}`
+- **Table:** `{{ model._meta.db_table }}`
+{% if model._meta.verbose_name_plural != model._meta.verbose_name %}
+- **Plural:** {{ model._meta.verbose_name_plural|title }}
+{% endif %}
+
+## Fields
+
+{% for field in model._meta.get_fields() %}
+{% if not field.is_relation and hasattr(field, 'verbose_name') %}
+### {{ field.verbose_name|title }}
+
+- **Field Name:** `{{ field.name }}`
+- **Type:** `{{ field.__class__.__name__ }}`
+{% if hasattr(field, 'base_units') and field.base_units %}
+- **Units:** {{ field.base_units }}
+{% endif %}
+{% if field.help_text %}
+- **Description:** {{ field.help_text }}
+{% endif %}
+{% if hasattr(field, 'choices') and field.choices %}
+- **Choices:**
+{% for choice_value, choice_label in field.choices %}
+  - `{{ choice_value }}`: {{ choice_label }}
+{% endfor %}
+{% endif %}
+{% if hasattr(field, 'validators') and field.validators %}
+- **Validators:**
+{% for validator in field.validators %}
+  - `{{ validator.__class__.__name__ }}`{% if hasattr(validator, 'limit_value') %} ({{ validator.limit_value }}){% endif %}
+{% endfor %}
+{% endif %}
+{% if field.default != django.db.models.fields.NOT_PROVIDED %}
+- **Default:** `{{ field.default }}`
+{% endif %}
+{% if field.null %}
+- **Nullable:** Yes
+{% endif %}
+{% if field.blank %}
+- **Blank:** Yes
+{% endif %}
+{% if field.unique %}
+- **Unique:** Yes
+{% endif %}
+
+{% endif %}
+{% endfor %}
+
+## Relationships
+
+{% for field in model._meta.get_fields() %}
+{% if field.is_relation %}
+### {{ field.verbose_name|title }}
+
+- **Related Model:** `{{ field.related_model._meta.label }}`
+- **Relation Type:** {{ field.__class__.__name__ }}
+{% if hasattr(field, 'related_name') and field.related_name %}
+- **Related Name:** `{{ field.related_name }}`
+{% endif %}
+{% if hasattr(field, 'related_query_name') and field.related_query_name %}
+- **Related Query Name:** `{{ field.related_query_name }}`
+{% endif %}
+{% if field.null %}
+- **Nullable:** Yes
+{% endif %}
+{% if field.blank %}
+- **Blank:** Yes
+{% endif %}
+
+{% endif %}
+{% endfor %}
+
+## Meta Options
+
+- **Ordering:** {{ model._meta.ordering|join(', ') if model._meta.ordering else 'Not specified' }}
+{% if model._meta.get_latest_by %}
+- **Latest By:** {{ model._meta.get_latest_by }}
+{% endif %}
+{% if model._meta.constraints %}
+- **Constraints:**
+{% for constraint in model._meta.constraints %}
+  - `{{ constraint.__class__.__name__ }}`: {{ constraint.name }}
+{% endfor %}
+{% endif %}
+
+## Methods
+
+{% for attr_name in dir(model) %}
+{% set attr = getattr(model, attr_name) %}
+{% if callable(attr) and not attr_name.startswith('_') and attr_name not in ['save', 'delete', 'objects', 'DoesNotExist', 'MultipleObjectsReturned'] %}
+### `{{ attr_name }}()`
+
+{% if attr.__doc__ %}
+{{ attr.__doc__ }}
+{% else %}
+*No documentation provided.*
+{% endif %}
+
+{% endif %}
+{% endfor %}
