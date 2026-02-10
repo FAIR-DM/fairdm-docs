@@ -9,14 +9,15 @@ Standardized documentation configuration and tooling for FairDM-powered research
 
 `fairdm-docs` is a reusable Sphinx configuration package that provides:
 
+- **Simple CLI tool** - Build, preview, and validate documentation with `fairdm-docs` command
 - **Zero-config documentation** - Automatically extracts project metadata from `pyproject.toml` (PEP 621)
+- **Live preview server** - Real-time documentation updates with `fairdm-docs build --live`
+- **Link validation** - Check for broken links with `fairdm-docs check`
 - **Smart defaults** - Missing optional fields don't block builds, sensible defaults provided
-- **Case-insensitive** - Handles URL case variations (Homepage/homepage, Repository/repository)
 - **Flexible theming** - Pre-configured support for Sphinx Book Theme and PyData Sphinx Theme
-- **Declarative configuration** - Configure theme and options via `[tool.fairdm.docs]` in pyproject.toml
 - **Django model documentation** - Custom directives for auto-documenting Sample and Measurement models
 - **Modern features** - MyST Markdown, math support, code copy buttons, social sharing, and more
-- **Developer-friendly** - One-line import with easy customization
+- **Developer-friendly** - Works out of the box, easy to customize when needed
 
 ## Installation
 
@@ -34,50 +35,101 @@ poetry add --group dev "git+https://github.com/FAIR-DM/fairdm-docs[pydata-sphinx
 
 ## Quick Start
 
-### 1. Create your documentation directory structure
+### Option 1: Zero-Config (Recommended)
 
+The simplest way to get started - no configuration files needed!
+
+**1. Create documentation structure:**
+
+```bash
+mkdir docs
+echo "# My Documentation" > docs/index.md
+echo "Welcome to my project!" >> docs/index.md
 ```
-your-project/
-├── docs/
-│   ├── conf.py
-│   ├── index.md
-│   └── _static/      # Optional: custom CSS/images
-├── pyproject.toml
-└── ...
+
+**2. Build documentation:**
+
+```bash
+poetry run fairdm-docs build
 ```
 
-### 2. Configure Sphinx
+That's it! Documentation will be built to `docs/_build/html/`.
 
-In your `docs/conf.py`, import the base configuration:
+**For live preview during development:**
+
+```bash
+poetry run fairdm-docs build --live
+```
+
+This automatically:
+- Reads project metadata from `pyproject.toml`
+- Uses sensible defaults for everything
+- Opens a browser with live-reloading
+
+### Option 2: Add Configuration
+
+Configure behavior via `pyproject.toml`:
+
+```toml
+[tool.fairdm.docs]
+source_dir = "docs"              # Documentation source (default: "docs")
+build_dir = "docs/_build/html"   # Output directory (default: "docs/_build/html")
+port = 5000                      # Live server port (default: 5000)
+verbosity = "full"               # Options: "full", "quiet", "errors-only"
+django = false                   # Enable Django integration (default: false)
+```
+
+Then build as before:
+
+```bash
+poetry run fairdm-docs build
+```
+
+### Option 3: Advanced Customization
+
+For advanced users who need to override Sphinx settings directly, create a `docs/conf.py`:
 
 ```python
 from fairdm_docs.conf import *
 
-# Optional: Override specific settings
-project = "My Custom Project Name"  # Overrides pyproject.toml if needed
+# Override specific settings
+project = "My Custom Project Name"  # Override name from pyproject.toml
 html_theme = "pydata_sphinx_theme"  # Change theme
+
+# Add custom extensions
+extensions.extend([
+    "sphinx.ext.graphviz",
+    "sphinxcontrib.mermaid",
+])
+
+# Customize theme options
+html_theme_options.update({
+    "show_toc_level": 2,
+    "navbar_align": "left",
+})
 ```
 
-That's it! The configuration automatically:
+**Configuration precedence** (highest to lowest):
+1. Settings in `docs/conf.py` (if file exists)
+2. `[tool.fairdm.docs]` in `pyproject.toml`
+3. Package defaults
 
-- Reads project metadata from PEP 621 `[project]` section in `pyproject.toml`
-- Configures your chosen theme (Sphinx Book Theme by default) with GitHub integration
-- Enables MyST Markdown with extended features
-- Sets up all recommended extensions
-- Handles missing optional fields gracefully with sensible defaults
+### Project Structure
 
-### 3. Build your documentation
-
-```bash
-cd docs
-poetry run sphinx-build -b html . _build/html
+```
+your-project/
+├── docs/
+│   ├── index.md          # Required: main documentation file
+│   ├── conf.py           # Optional: advanced customization
+│   └── _static/          # Optional: custom CSS/images
+│       └── brand/        # Optional: logo.svg and icon.svg
+├── pyproject.toml        # Required: project metadata
+└── ...
 ```
 
-Or use autobuild for live reloading:
-
-```bash
-poetry run sphinx-autobuild docs docs/_build/html
-```
+**Minimum requirements:**
+- `pyproject.toml` with `[project]` section containing `name`
+- `docs/index.md` with some content
 
 ## Features
 
@@ -194,6 +246,8 @@ This generates complete documentation including:
 The extension uses Jinja2 templates located in `fairdm_docs/_templates/model.md.jinja` and auto-generates documentation files for all registered models in the `data_models/` directory during the build process.
 
 ## Customization
+
+**Note:** These customization options require creating a `docs/conf.py` file (see [Quick Start Option 3](#option-3-advanced-customization)). For simple configuration changes, use `[tool.fairdm.docs]` in `pyproject.toml` instead.
 
 ### Override Theme Options
 
@@ -553,7 +607,7 @@ If you encounter issues not covered here:
 2. **Copy metadata** from `[tool.poetry]` to `[project]` (use PEP 621 format for authors)
 3. **Move URLs** to `[project.urls]` table (keys are case-insensitive)
 4. **Keep [tool.poetry]** if you're still using Poetry for dependency management (both sections can coexist)
-5. **Test build**: Run `sphinx-build docs docs/_build` to verify
+5. **Test build**: Run `fairdm-docs build` to verify
 
 ### Why This Change?
 
