@@ -63,11 +63,3 @@ pytest = "^8.0.0"
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']
 build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-line-length = 120
-target-version = ['py38']
-preview = true
-
-[tool.isort]
-profile = "black"
