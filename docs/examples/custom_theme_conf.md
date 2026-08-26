@@ -146,5 +146,5 @@ html_theme_options["footer_end"] = ["theme-version"]
 ## Next Steps
 
 - [Full FairDM Portal Example](fairdm_portal_conf.md)
-- [Main Documentation](../README.md)
-- [Migration Guide](../README.md#migration-from-toolpoetry)
+- [Main Documentation](../../README.md)
+- [Migration Guide](../../README.md#migration-from-toolpoetry)

@@ -108,7 +108,7 @@ When adding features, update the README.md:
 
 ### Examples
 
-When adding new features, create an example in `examples/`:
+When adding new features, create an example in `docs/examples/`:
 - Use descriptive filename (e.g., `custom_theme_conf.md`)
 - Include complete working code
 - Explain what the example demonstrates
@@ -216,7 +216,7 @@ Include in your pull request:
 ### What Changed
 - Added `html_css_files` configuration to conf.py
 - Updated README with CSS customization example
-- Added example in examples/custom_css_conf.md
+- Added example in docs/examples/custom_css_conf.md
 
 ### Why
 Users need ability to add custom styling without overriding entire theme.

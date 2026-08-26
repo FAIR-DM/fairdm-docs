@@ -290,5 +290,5 @@ With this setup, you get:
 
 - [Basic Configuration](basic_conf.md)
 - [Custom Theme Configuration](custom_theme_conf.md)
-- [Main Documentation](../README.md)
+- [Main Documentation](../../README.md)
 - [PEP 621 Specification](https://peps.python.org/pep-0621/)

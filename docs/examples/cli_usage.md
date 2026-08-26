@@ -401,6 +401,6 @@ Then manually build others:
 ## Getting Help
 
 - **Error messages** - Read carefully, they include fix suggestions
-- **Troubleshooting** - See main [README.md](../README.md#troubleshooting)
+- **Troubleshooting** - See main [README.md](../../README.md#troubleshooting)
 - **Examples** - Check [examples/](.) for configuration samples
 - **Issues** - Report bugs at [GitHub Issues](https://github.com/FAIR-DM/fairdm-docs/issues)

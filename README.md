@@ -672,7 +672,7 @@ fairdm-docs build
 If you encounter issues not covered here:
 
 1. Check the [GitHub Issues](https://github.com/FAIR-DM/fairdm-docs/issues)
-2. Review the [examples/](examples/) directory for working configurations
+2. Review the [docs/examples/](docs/examples/) directory for working configurations
 3. Open a new issue with details about your setup and error message
 
 ## Migration from [tool.poetry]

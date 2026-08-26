@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - a security scan
   - a package build
 - **Default branch renamed** from `master` to `main`.
+- **`examples/` moved to `docs/examples/`.** It was a top-level directory holding documentation,
+  which is what `docs/` is for.
 
 ### Removed
 
@@ -34,7 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   package directory and silently excluded the entire codebase from type checking.
 - The documented lower bound for `port` was 1, while the code rejects anything below 1024.
 - The README named the model documentation directive `autodoc-models`. It is `autodoc-model`.
-
 - **pyproject.toml Search** - Fixed `conf.py` to search for `pyproject.toml` in the user's project directory instead of the installed package location
   - Now searches upward from the documentation source directory (typically `docs/`)
   - Correctly handles installation via Poetry/pip where package is in site-packages

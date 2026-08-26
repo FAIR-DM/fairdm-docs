@@ -179,7 +179,7 @@ show_error_codes = "True"
 exclude = ["^docs/", "^specs/"]
 
 [tool.deptry]
-extend_exclude = ["tests/", "docs/", "specs/", "examples/"]
+extend_exclude = ["tests/", "docs/", "specs/"]
 
 [tool.deptry.per_rule_ignores]
 # Sphinx extensions are named as strings in conf.py's `extensions` list and

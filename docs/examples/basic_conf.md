@@ -68,4 +68,4 @@ This will:
 
 - [Custom Theme Configuration](custom_theme_conf.md)
 - [Full FairDM Portal Example](fairdm_portal_conf.md)
-- [Main Documentation](../README.md)
+- [Main Documentation](../../README.md)
