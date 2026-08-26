@@ -39,6 +39,15 @@ Sphinx's configuration surface in TOML. Full control over the configuration is t
 ease of use, on purpose. Other kinds of project can install it and several do, but a portal's
 needs decide every question.
 
+What the documentation says is the portal's business. This package builds the site and generates
+pages from the portal's models. It does not prescribe which pages a portal writes or what belongs
+in them. Where a subject is worth getting right, such as citations or branding, the guidance lives
+in this package's own documentation rather than in a skeleton you are handed and then have to
+delete.
+
+Publishing means GitHub Pages. Another host, or a site served by the portal itself, is a
+developer's own to arrange.
+
 Configuration comes in three layers, in order of increasing effort:
 
 1. Defaults, which cover a portal that configures nothing.
