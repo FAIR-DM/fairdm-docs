@@ -83,7 +83,9 @@ def build(
         # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
         local_conf_py = config.source_dir / "conf.py"
         # Falls back to the package's built-in conf.py when the project has none.
-        conf_dir = config.source_dir if local_conf_py.exists() else Path(__file__).parent
+        conf_dir = (
+            config.source_dir if local_conf_py.exists() else Path(__file__).parent
+        )
 
         # Set environment variables for conf.py to use
         os.environ["FAIRDM_DOCS_DJANGO"] = "true" if config.django else "false"
@@ -104,7 +106,9 @@ def build(
                 raise typer.Exit(code=1)
 
             # Start live preview server (T043, T044, T046)
-            typer.echo(f"🔄 Starting live preview server on http://localhost:{config.port}")
+            typer.echo(
+                f"🔄 Starting live preview server on http://localhost:{config.port}"
+            )
             typer.echo("   Press Ctrl+C to stop the server\n")
 
             # Prepare sphinx-autobuild command
@@ -157,7 +161,9 @@ def build(
         try:
             from sphinx.cmd.build import main as sphinx_build
         except ImportError:
-            typer.echo("❌ Error: Sphinx not found. Install with: pip install sphinx", err=True)
+            typer.echo(
+                "❌ Error: Sphinx not found. Install with: pip install sphinx", err=True
+            )
             raise typer.Exit(code=1) from None
 
         # Prepare Sphinx arguments
@@ -212,7 +218,9 @@ def check() -> None:
         # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
         local_conf_py = config.source_dir / "conf.py"
         # Falls back to the package's built-in conf.py when the project has none.
-        conf_dir = config.source_dir if local_conf_py.exists() else Path(__file__).parent
+        conf_dir = (
+            config.source_dir if local_conf_py.exists() else Path(__file__).parent
+        )
 
         # Set environment variables for conf.py to use
         os.environ["FAIRDM_DOCS_DJANGO"] = "true" if config.django else "false"
@@ -226,7 +234,9 @@ def check() -> None:
         try:
             from sphinx.cmd.build import main as sphinx_build
         except ImportError:
-            typer.echo("❌ Error: Sphinx not found. Install with: pip install sphinx", err=True)
+            typer.echo(
+                "❌ Error: Sphinx not found. Install with: pip install sphinx", err=True
+            )
             raise typer.Exit(code=1) from None
 
         # Prepare linkcheck output directory (T054)
@@ -258,12 +268,16 @@ def check() -> None:
                 for line in f:
                     line = line.strip()
                     # Parse linkcheck output format: "filename.rst:line: [status] url: error"
-                    if line and (": [broken]" in line or ": [redirected]" in line.lower()):
+                    if line and (
+                        ": [broken]" in line or ": [redirected]" in line.lower()
+                    ):
                         broken_links.append(line)
 
             if broken_links:
                 # Display broken links (T056, T058)
-                typer.echo(f"\n❌ Found {len(broken_links)} broken link(s):\n", err=True)
+                typer.echo(
+                    f"\n❌ Found {len(broken_links)} broken link(s):\n", err=True
+                )
                 for link in broken_links:
                     typer.echo(f"   {link}", err=True)
                 typer.echo("", err=True)

@@ -405,7 +405,9 @@ port = -1
         assert result.exit_code == 1
         output = result.stdout + result.stderr
         # Error should contain the invalid value and guidance
-        assert "-1" in output or "negative" in output.lower() or "port" in output.lower()
+        assert (
+            "-1" in output or "negative" in output.lower() or "port" in output.lower()
+        )
 
 
 class TestCheckCommand:
@@ -419,7 +421,9 @@ class TestCheckCommand:
 
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
-        (docs_dir / "index.md").write_text("# Test Docs\n\nValid link: [Python](https://python.org)")
+        (docs_dir / "index.md").write_text(
+            "# Test Docs\n\nValid link: [Python](https://python.org)"
+        )
 
         monkeypatch.chdir(tmp_path)
 
@@ -435,7 +439,10 @@ class TestCheckCommand:
 
             # Should exit successfully
             assert result.exit_code == 0
-            assert "Link check complete" in result.stdout or "All links are valid" in result.stdout
+            assert (
+                "Link check complete" in result.stdout
+                or "All links are valid" in result.stdout
+            )
 
     def test_check_reports_broken_links(self, tmp_path, monkeypatch):
         """Test check command detects broken links (T062)."""
@@ -451,7 +458,9 @@ class TestCheckCommand:
         linkcheck_dir = tmp_path / "docs" / "_build" / "linkcheck"
         linkcheck_dir.mkdir(parents=True)
         output_file = linkcheck_dir / "output.txt"
-        output_file.write_text("index.md:5: [broken] https://example.invalid/: HTTPConnectionPool error\n")
+        output_file.write_text(
+            "index.md:5: [broken] https://example.invalid/: HTTPConnectionPool error\n"
+        )
 
         monkeypatch.chdir(tmp_path)
 
@@ -520,7 +529,9 @@ class TestCheckCommand:
         linkcheck_dir = tmp_path / "docs" / "_build" / "linkcheck"
         linkcheck_dir.mkdir(parents=True)
         output_file = linkcheck_dir / "output.txt"
-        broken_link_line = "docs/api.md:42: [broken] https://nowhere.invalid/: Connection failed"
+        broken_link_line = (
+            "docs/api.md:42: [broken] https://nowhere.invalid/: Connection failed"
+        )
         output_file.write_text(broken_link_line + "\n")
 
         monkeypatch.chdir(tmp_path)
@@ -580,7 +591,9 @@ class TestLiveServerCommand:
         monkeypatch.chdir(tmp_path)
 
         # Mock is_port_available to return True
-        with patch("fairdm_docs.cli.is_port_available", return_value=True) as mock_check:
+        with patch(
+            "fairdm_docs.cli.is_port_available", return_value=True
+        ) as mock_check:
             with patch("subprocess.run") as mock_run:
                 mock_run.return_value.returncode = 0
 
@@ -617,7 +630,9 @@ class TestLiveServerCommand:
         """Test that live server uses custom port from config (T051)."""
         # Create project with custom port configuration
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("[project]\nname = 'test'\n\n[tool.fairdm.docs]\nport = 8080\n")
+        pyproject.write_text(
+            "[project]\nname = 'test'\n\n[tool.fairdm.docs]\nport = 8080\n"
+        )
 
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()

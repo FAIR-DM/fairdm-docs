@@ -190,11 +190,19 @@ def _resolve_branding_assets() -> dict[str, str]:
 
     # Check for project logo
     project_logo = project_brand / "logo.svg"
-    logo_path = str(project_logo) if project_logo.exists() else str(fairdm_docs_static / "logo.svg")
+    logo_path = (
+        str(project_logo)
+        if project_logo.exists()
+        else str(fairdm_docs_static / "logo.svg")
+    )
 
     # Check for project icon/favicon
     project_icon = project_brand / "icon.svg"
-    favicon_path = str(project_icon) if project_icon.exists() else str(fairdm_docs_static / "icon.svg")
+    favicon_path = (
+        str(project_icon)
+        if project_icon.exists()
+        else str(fairdm_docs_static / "icon.svg")
+    )
 
     return {
         "logo_path": logo_path,
@@ -260,7 +268,11 @@ def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
     Returns:
         Dictionary with optional configuration (theme, etc.)
     """
-    if "tool" not in data or "fairdm" not in data["tool"] or "docs" not in data["tool"]["fairdm"]:
+    if (
+        "tool" not in data
+        or "fairdm" not in data["tool"]
+        or "docs" not in data["tool"]["fairdm"]
+    ):
         return {}
 
     config = data["tool"]["fairdm"]["docs"]

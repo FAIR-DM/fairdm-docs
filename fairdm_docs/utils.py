@@ -13,7 +13,9 @@ from pathlib import Path
 from typing import Any
 
 
-def find_pyproject_toml(start_dir: Path | None = None, use_env_var: bool = False) -> Path | None:
+def find_pyproject_toml(
+    start_dir: Path | None = None, use_env_var: bool = False
+) -> Path | None:
     """
     Find pyproject.toml by searching upward from a starting directory.
 
@@ -57,7 +59,9 @@ def find_pyproject_toml(start_dir: Path | None = None, use_env_var: bool = False
     return None
 
 
-def load_pyproject_toml(pyproject_path: Path | None = None, start_dir: Path | None = None) -> dict[str, Any]:
+def load_pyproject_toml(
+    pyproject_path: Path | None = None, start_dir: Path | None = None
+) -> dict[str, Any]:
     """
     Load and parse pyproject.toml file.
 

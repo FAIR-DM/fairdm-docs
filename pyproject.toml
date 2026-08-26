@@ -102,7 +102,6 @@ source = ["fairdm_docs"]
 
 [tool.ruff]
 target-version = "py312"
-line-length = 120
 fix = true
 exclude = ['docs/', 'specs/']
 
