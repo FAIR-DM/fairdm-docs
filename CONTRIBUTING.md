@@ -70,17 +70,17 @@ Thank you for your interest in contributing to fairdm-docs! This document provid
 def extract_metadata(toml_path: str) -> dict[str, Any]:
     """
     Extract project metadata from pyproject.toml file.
-    
+
     Args:
         toml_path: Path to the pyproject.toml file
-        
+
     Returns:
         Dictionary containing project metadata
-        
+
     Raises:
         FileNotFoundError: If toml_path doesn't exist
         tomllib.TOMLDecodeError: If file is not valid TOML
-        
+
     Example:
         >>> metadata = extract_metadata("../pyproject.toml")
         >>> metadata["name"]

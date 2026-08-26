@@ -21,125 +21,125 @@ runner = CliRunner()
 
 class TestBuildCommand:
     """Test the build command functionality."""
-    
+
     def test_build_with_defaults(self, tmp_path, monkeypatch):
         """Test building documentation with default configuration."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
-        
+
         # Create a minimal index file
         (docs_dir / "index.md").write_text("# Test Docs\n\nHello world!")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock sphinx.cmd.build.main to avoid actual build
-        with patch('sphinx.cmd.build.main', return_value=0) as mock_build:
+        with patch("sphinx.cmd.build.main", return_value=0) as mock_build:
             runner.invoke(app, ["build"])
-            
+
             # Should call sphinx_build
             assert mock_build.called
-            
+
             # Check arguments passed to Sphinx
             args = mock_build.call_args[0][0]
             assert "-b" in args
             assert "html" in args
             # Check that docs path is in args (could be "docs" or absolute path)
             assert "docs" in args or str(docs_dir) in args
-    
+
     def test_build_creates_output_directory(self, tmp_path, monkeypatch):
         """Test that build creates output directory if it doesn't exist."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         build_dir = tmp_path / "docs" / "_build" / "html"
         assert not build_dir.exists()
-        
-        with patch('sphinx.cmd.build.main', return_value=0):
+
+        with patch("sphinx.cmd.build.main", return_value=0):
             runner.invoke(app, ["build"])
-            
+
             # Parent directory should be created
             assert build_dir.parent.exists()
-    
+
     def test_build_displays_progress_messages(self, tmp_path, monkeypatch):
         """Test that build shows progress messages to user."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0):
+
+        with patch("sphinx.cmd.build.main", return_value=0):
             result = runner.invoke(app, ["build"])
-            
+
             # Should show build start message
             assert "Building documentation" in result.stdout
-            
+
             # Should show success message
             assert "Build complete" in result.stdout
             assert "✅" in result.stdout
-    
+
     def test_build_exits_zero_on_success(self, tmp_path, monkeypatch):
         """Test that successful build exits with code 0."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0):
+
+        with patch("sphinx.cmd.build.main", return_value=0):
             result = runner.invoke(app, ["build"])
-            
+
             assert result.exit_code == 0
-    
+
     def test_build_error_when_no_pyproject(self, tmp_path, monkeypatch):
         """Test that build errors when pyproject.toml not found."""
         monkeypatch.chdir(tmp_path)
-        
+
         result = runner.invoke(app, ["build"])
-        
+
         # Should exit with error
         assert result.exit_code == 1
-        
+
         # Should show clear error message (can be in stdout or stderr)
         output = result.stdout + result.stderr
         assert "No pyproject.toml found" in output
         assert "Run this command from your project root" in output
-    
+
     def test_build_error_when_source_missing(self, tmp_path, monkeypatch):
         """Test that build errors when source directory doesn't exist."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         # Don't create docs/ directory
         monkeypatch.chdir(tmp_path)
-        
+
         result = runner.invoke(app, ["build"])
-        
+
         # Should exit with error
         assert result.exit_code == 1
-        
+
         # Should show clear error message (can be in stdout or stderr)
         output = result.stdout + result.stderr
         assert "Source directory" in output
         assert "not found" in output
         assert "[tool.fairdm.docs]" in output
-    
+
     def test_build_with_custom_source_dir(self, tmp_path, monkeypatch):
         """Test building with custom source directory from config (T067)."""
         pyproject = tmp_path / "pyproject.toml"
@@ -150,22 +150,22 @@ name = "test"
 [tool.fairdm.docs]
 source_dir = "documentation"
         """)
-        
+
         docs_dir = tmp_path / "documentation"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0) as mock_build:
+
+        with patch("sphinx.cmd.build.main", return_value=0) as mock_build:
             result = runner.invoke(app, ["build"])
-            
+
             assert result.exit_code == 0
-            
+
             # Should use custom source directory
             args = mock_build.call_args[0][0]
             assert "documentation" in args
-    
+
     def test_build_with_custom_build_dir(self, tmp_path, monkeypatch):
         """Test building with custom build directory from config (T066)."""
         pyproject = tmp_path / "pyproject.toml"
@@ -176,22 +176,22 @@ name = "test"
 [tool.fairdm.docs]
 build_dir = "build/output"
         """)
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0) as mock_build:
+
+        with patch("sphinx.cmd.build.main", return_value=0) as mock_build:
             result = runner.invoke(app, ["build"])
-            
+
             assert result.exit_code == 0
-            
+
             # Should use custom build directory
             args = mock_build.call_args[0][0]
             assert "output" in " ".join(args)
-    
+
     def test_build_with_verbosity_quiet(self, tmp_path, monkeypatch):
         """Test build with quiet verbosity setting."""
         pyproject = tmp_path / "pyproject.toml"
@@ -202,20 +202,20 @@ name = "test"
 [tool.fairdm.docs]
 verbosity = "quiet"
         """)
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0) as mock_build:
+
+        with patch("sphinx.cmd.build.main", return_value=0) as mock_build:
             runner.invoke(app, ["build"])
-            
+
             # Should pass -q flag to Sphinx
             args = mock_build.call_args[0][0]
             assert "-q" in args
-    
+
     def test_build_with_verbosity_errors_only(self, tmp_path, monkeypatch):
         """Test build with errors-only verbosity setting."""
         pyproject = tmp_path / "pyproject.toml"
@@ -226,87 +226,87 @@ name = "test"
 [tool.fairdm.docs]
 verbosity = "errors-only"
         """)
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0) as mock_build:
+
+        with patch("sphinx.cmd.build.main", return_value=0) as mock_build:
             runner.invoke(app, ["build"])
-            
+
             # Should pass -Q flag to Sphinx
             args = mock_build.call_args[0][0]
             assert "-Q" in args
-    
+
     def test_build_failure_returns_nonzero(self, tmp_path, monkeypatch):
         """Test that Sphinx build failure returns non-zero exit code."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock Sphinx to return error code
-        with patch('sphinx.cmd.build.main', return_value=2):
+        with patch("sphinx.cmd.build.main", return_value=2):
             result = runner.invoke(app, ["build"])
-            
+
             assert result.exit_code == 2
             output = result.stdout + result.stderr
             assert "Build failed" in output
-    
+
     def test_build_uses_package_conf_py(self, tmp_path, monkeypatch):
         """Test that build uses package's built-in conf.py."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0) as mock_build:
+
+        with patch("sphinx.cmd.build.main", return_value=0) as mock_build:
             runner.invoke(app, ["build"])
-            
+
             # Should pass -c flag pointing to package directory
             args = mock_build.call_args[0][0]
             assert "-c" in args
-            
+
             # Find the config directory argument (after -c)
             c_index = args.index("-c")
             config_dir = args[c_index + 1]
-            
+
             # Should contain fairdm_docs
             assert "fairdm_docs" in config_dir
-    
+
     def test_build_sets_django_env_var_false_by_default(self, tmp_path, monkeypatch):
         """Test that Django environment variable is set to false by default."""
         import os
-        
+
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0):
+
+        with patch("sphinx.cmd.build.main", return_value=0):
             runner.invoke(app, ["build"])
-            
+
             # Django env var should be set to false
             assert os.environ.get("FAIRDM_DOCS_DJANGO") == "false"
-    
+
     def test_build_sets_django_env_var_true_when_enabled(self, tmp_path, monkeypatch):
         """Test that Django environment variable is set to true when enabled in config."""
         import os
-        
+
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -315,23 +315,23 @@ name = "test"
 [tool.fairdm.docs]
 django = true
         """)
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0):
+
+        with patch("sphinx.cmd.build.main", return_value=0):
             runner.invoke(app, ["build"])
-            
+
             # Django env var should be set to true
             assert os.environ.get("FAIRDM_DOCS_DJANGO") == "true"
 
 
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
-    
+
     def test_invalid_port_shows_clear_error(self, tmp_path, monkeypatch):
         """Test that invalid port triggers clear error message (T072)."""
         pyproject = tmp_path / "pyproject.toml"
@@ -342,21 +342,21 @@ name = "test"
 [tool.fairdm.docs]
 port = 100000
         """)
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         result = runner.invoke(app, ["build"])
-        
+
         # Should exit with error
         assert result.exit_code == 1
         output = result.stdout + result.stderr
         assert "port" in output.lower()
         assert "100000" in output or "invalid" in output.lower()
-    
+
     def test_invalid_verbosity_shows_clear_error(self, tmp_path, monkeypatch):
         """Test that invalid verbosity triggers clear error message (T073)."""
         pyproject = tmp_path / "pyproject.toml"
@@ -367,21 +367,21 @@ name = "test"
 [tool.fairdm.docs]
 verbosity = "invalid"
         """)
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         result = runner.invoke(app, ["build"])
-        
+
         # Should exit with error
         assert result.exit_code == 1
         output = result.stdout + result.stderr
         assert "verbosity" in output.lower()
         assert "invalid" in output or "full" in output or "quiet" in output
-    
+
     def test_config_validation_error_message_format(self, tmp_path, monkeypatch):
         """Test that config validation errors have clear format (T071)."""
         pyproject = tmp_path / "pyproject.toml"
@@ -392,15 +392,15 @@ name = "test"
 [tool.fairdm.docs]
 port = -1
         """)
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         result = runner.invoke(app, ["build"])
-        
+
         # Should exit with error
         assert result.exit_code == 1
         output = result.stdout + result.stderr
@@ -410,126 +410,124 @@ port = -1
 
 class TestCheckCommand:
     """Test the check command functionality."""
-    
+
     def test_check_passes_with_no_errors(self, tmp_path, monkeypatch):
         """Test check command with valid links (T061)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test Docs\n\nValid link: [Python](https://python.org)")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock sphinx.cmd.build.main for linkcheck
-        with patch('sphinx.cmd.build.main', return_value=0) as mock_build:
+        with patch("sphinx.cmd.build.main", return_value=0) as mock_build:
             result = runner.invoke(app, ["check"])
-            
+
             # Should call sphinx_build with linkcheck builder
             assert mock_build.called
             args = mock_build.call_args[0][0]
             assert "-b" in args
             assert "linkcheck" in args
-            
+
             # Should exit successfully
             assert result.exit_code == 0
             assert "Link check complete" in result.stdout or "All links are valid" in result.stdout
-    
+
     def test_check_reports_broken_links(self, tmp_path, monkeypatch):
         """Test check command detects broken links (T062)."""
         # Create project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         # Create linkcheck output directory and file with broken link
         linkcheck_dir = tmp_path / "docs" / "_build" / "linkcheck"
         linkcheck_dir.mkdir(parents=True)
         output_file = linkcheck_dir / "output.txt"
-        output_file.write_text(
-            "index.md:5: [broken] https://example.invalid/: HTTPConnectionPool error\n"
-        )
-        
+        output_file.write_text("index.md:5: [broken] https://example.invalid/: HTTPConnectionPool error\n")
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock sphinx build to return success but with broken links in output
-        with patch('sphinx.cmd.build.main', return_value=0):
+        with patch("sphinx.cmd.build.main", return_value=0):
             result = runner.invoke(app, ["check"])
-            
+
             # Should exit with error
             assert result.exit_code == 1
             # Combined stdout and stderr for error messages
             output = result.stdout + result.stderr
             assert "broken link" in output.lower()
-    
+
     def test_check_exits_zero_on_success(self, tmp_path, monkeypatch):
         """Test check command exits with code 0 when no errors (T063)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock successful linkcheck
-        with patch('sphinx.cmd.build.main', return_value=0):
+        with patch("sphinx.cmd.build.main", return_value=0):
             result = runner.invoke(app, ["check"])
-            
+
             assert result.exit_code == 0
-    
+
     def test_check_exits_one_on_errors(self, tmp_path, monkeypatch):
         """Test check command exits with code 1 when errors found (T064)."""
         # Create project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         # Create linkcheck output with broken link
         linkcheck_dir = tmp_path / "docs" / "_build" / "linkcheck"
         linkcheck_dir.mkdir(parents=True)
         output_file = linkcheck_dir / "output.txt"
         output_file.write_text("index.md:5: [broken] https://bad.link/: Error\n")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0):
+
+        with patch("sphinx.cmd.build.main", return_value=0):
             result = runner.invoke(app, ["check"])
-            
+
             assert result.exit_code == 1
-    
+
     def test_check_displays_file_and_line_numbers(self, tmp_path, monkeypatch):
         """Test check command displays file locations for broken links (T065)."""
         # Create project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         # Create linkcheck output with specific file and line
         linkcheck_dir = tmp_path / "docs" / "_build" / "linkcheck"
         linkcheck_dir.mkdir(parents=True)
         output_file = linkcheck_dir / "output.txt"
         broken_link_line = "docs/api.md:42: [broken] https://nowhere.invalid/: Connection failed"
         output_file.write_text(broken_link_line + "\n")
-        
+
         monkeypatch.chdir(tmp_path)
-        
-        with patch('sphinx.cmd.build.main', return_value=0):
+
+        with patch("sphinx.cmd.build.main", return_value=0):
             result = runner.invoke(app, ["check"])
-            
+
             # Should display the file and line number
             output = result.stdout + result.stderr
             assert "api.md" in output
@@ -538,131 +536,125 @@ class TestCheckCommand:
 
 class TestLiveServerCommand:
     """Test the build --live command functionality."""
-    
+
     def test_build_live_starts_server(self, tmp_path, monkeypatch):
         """Test that --live flag starts sphinx-autobuild server (T048)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock subprocess.run to simulate sphinx-autobuild
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value.returncode = 0
-            
+
             # Mock is_port_available to return True
-            with patch('fairdm_docs.cli.is_port_available', return_value=True):
+            with patch("fairdm_docs.cli.is_port_available", return_value=True):
                 result = runner.invoke(app, ["build", "--live"])
-                
+
                 # Should call subprocess.run
                 assert mock_run.called
-                
+
                 # Check sphinx-autobuild was called with correct arguments
                 args = mock_run.call_args[0][0]
                 assert "sphinx_autobuild" in " ".join(args)
                 assert "--port" in args
                 assert "5000" in args  # Default port
                 assert "--open-browser" in args
-    
+
     def test_build_live_checks_port_availability(self, tmp_path, monkeypatch):
         """Test that live server checks port availability before starting (T049)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock is_port_available to return True
-        with patch('fairdm_docs.cli.is_port_available', return_value=True) as mock_check:
-            with patch('subprocess.run') as mock_run:
+        with patch("fairdm_docs.cli.is_port_available", return_value=True) as mock_check:
+            with patch("subprocess.run") as mock_run:
                 mock_run.return_value.returncode = 0
-                
+
                 result = runner.invoke(app, ["build", "--live"])
-                
+
                 # Port availability should be checked
                 assert mock_check.called
                 assert mock_check.call_args[0][0] == 5000  # Default port
-    
+
     def test_build_live_error_when_port_occupied(self, tmp_path, monkeypatch):
         """Test error handling when port is already in use (T050)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock is_port_available to return False (port occupied)
-        with patch('fairdm_docs.cli.is_port_available', return_value=False):
+        with patch("fairdm_docs.cli.is_port_available", return_value=False):
             result = runner.invoke(app, ["build", "--live"])
-            
+
             # Should exit with error
             assert result.exit_code == 1
             # Error messages go to stderr (typer.echo(..., err=True))
             output = result.stdout + result.stderr
             assert "Port 5000 is already in use" in output
             assert "[tool.fairdm.docs]" in output  # Config guidance
-    
+
     def test_build_live_uses_custom_port_from_config(self, tmp_path, monkeypatch):
         """Test that live server uses custom port from config (T051)."""
         # Create project with custom port configuration
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            "[project]\n"
-            "name = 'test'\n"
-            "\n"
-            "[tool.fairdm.docs]\n"
-            "port = 8080\n"
-        )
-        
+        pyproject.write_text("[project]\nname = 'test'\n\n[tool.fairdm.docs]\nport = 8080\n")
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock subprocess.run
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value.returncode = 0
-            
-            with patch('fairdm_docs.cli.is_port_available', return_value=True):
+
+            with patch("fairdm_docs.cli.is_port_available", return_value=True):
                 result = runner.invoke(app, ["build", "--live"])
-                
+
                 # Should use custom port 8080
                 args = mock_run.call_args[0][0]
                 assert "--port" in args
                 port_index = args.index("--port") + 1
                 assert args[port_index] == "8080"
-    
+
     def test_build_live_handles_missing_sphinx_autobuild(self, tmp_path, monkeypatch):
         """Test error handling when sphinx-autobuild is not installed."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
-        
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.md").write_text("# Test")
-        
+
         monkeypatch.chdir(tmp_path)
-        
+
         # Mock subprocess.run to raise FileNotFoundError
-        with patch('subprocess.run', side_effect=FileNotFoundError):
-            with patch('fairdm_docs.cli.is_port_available', return_value=True):
+        with patch("subprocess.run", side_effect=FileNotFoundError):
+            with patch("fairdm_docs.cli.is_port_available", return_value=True):
                 result = runner.invoke(app, ["build", "--live"])
-                
+
                 # Should exit with error
                 assert result.exit_code == 1
                 # Error messages go to stderr
@@ -672,27 +664,27 @@ class TestLiveServerCommand:
 
 class TestCLIHelp:
     """Test CLI help output."""
-    
+
     def test_app_help(self):
         """Test main app help message."""
         result = runner.invoke(app, ["--help"])
-        
+
         assert result.exit_code == 0
         assert "fairdm-docs" in result.stdout
         assert "build" in result.stdout
         assert "check" in result.stdout
-    
+
     def test_build_help(self):
         """Test build command help message."""
         result = runner.invoke(app, ["build", "--help"])
-        
+
         assert result.exit_code == 0
         assert "Build Sphinx documentation" in result.stdout
         assert "--live" in result.stdout
-    
+
     def test_check_help(self):
         """Test check command help message."""
         result = runner.invoke(app, ["check", "--help"])
-        
+
         assert result.exit_code == 0
         assert "Validate documentation" in result.stdout

@@ -180,23 +180,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           pip install poetry
           poetry install --with dev
-      
+
       - name: Build documentation
         run: poetry run fairdm-docs build
-      
+
       - name: Validate links
         run: poetry run fairdm-docs check
-      
+
       - name: Upload documentation
         uses: actions/upload-artifact@v4
         with:
@@ -263,7 +263,7 @@ If you get "Port 5000 is already in use":
    # Windows
    netstat -ano | findstr :5000
    taskkill /PID <PID> /F
-   
+
    # Linux/Mac
    lsof -i :5000
    kill <PID>

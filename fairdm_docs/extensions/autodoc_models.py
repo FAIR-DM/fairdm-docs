@@ -6,7 +6,7 @@ generates documentation for Django models using configurable Jinja2 templates.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import django
 from django.apps import apps
@@ -36,7 +36,7 @@ class AutoDocModelDirective(SphinxDirective):
     optional_arguments = 0
     has_content = False
 
-    def run(self) -> List[nodes.Node]:
+    def run(self) -> list[nodes.Node]:
         """Execute the directive."""
         if not apps.ready:
             django.setup()
@@ -83,7 +83,7 @@ class AutoDocModelDirective(SphinxDirective):
         except Exception as e:
             return [self._error_node(f"Markdown parsing failed: {e}")]
 
-        return document.children
+        return list(document.children)
 
     def _error_node(self, message: str) -> nodes.Node:
         """Create an error node."""
@@ -112,7 +112,7 @@ class AutoDocModelDirective(SphinxDirective):
 
         return env
 
-    def _prepare_context(self, model) -> Dict[str, Any]:
+    def _prepare_context(self, model) -> dict[str, Any]:
         """Prepare the context dictionary for template rendering."""
         # Just pass the model class - template handles everything else
         return {"model": model}
@@ -162,7 +162,7 @@ def generate_model_docs(app: Sphinx) -> None:
             f.write(f"```{{autodoc-model}} {model_path}\n```\n\n")
 
 
-def setup(app: Sphinx) -> Dict[str, Any]:
+def setup(app: Sphinx) -> dict[str, Any]:
     """
     Setup the autodoc-models extension.
     """

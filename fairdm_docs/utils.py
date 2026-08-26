@@ -6,21 +6,14 @@ used across the package (conf.py, config.py, CLI, etc.).
 """
 
 import os
-import sys
-from pathlib import Path
-from typing import Any, Optional
 
 # Use tomllib for Python 3.11+, tomli for 3.10
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    try:
-        import tomli as tomllib
-    except ImportError:
-        raise ImportError("tomli is required for Python < 3.11. Install with: pip install tomli")
+import tomllib
+from pathlib import Path
+from typing import Any
 
 
-def find_pyproject_toml(start_dir: Optional[Path] = None, use_env_var: bool = False) -> Optional[Path]:
+def find_pyproject_toml(start_dir: Path | None = None, use_env_var: bool = False) -> Path | None:
     """
     Find pyproject.toml by searching upward from a starting directory.
 
@@ -56,7 +49,7 @@ def find_pyproject_toml(start_dir: Optional[Path] = None, use_env_var: bool = Fa
         start_dir = Path.cwd()
 
     # Search current directory and all parents
-    for parent in [start_dir] + list(start_dir.parents):
+    for parent in [start_dir, *list(start_dir.parents)]:
         pyproject = parent / "pyproject.toml"
         if pyproject.exists():
             return pyproject
@@ -64,7 +57,7 @@ def find_pyproject_toml(start_dir: Optional[Path] = None, use_env_var: bool = Fa
     return None
 
 
-def load_pyproject_toml(pyproject_path: Optional[Path] = None, start_dir: Optional[Path] = None) -> dict[str, Any]:
+def load_pyproject_toml(pyproject_path: Path | None = None, start_dir: Path | None = None) -> dict[str, Any]:
     """
     Load and parse pyproject.toml file.
 
@@ -94,9 +87,7 @@ def load_pyproject_toml(pyproject_path: Optional[Path] = None, start_dir: Option
     if pyproject_path is None:
         search_from = start_dir or Path.cwd()
         raise FileNotFoundError(
-            f"pyproject.toml not found. "
-            f"Ensure it exists at your project root directory. "
-            f"Searched from: {search_from}"
+            f"pyproject.toml not found. Ensure it exists at your project root directory. Searched from: {search_from}"
         )
 
     with open(pyproject_path, "rb") as f:
