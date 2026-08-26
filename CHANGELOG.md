@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - a package build
 - **Default branch renamed** from `master` to `main`.
 
+### Removed
+
+- The vendored Spec Kit tooling: `.specify/`, `.github/agents/`, `.github/prompts/` and
+  `.github/instructions/`. The feature records it produced stay in `specs/`.
+
 ### Fixed
 
 - `mypy` was configured with an unanchored `docs/` exclusion, which also matched the `fairdm_docs/`

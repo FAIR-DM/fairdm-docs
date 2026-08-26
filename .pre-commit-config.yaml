@@ -3,7 +3,9 @@
 # hooks inside the Poetry env, versioned by the mvp-shared[dev] bundle.
 # ruff format replaces black; ruff's UP rules replace pyupgrade.
 
-exclude: "^docs/|^specs/|^\\.specify/"
+# specs/ holds the record of past feature work. It is history, so the hooks
+# leave it alone rather than rewriting it.
+exclude: "^docs/|^specs/"
 default_stages: [pre-commit]
 
 repos:
