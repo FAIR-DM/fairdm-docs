@@ -24,7 +24,8 @@ if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
     except ImportError:
         warnings.warn(
             "Django integration enabled but Django is not installed. "
-            "Install Django or set django=false in [tool.fairdm.docs]"
+            "Install Django or set django=false in [tool.fairdm.docs]",
+            stacklevel=2,
         )
 
 
@@ -99,24 +100,29 @@ def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
     name = project.get("name")
     if not name:
         raise ValueError(
-            "Missing required 'project.name' in pyproject.toml. "
-            "Add [project]\\nname = 'your-project-name'"
+            "Missing required 'project.name' in pyproject.toml. Add [project]\\nname = 'your-project-name'"
         )
 
     # Optional fields with defaults
     version = project.get("version", "0.0.0")
 
     # Handle dynamic versioning by checking tool.poetry as fallback
-    if version == "0.0.0" and "dynamic" in project and "version" in project["dynamic"]:
-        # Check if version exists in tool.poetry (common for transitional projects)
-        if "tool" in data and "poetry" in data["tool"]:
-            version = data["tool"]["poetry"].get("version", "0.0.0")
+    # Check if version exists in tool.poetry (common for transitional projects)
+    if (
+        version == "0.0.0"
+        and "dynamic" in project
+        and "version" in project["dynamic"]
+        and "tool" in data
+        and "poetry" in data["tool"]
+    ):
+        version = data["tool"]["poetry"].get("version", "0.0.0")
 
     # Warn if version is still default
     if version == "0.0.0":
         warnings.warn(
             "project.version not found in pyproject.toml, using default '0.0.0'",
             UserWarning,
+            stacklevel=2,
         )
 
     description = project.get("description", "")
@@ -124,6 +130,7 @@ def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
         warnings.warn(
             "project.description not found in pyproject.toml, documentation may lack description",
             UserWarning,
+            stacklevel=2,
         )
 
     # Parse authors (format: "Name <email>" or "Name")
@@ -132,6 +139,7 @@ def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
         warnings.warn(
             "project.authors not found in pyproject.toml, using default ['Unknown']",
             UserWarning,
+            stacklevel=2,
         )
     author_names = []
     for author in authors:
@@ -182,17 +190,19 @@ def _resolve_branding_assets() -> dict[str, str]:
 
     # Check for project logo
     project_logo = project_brand / "logo.svg"
-    if project_logo.exists():
-        logo_path = str(project_logo)
-    else:
-        logo_path = str(fairdm_docs_static / "logo.svg")
+    logo_path = (
+        str(project_logo)
+        if project_logo.exists()
+        else str(fairdm_docs_static / "logo.svg")
+    )
 
     # Check for project icon/favicon
     project_icon = project_brand / "icon.svg"
-    if project_icon.exists():
-        favicon_path = str(project_icon)
-    else:
-        favicon_path = str(fairdm_docs_static / "icon.svg")
+    favicon_path = (
+        str(project_icon)
+        if project_icon.exists()
+        else str(fairdm_docs_static / "icon.svg")
+    )
 
     return {
         "logo_path": logo_path,
@@ -278,6 +288,7 @@ def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
                 f"Unknown theme '{theme}' in [tool.fairdm.docs], using default sphinx_book_theme. "
                 f"Known themes: {', '.join(known_themes)}",
                 UserWarning,
+                stacklevel=2,
             )
             theme = None
 
@@ -304,10 +315,8 @@ except FileNotFoundError:
         pyproject_data = load_pyproject_toml(pyproject_path)
     else:
         raise ValueError(
-            "pyproject.toml not found. "
-            "Ensure it exists at your project root directory. "
-            f"Searched from: {Path.cwd()}"
-        )
+            f"pyproject.toml not found. Ensure it exists at your project root directory. Searched from: {Path.cwd()}"
+        ) from None
 
 metadata = _extract_project_metadata(pyproject_data)
 fairdm_config = _extract_fairdm_config(pyproject_data)
@@ -523,7 +532,7 @@ htmlhelp_basename = f"{metadata['name']}_docs"
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_elements = {
+latex_elements: dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').

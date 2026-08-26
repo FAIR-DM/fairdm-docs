@@ -1,11 +1,11 @@
 [project]
 name = "fairdm-docs"
-description = "Standardized documentation configuration and tooling for FairDM-powered research data portals"
+description = "Sphinx configuration and build tooling for FairDM research data portals"
 license = "MIT"
 dynamic = ["version", "classifiers"]
 readme = "README.md"
 authors = [{ name = "Sam", email = "samuel.scott.jennings@gmail.com" }]
-requires-python = '>=3.11'
+requires-python = '>=3.12'
 dependencies = [
     'sphinx (>=8.1)',
     'markdown',
@@ -19,7 +19,8 @@ dependencies = [
     'sphinxext-opengraph (>=0.9)',
     'sphinxcontrib-bibtex (>=2.6.3,<3.0.0)',
     'typer (>=0.12.0)',
-    'tomli (>=2.0.0); python_version < "3.11"',
+    'docutils',
+    'jinja2',
 ]
 
 [project.urls]
@@ -35,19 +36,21 @@ pydata-sphinx-theme = ['pydata-sphinx-theme (>=0.16.1)']
 fairdm-docs = "fairdm_docs.cli:main"
 
 [tool.poetry]
-version = "0.3.0"
+# Source of truth for the release flow: tag-release cuts v<version> when no
+# matching tag exists on a main push touching this file.
+version = "0.0.1"
 packages = [{ include = "fairdm_docs" }]
 include = ["LICENSE", "README.md"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.2",
     "Framework :: Sphinx",
     "Framework :: Sphinx :: Extension",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Documentation",
     "Topic :: Documentation :: Sphinx",
     "Topic :: Software Development :: Documentation",
@@ -55,11 +58,152 @@ classifiers = [
 requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.1.0"
-invoke = "^2.0.0"
-pre-commit = "^3.2.2"
-pytest = "^8.0.0"
+# Family toolchain bundle; the pin tag is the family-standard version. The
+# marker carries the bundle's own upper bound, which the package deliberately
+# does not adopt — dev tooling never ships to consumers.
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.4.0", python = ">=3.12,<4", extras = [
+    "dev",
+    "test",
+] }
+# Imported by the model-documentation extension and by conf.py when a portal
+# build enables Django. Never a runtime dependency of this package: a portal
+# already supplies Django, and a non-portal build must not need it installed.
+django = ">=5.2"
 
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py", "tests.py", "*_tests.py"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--tb=short",
+    "--cov=fairdm_docs",
+    "--cov-report=html",
+    "-ra",
+]
+filterwarnings = [
+    "ignore",
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.coverage.report]
+skip_empty = true
+show_missing = true
+
+[tool.coverage.run]
+branch = true
+source = ["fairdm_docs"]
+
+[tool.ruff]
+target-version = "py312"
+fix = true
+exclude = ['docs/', 'specs/']
+
+[tool.ruff.lint]
+# Family-standard rule set (mirrors django-literature / django-easy-icons).
+select = [
+    # flake8-2020
+    "YTT",
+    # flake8-bandit
+    "S",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # mccabe
+    "C90",
+    # pycodestyle
+    "E", "W",
+    # pyflakes
+    "F",
+    # pygrep-hooks
+    "PGH",
+    # pyupgrade
+    "UP",
+    # ruff
+    "RUF",
+    # tryceratops
+    "TRY",
+]
+ignore = [
+    # LineTooLong
+    "E501",
+    # DoNotAssignLambda
+    "E731",
+    # Mutable class attributes
+    "RUF012",
+    # Avoid long messages outside the exception class
+    "TRY003",
+    # Function too complex
+    "C901",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: asserts, hardcoded test passwords, blind-exception asserts, builtin
+# shadowing, unused variables, nested-with and raise-in-try — style rules that
+# don't pay for themselves in tests.
+"tests/*" = ["S101", "S105", "S106", "B017", "A001", "RUF059", "F841", "SIM117", "TRY301"]
+# conf.py is a Sphinx configuration module: Sphinx reads it by executing it and
+# collecting module-level names, so the star-import surface and the mutation of
+# sys.path are the interface, not an oversight. `copyright` is one of those
+# names — Sphinx looks for exactly that spelling, builtin or not.
+"fairdm_docs/conf.py" = ["E402", "F403", "F405", "A001"]
+
+[tool.mypy]
+files = ["fairdm_docs"]
+disallow_untyped_defs = "False"
+disallow_any_unimported = "False"
+ignore_missing_imports = "True"
+no_implicit_optional = "True"
+check_untyped_defs = "False"
+warn_return_any = "True"
+warn_unused_ignores = "True"
+show_error_codes = "True"
+# Anchored: mypy's exclude entries are regexes matched against the whole path,
+# so an unanchored "docs/" also matches the package directory fairdm_docs/ and
+# silently excludes everything.
+exclude = ["^docs/", "^specs/"]
+
+[tool.deptry]
+extend_exclude = ["tests/", "docs/", "specs/"]
+
+[tool.deptry.per_rule_ignores]
+# Sphinx extensions are named as strings in conf.py's `extensions` list and
+# loaded by Sphinx, so deptry's import scan cannot see them.
+DEP002 = [
+    "markdown",
+    "myst-parser",
+    "sphinx-autobuild",
+    "sphinx-autodoc2",
+    "sphinx-comments",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinx-exec-code",
+    "sphinxcontrib-bibtex",
+    "sphinxext-opengraph",
+    # Themes are named as strings in the theme setting, and each ships behind an
+    # optional extra, so no import of them exists to find.
+    "sphinx-book-theme",
+    "pydata-sphinx-theme",
+]
+# Django is a peer the portal supplies, so it is imported by the source but
+# declared only as a dev dependency. Promoting it to a runtime dependency would
+# force Django on every non-portal build; see docs/adr/0003.
+DEP004 = ["django"]
+# FairDM is the framework the portal already runs. The import is guarded and
+# only reached inside a portal build, for the same reason Django is (ADR 0003).
+DEP001 = ["fairdm"]

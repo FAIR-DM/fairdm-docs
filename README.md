@@ -1,9 +1,9 @@
 # FairDM Documentation Tools
 
-Standardized documentation configuration and tooling for FairDM-powered research data portals.
+Sphinx configuration and build tooling for FairDM research data portals.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 
 ## Overview
 
@@ -18,6 +18,41 @@ Standardized documentation configuration and tooling for FairDM-powered research
 - **Django model documentation** - Custom directives for auto-documenting Sample and Measurement models
 - **Modern features** - MyST Markdown, math support, code copy buttons, social sharing, and more
 - **Developer-friendly** - Works out of the box, easy to customize when needed
+
+## Status
+
+Early. The version is `0.0.1` and the package is working towards a `0.1.0` milestone.
+
+Parts of this README describe intent rather than current behaviour — Django model documentation
+in particular is not wired up in the shipped configuration, so the `autodoc-model` directive is
+not registered by a normal build. Where the README and the code disagree, the code is the fact.
+Open an issue when you hit one.
+
+## Scope & philosophy
+
+This is a documentation setup for FairDM portals, built for a portal developer who wants a good
+documentation site and has no interest in learning Sphinx. It reads the portal's own metadata,
+branding and registered models, and turns them into a rendered site with nothing configured.
+
+It is not a general-purpose Sphinx distribution, and it is not a thin wrapper that exposes
+Sphinx's configuration surface in TOML. Full control over the configuration is traded away for
+ease of use, on purpose. Other kinds of project can install it and several do, but a portal's
+needs decide every question.
+
+Configuration comes in three layers, in order of increasing effort:
+
+1. Defaults, which cover a portal that configures nothing.
+2. `[tool.fairdm.docs]` in `pyproject.toml`, for the settings developers actually change.
+3. A `docs/conf.py` of your own, which is the escape hatch and gives you all of Sphinx back.
+
+This mirrors how FairDM itself treats Django settings, so that configuring a portal and
+configuring its documentation feel like the same activity.
+
+When those layers pull against each other, the tie-breaks are:
+
+- a working default beats a configurable one
+- a portal beats a standalone package
+- a fact read from the portal beats a fact restated in configuration
 
 ## Installation
 
@@ -433,7 +468,7 @@ django = true  # Enables Django model auto-documentation extensions
 When `django = true`:
 
 - Django is imported and configured automatically
-- `autodoc-models` extension is enabled for documenting Django models
+- the `autodoc-model` directive becomes available for documenting Django models
 - Requires Django to be installed: `poetry add Django`
 
 When `django = false` (default):
@@ -628,7 +663,7 @@ fairdm-docs build
 
 **Solution**: Check error message for specific field and valid values:
 
-- `port`: Must be between 1 and 65535
+- `port`: Must be between 1024 and 65535
 - `verbosity`: Must be "full", "quiet", or "errors-only"
 - `source_dir` and `build_dir`: Must be valid directory paths
 
@@ -637,7 +672,7 @@ fairdm-docs build
 If you encounter issues not covered here:
 
 1. Check the [GitHub Issues](https://github.com/FAIR-DM/fairdm-docs/issues)
-2. Review the [examples/](examples/) directory for working configurations
+2. Review the [docs/examples/](docs/examples/) directory for working configurations
 3. Open a new issue with details about your setup and error message
 
 ## Migration from [tool.poetry]

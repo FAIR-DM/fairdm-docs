@@ -70,17 +70,17 @@ Thank you for your interest in contributing to fairdm-docs! This document provid
 def extract_metadata(toml_path: str) -> dict[str, Any]:
     """
     Extract project metadata from pyproject.toml file.
-    
+
     Args:
         toml_path: Path to the pyproject.toml file
-        
+
     Returns:
         Dictionary containing project metadata
-        
+
     Raises:
         FileNotFoundError: If toml_path doesn't exist
         tomllib.TOMLDecodeError: If file is not valid TOML
-        
+
     Example:
         >>> metadata = extract_metadata("../pyproject.toml")
         >>> metadata["name"]
@@ -108,7 +108,7 @@ When adding features, update the README.md:
 
 ### Examples
 
-When adding new features, create an example in `examples/`:
+When adding new features, create an example in `docs/examples/`:
 - Use descriptive filename (e.g., `custom_theme_conf.md`)
 - Include complete working code
 - Explain what the example demonstrates
@@ -216,7 +216,7 @@ Include in your pull request:
 ### What Changed
 - Added `html_css_files` configuration to conf.py
 - Updated README with CSS customization example
-- Added example in examples/custom_css_conf.md
+- Added example in docs/examples/custom_css_conf.md
 
 ### Why
 Users need ability to add custom styling without overriding entire theme.

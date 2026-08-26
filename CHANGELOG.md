@@ -7,8 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Version reset to `0.0.1`.** Nothing was ever tagged, released or published, so the earlier
+  numbers described intent rather than a released artefact. The package now works towards `0.1.0`
+  and `1.0.0` milestones from a clean base, and `pyproject.toml` is the single source of truth for
+  the version.
+- **Minimum Python is now 3.12**, matching every project that consumes this package.
+- **Toolchain moved to ruff** for linting and formatting, replacing black and isort. Type checking
+  (`mypy`) and dependency checking (`deptry`) are now enforced.
+- **Continuous integration added.** The release flow is wired up, and every pull request now runs:
+  - the test suite
+  - code quality checks
+  - a security scan
+  - a package build
+- **Default branch renamed** from `master` to `main`.
+- **`examples/` moved to `docs/examples/`.** It was a top-level directory holding documentation,
+  which is what `docs/` is for.
+
+### Removed
+
+- The vendored Spec Kit tooling: `.specify/`, `.github/agents/`, `.github/prompts/` and
+  `.github/instructions/`. The feature records it produced stay in `specs/`.
+
 ### Fixed
 
+- `mypy` was configured with an unanchored `docs/` exclusion, which also matched the `fairdm_docs/`
+  package directory and silently excluded the entire codebase from type checking.
+- The documented lower bound for `port` was 1, while the code rejects anything below 1024.
+- The README named the model documentation directive `autodoc-models`. It is `autodoc-model`.
 - **pyproject.toml Search** - Fixed `conf.py` to search for `pyproject.toml` in the user's project directory instead of the installed package location
   - Now searches upward from the documentation source directory (typically `docs/`)
   - Correctly handles installation via Poetry/pip where package is in site-packages

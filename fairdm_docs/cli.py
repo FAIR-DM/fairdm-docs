@@ -10,9 +10,9 @@ import socket
 import subprocess
 import sys
 from pathlib import Path
+from typing import Annotated
 
 import typer
-from typing_extensions import Annotated
 
 from fairdm_docs.config import ConfigError, load_config
 
@@ -82,11 +82,10 @@ def build(
         # Determine which conf.py to use:
         # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
         local_conf_py = config.source_dir / "conf.py"
-        if local_conf_py.exists():
-            conf_dir = config.source_dir
-        else:
-            # Fall back to package's built-in conf.py
-            conf_dir = Path(__file__).parent
+        # Falls back to the package's built-in conf.py when the project has none.
+        conf_dir = (
+            config.source_dir if local_conf_py.exists() else Path(__file__).parent
+        )
 
         # Set environment variables for conf.py to use
         os.environ["FAIRDM_DOCS_DJANGO"] = "true" if config.django else "false"
@@ -107,7 +106,9 @@ def build(
                 raise typer.Exit(code=1)
 
             # Start live preview server (T043, T044, T046)
-            typer.echo(f"🔄 Starting live preview server on http://localhost:{config.port}")
+            typer.echo(
+                f"🔄 Starting live preview server on http://localhost:{config.port}"
+            )
             typer.echo("   Press Ctrl+C to stop the server\n")
 
             # Prepare sphinx-autobuild command
@@ -132,7 +133,7 @@ def build(
             try:
                 # Run sphinx-autobuild (blocks until Ctrl+C) (T045)
                 # Don't capture output so user can see what's happening
-                process = subprocess.run(sphinx_autobuild_args, check=False)
+                process = subprocess.run(sphinx_autobuild_args, check=False)  # noqa: S603 - argv is built from sys.executable and validated build settings
 
                 # If process exited with error, show helpful message
                 if process.returncode != 0:
@@ -145,13 +146,13 @@ def build(
                 raise typer.Exit(code=process.returncode)
             except KeyboardInterrupt:
                 typer.echo("\n⚠️  Server stopped by user")
-                raise typer.Exit(code=0)
+                raise typer.Exit(code=0) from None
             except FileNotFoundError:
                 typer.echo(
                     "❌ Error: sphinx-autobuild not found.\n   Install with: pip install sphinx-autobuild",
                     err=True,
                 )
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=1) from None
 
         # Build with Sphinx
         typer.echo("📚 Building documentation...")
@@ -160,8 +161,10 @@ def build(
         try:
             from sphinx.cmd.build import main as sphinx_build
         except ImportError:
-            typer.echo("❌ Error: Sphinx not found. Install with: pip install sphinx", err=True)
-            raise typer.Exit(code=1)
+            typer.echo(
+                "❌ Error: Sphinx not found. Install with: pip install sphinx", err=True
+            )
+            raise typer.Exit(code=1) from None
 
         # Prepare Sphinx arguments
         verbosity_flags = get_verbosity_flags(config.verbosity)
@@ -191,10 +194,10 @@ def build(
 
     except ConfigError as e:
         typer.echo(str(e), err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
     except KeyboardInterrupt:
         typer.echo("\n⚠️  Build interrupted by user", err=True)
-        raise typer.Exit(code=130)
+        raise typer.Exit(code=130) from None
 
 
 @app.command()
@@ -214,11 +217,10 @@ def check() -> None:
         # Determine which conf.py to use:
         # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
         local_conf_py = config.source_dir / "conf.py"
-        if local_conf_py.exists():
-            conf_dir = config.source_dir
-        else:
-            # Fall back to package's built-in conf.py
-            conf_dir = Path(__file__).parent
+        # Falls back to the package's built-in conf.py when the project has none.
+        conf_dir = (
+            config.source_dir if local_conf_py.exists() else Path(__file__).parent
+        )
 
         # Set environment variables for conf.py to use
         os.environ["FAIRDM_DOCS_DJANGO"] = "true" if config.django else "false"
@@ -232,8 +234,10 @@ def check() -> None:
         try:
             from sphinx.cmd.build import main as sphinx_build
         except ImportError:
-            typer.echo("❌ Error: Sphinx not found. Install with: pip install sphinx", err=True)
-            raise typer.Exit(code=1)
+            typer.echo(
+                "❌ Error: Sphinx not found. Install with: pip install sphinx", err=True
+            )
+            raise typer.Exit(code=1) from None
 
         # Prepare linkcheck output directory (T054)
         linkcheck_dir = config.build_dir.parent / "linkcheck"
@@ -260,16 +264,20 @@ def check() -> None:
 
         if output_file.exists():
             broken_links = []
-            with open(output_file, "r", encoding="utf-8") as f:
+            with open(output_file, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     # Parse linkcheck output format: "filename.rst:line: [status] url: error"
-                    if line and (": [broken]" in line or ": [redirected]" in line.lower()):
+                    if line and (
+                        ": [broken]" in line or ": [redirected]" in line.lower()
+                    ):
                         broken_links.append(line)
 
             if broken_links:
                 # Display broken links (T056, T058)
-                typer.echo(f"\n❌ Found {len(broken_links)} broken link(s):\n", err=True)
+                typer.echo(
+                    f"\n❌ Found {len(broken_links)} broken link(s):\n", err=True
+                )
                 for link in broken_links:
                     typer.echo(f"   {link}", err=True)
                 typer.echo("", err=True)
@@ -289,10 +297,10 @@ def check() -> None:
 
     except ConfigError as e:
         typer.echo(str(e), err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
     except KeyboardInterrupt:
         typer.echo("\n⚠️  Check interrupted by user", err=True)
-        raise typer.Exit(code=130)
+        raise typer.Exit(code=130) from None
 
 
 def main() -> None:
