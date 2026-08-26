@@ -4,7 +4,7 @@
 
 This document was designed against [GOALS.md](../GOALS.md). See also [CONTEXT.md](../CONTEXT.md) for domain terminology and [memory/constitution.md](../memory/constitution.md) for project standards.
 
-The first two items are already built. They are carried here so the sequence reads whole, from an empty repository to where the package stands today.
+The first two items have code behind them. They are carried here so the sequence reads whole, from an empty repository onwards, and neither is claimed as finished until it has been checked against the specification that describes it.
 
 ## Versioning
 
@@ -23,13 +23,13 @@ Two rules follow from that table. A goal is not one minor release: some take sev
 
 Aspirational goals may be developed against v2 or v1 as required. None are recorded yet, so this roadmap ends at `1.0.0`.
 
-## Already delivered
+## Built, not yet verified
 
-Each of these is working code, carried at a verification tag until a later pass confirms it meets the goal it claims.
+Each of these describes a capability the code already attempts. Whether it does so well enough to count is decided by a check against its specification, not here.
 
 ### R1 — A command that builds a portal's documentation
 
-*Delivered · needs verification · advances G1*
+*needs verification · advances G1*
 
 A single command turns a directory of Markdown into a rendered HTML site, with a live-reloading variant for writing and a second command that checks the site's links. A small set of settings in the portal's `pyproject.toml` moves the source directory, the output directory, the preview port and how much the build says as it runs.
 
@@ -37,7 +37,7 @@ Serves G1.
 
 ### R2 — The portal's own metadata becomes the site's identity
 
-*Delivered · needs verification · advances G4*
+*needs verification · advances G4*
 
 The name, version, description, authors and repository address a portal already declares for packaging are read straight out of that declaration and become the site's title, version line, copyright and repository links. A portal that has stated a fact once is never asked to state it again, and a missing optional fact warns rather than stopping the build.
 
@@ -133,7 +133,7 @@ What a complete and dependable version is expected to have.
 
 *feature · advances G5*
 
-Research documentation cites things, and a portal building on a research data framework will have a bibliography before it has a documentation site. Citation support is currently a declared dependency that no build switches on, so a developer who wants it has to reach past the package and configure it themselves. The same holds for the other inputs a portal already has lying in known places. R4 settled branding and static files. This item covers what is left.
+Research documentation cites things, and a portal building on a research data framework will have a bibliography before it has a documentation site. Citation support is currently a declared dependency that no build switches on, so a developer who wants it has to reach past the package and configure it themselves. The same holds for the other inputs a portal already has lying in known places. Branding and static files belong to R4. This item covers what is left.
 
 **Deliverables:**
 
