@@ -510,18 +510,31 @@
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:243"
+              "fairdm_docs/conf.py:80",
+              "fairdm_docs/conf.py:210"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity::test_repository_address_reaches_the_theme_configuration"
             ]
           }
         },
         {
           "id": "T032a",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:116",
+              "fairdm_docs/conf.py:163"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestConfigurationFailures"
+            ]
+          }
         }
       ]
     }

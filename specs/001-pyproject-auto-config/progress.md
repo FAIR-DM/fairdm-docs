@@ -165,3 +165,31 @@ Verified: `poetry run pytest tests/test_metadata.py::TestAddresses -v` — RED f
 then 6 passed after the change. Full `tests/test_metadata.py` — 21 passed, no regressions,
 including the T015 warning-count test above. `ruff check` and `mypy` on both changed files clean.
 Next: T032, T032a.
+
+## 2026-08-31T15:35:00Z · Implementer US4 · T032
+
+Did: `_apply_theme_config`'s `repository_url = ""` (line 82) and the module-level
+`repository_url = ""` above `comments_config` (line 213) — both D14 placeholders — now read
+`metadata.address`.
+Verified: `poetry run pytest tests/test_conf.py::TestSiteIdentity -v` — RED first
+(`assert '' == 'https://github.com/example/sample-portal'`), then 5 passed after the change. Full
+`tests/test_conf.py` — 7 passed. `ruff check` and `mypy` on both changed files clean.
+Next: T032a.
+
+## 2026-08-31T15:35:44Z · Implementer US4 · T032a
+
+Did: `ProjectMetadata.from_file` gained a `use_env_var` parameter mirroring
+`find_pyproject_toml`'s own (D21, reconciling D13 and D17). `conf.py`'s project-information block
+now builds `metadata` with `ProjectMetadata.from_file(use_env_var=True)`, catching `ConfigError`
+and re-raising `sphinx.errors.ConfigError` with the same message text so Sphinx's pass-through
+branch handles it (D19) instead of the generic branch that embeds a traceback. `pyproject_data`
+for `_extract_fairdm_config` is now fetched with an explicit second
+`find_pyproject_toml`/`load_pyproject_toml` call, deliberately (D21) rather than reusing
+`from_file`'s internal read. The dead `raise ValueError(...)` fallback is gone.
+Verified: `tests/test_conf.py::TestConfigurationFailures`, two tests — RED first (both raised
+`sphinx.errors.ConfigError` already, since Sphinx's generic branch wraps any exception, but the
+message asserted "syntax"/no "Traceback" and failed against the wrapped traceback text), then 2
+passed after the change. Full `tests/test_conf.py`, `tests/test_metadata.py` and `tests/test_cli.py`
+— 61 passed, no regressions (`tests/test_cli.py::TestConfigurationFailures`, D18's patched-build
+test, still passes unmodified). `ruff check` and `mypy` on both changed files clean.
+Next: story report.
