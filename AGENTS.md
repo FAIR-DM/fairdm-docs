@@ -54,7 +54,7 @@ Python.
 
 Feature work follows a spec-driven process: spec → plan → tasks → implement → review → PR, with
 `specs/NNN-slug/` directories generated per feature. Project standards and the quality bar live
-in `memory/constitution.md`.
+in `CONSTITUTION.md`.
 
 Two standing cautions specific to this repo:
 
