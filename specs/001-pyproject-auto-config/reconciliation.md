@@ -61,9 +61,9 @@ Each of these is implemented and looks right on inspection. The work remaining i
 | T015 | `fairdm_docs/conf.py:122` | Warns for a defaulted version, description and authors. A defaulted address produces no warning, so FR-013's one-per-field does not hold. |
 | T017 | `fairdm_docs/conf.py:122` | Uses `warnings.warn`, which does not reach the build output. D4, and settled empirically in research Q1. |
 | T019 | `fairdm_docs/conf.py:85` | Right message, wrong type: `ValueError`. D3. |
-| T020 | `fairdm_docs/conf.py:91` | Right message, wrong type. D3. |
+| T020 | `fairdm_docs/conf.py:92` | Right message, wrong type. D3. |
 | T021 | `fairdm_docs/conf.py:100` | Wrong type, and the message carries a literal backslash-n rather than a line break. D3, D8. |
-| T023 | `fairdm_docs/conf.py:312` | Wrong type. D3. |
+| T023 | `fairdm_docs/conf.py:317` | Wrong type. D3. |
 | T024 | — | Follows from the four above: no failure in this specification raises the type `cli.py` catches. |
 
 ## Two things this pass found that the rewrite had not

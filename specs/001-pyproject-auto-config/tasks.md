@@ -142,8 +142,10 @@ out of the HTML.
 ## Dependencies
 
 - Phase 1 blocks everything.
-- T008 blocks T012; T012 blocks T013.
+- T008 blocks T012. T012 blocks T013.
 - T017 blocks T018. T025 blocks T026. T031 blocks T032.
-- The four stories are independent of one another once Phase 1 is done, other than that they edit
-  `fairdm_docs/metadata.py` in turn.
+- T008 blocks T017. T017 blocks T025. T025 blocks T031. The four stories all edit
+  `fairdm_docs/metadata.py`, which T008 creates and T017, T025 and T031 each add to. They are
+  therefore built one after another, each starting from the feature branch once the story before it
+  has landed on it, and never side by side in separate checkouts.
 - Phase 7 comes last.

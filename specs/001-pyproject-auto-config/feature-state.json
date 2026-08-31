@@ -2,11 +2,28 @@
   "feature": "001-pyproject-auto-config",
   "branch": "001-pyproject-auto-config",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
-    {"state": "SPECIFY", "at": "2026-08-31T09:40:00Z", "note": "Specification rewritten around R2; prior version and reasons in decisions.md"},
-    {"state": "GATE_SPEC", "at": "2026-08-31T10:05:00Z", "note": "Scope narrowed to R2 on approval; remaining adjudications delegated"},
-    {"state": "PLAN", "at": "2026-08-31T11:29:00Z", "note": "Task list written greenfield and committed before reconciliation"}
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-31T09:40:00Z",
+      "note": "Specification rewritten around R2; prior version and reasons in decisions.md"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-31T10:05:00Z",
+      "note": "Scope narrowed to R2 on approval; remaining adjudications delegated"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-31T11:29:00Z",
+      "note": "Task list written greenfield and committed before reconciliation"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-31T11:36:01Z",
+      "note": "Reviewer dispatched with the three standard lenses plus a reconciliation lens over the audit's satisfied/open split"
+    }
   ],
   "gates": {
     "spec": {
@@ -21,8 +38,14 @@
         "Warnings are required to reach the documentation build's own output"
       ]
     },
-    "plan": {"approved_by": null, "at": null},
-    "merge": {"approved_by": null, "at": null}
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
   },
   "stories": [
     {
@@ -33,12 +56,36 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T001", "status": "todo", "attempts": 0},
-        {"id": "T002", "status": "todo", "attempts": 0},
-        {"id": "T003", "status": "todo", "attempts": 0},
-        {"id": "T033", "status": "todo", "attempts": 0},
-        {"id": "T034", "status": "todo", "attempts": 0},
-        {"id": "T035", "status": "todo", "attempts": 0}
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -49,16 +96,91 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T004", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:71"]}},
-        {"id": "T005", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:149"]}},
-        {"id": "T006", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:146"]}},
-        {"id": "T007", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:328"]}},
-        {"id": "T008", "status": "todo", "attempts": 0},
-        {"id": "T009", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:324"]}},
-        {"id": "T010", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:325"]}},
-        {"id": "T011", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:327"]}},
-        {"id": "T012", "status": "todo", "attempts": 0},
-        {"id": "T013", "status": "todo", "attempts": 0}
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:71"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:149"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:146"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:328"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:324"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:325"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:327"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -69,11 +191,51 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T014", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:105"]}},
-        {"id": "T015", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:122"]}},
-        {"id": "T016", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:108"]}},
-        {"id": "T017", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:122"]}},
-        {"id": "T018", "status": "todo", "attempts": 0}
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:105"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:122"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:108"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:122"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -84,14 +246,66 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T019", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:85"]}},
-        {"id": "T020", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:91"]}},
-        {"id": "T021", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:100"]}},
-        {"id": "T022", "status": "todo", "attempts": 0},
-        {"id": "T023", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:312"]}},
-        {"id": "T024", "status": "todo", "attempts": 0},
-        {"id": "T025", "status": "todo", "attempts": 0},
-        {"id": "T026", "status": "todo", "attempts": 0}
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:85"
+            ]
+          }
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:92"
+            ]
+          }
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:100"
+            ]
+          }
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:317"
+            ]
+          }
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -102,20 +316,84 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T027", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:159"]}},
-        {"id": "T028", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:52"]}},
-        {"id": "T029", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:224"]}},
-        {"id": "T030", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:159"]}},
-        {"id": "T031", "status": "todo", "attempts": 0},
-        {"id": "T032", "status": "todo", "attempts": 0, "evidence": {"code": ["fairdm_docs/conf.py:243"]}}
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:159"
+            ]
+          }
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:52"
+            ]
+          }
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:224"
+            ]
+          }
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:159"
+            ]
+          }
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:243"
+            ]
+          }
+        }
       ]
     }
   ],
   "budgets": {
-    "converge_cycles": {"used": 0, "max": 2},
-    "review_cycles": {"used": 0, "max": 1},
-    "design_review_cycles": {"used": 0, "max": 1},
-    "tokens": {"used": 0, "max": 1500000}
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 1500000
+    }
   },
-  "pr": {"number": 12, "draft": true}
+  "pr": {
+    "number": 12,
+    "draft": true
+  }
 }

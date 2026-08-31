@@ -127,3 +127,30 @@ The threshold used: an item counts as already done only where the code does it *
 it. Code with no test leaves its item open, and the remaining work on it is the test. On a module
 measured at 0% coverage (`conf.py`, 137 statements) that threshold is what most of this run's work
 comes from.
+
+## D11 — Three artefacts of the superseded specification are removed.
+
+`data-model.md`, `quickstart.md` and `checklists/requirements.md` were generated for the February
+version of this specification and were not touched when it was rewritten. Nothing in the current
+plan reads any of them, and each contradicts what was approved.
+
+`data-model.md` states that a version cannot be dynamic, which FR-006 requires; that every key is
+matched case-insensitively, which D6 narrowed to `[project.urls]`; and it names an error type this
+package does not have. It also documents the theme, branding and settings entities that D1 and D2
+moved to R3 and R10. `quickstart.md` repeats the case-insensitivity claim twice and documents the
+same out-of-scope surface. `checklists/requirements.md` grades the text of the specification that
+was replaced.
+
+**Settled:** deleted. A directory in which the only file named for the data model contradicts the
+plan is worse than one with no such file, because the contradiction is only visible to a reader who
+already knows which document won. What is current is in `spec.md`, `plan.md` and this file, and what
+was replaced is in the history.
+
+## D12 — The four stories edit one new file, so they are sequential.
+
+`metadata.py` is created by US1 and added to by US2, US3 and US4. Each story is otherwise
+independent, which reads as a licence to build them side by side. A story branched before US1 has
+landed would not contain the file it is supposed to extend.
+
+**Settled:** the dependency is written into `tasks.md` as blocking edges rather than left as a
+remark, and each story starts from the feature branch after the one before it has landed on it.
