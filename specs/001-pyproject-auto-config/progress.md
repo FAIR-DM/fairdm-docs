@@ -217,3 +217,23 @@ Verified: `poetry run pytest tests/test_cli.py tests/test_conf.py -v` — reprod
 against the buggy version, then 40 passed after the fix, in that same cross-file order. Full
 `./forge verify` — all steps passed, including `poetry:test` (previously the one that caught this).
 `ruff check` and `mypy` clean on the re-touched files.
+
+## 2026-08-31T15:56:00Z · Implementer SHARED · T033
+
+Did: added `tests/test_metadata.py::TestEdgeCases`, eight characterisation tests over the eight
+declarations Phase 6 names, touching no production code. An empty `[project]` table fails the same
+way as no name. An empty `authors` list is kept as `[]` with no warning (D16: presence, not
+truthiness). An author string with no email keeps the string; one that is only an email, and an
+author table with an email and no name, both produce `""` as the display name —
+`display_name` (metadata.py:42) splits on `"<"` and keeps only what comes before it, so there is
+nothing before it to keep either way. A `dynamic = ["version"]` declaration with no
+`[tool.poetry]` version falls back to the default and warns, same as no version declared at all.
+`Repository` and `repository` both present resolve to whichever is declared first in the table —
+`resolve_address` returns on the first case-insensitive match, and TOML preserves declaration
+order, so this is about position, not spelling. A name that is not a valid distribution name is
+used verbatim; FR-007 does not validate it.
+Verified RED first on the two least obvious cases (the empty-authors-no-warning assertion and the
+first-wins address, each temporarily flipped to the wrong expected value) — both failed for the
+right reason, then restored and green. Full `tests/test_metadata.py` — 29 passed, no regressions.
+`ruff check`, `ruff format --check` and `mypy` on the changed file clean.
+Next: T034.

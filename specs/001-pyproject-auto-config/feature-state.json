@@ -94,8 +94,13 @@
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_metadata.py::TestEdgeCases"
+            ]
+          }
         },
         {
           "id": "T034",

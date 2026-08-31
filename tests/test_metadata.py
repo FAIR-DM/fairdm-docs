@@ -288,3 +288,90 @@ class TestFailures:
         with pytest.raises(ConfigError) as exc_info:
             ProjectMetadata.from_file(bad_toml_dir)
         assert type(exc_info.value) is ConfigError
+
+
+class TestEdgeCases:
+    """Less common declarations from Phase 6, pinning the code's actual behaviour."""
+
+    def test_empty_project_table_fails_the_same_way_as_no_name(self):
+        with pytest.raises(ConfigError) as exc_info:
+            ProjectMetadata.from_toml_data({"project": {}})
+
+        message = str(exc_info.value)
+        assert "name" in message
+        assert "[project]" in message
+
+    def test_empty_authors_list_is_present_not_defaulted(self, caplog):
+        """D16: defaulting checks key presence, not truthiness. A declared-but-empty
+        authors list is not "not found", so it is kept as an empty list and no
+        warning is emitted for it."""
+        with caplog.at_level("WARNING"):
+            metadata = ProjectMetadata.from_toml_data(
+                {"project": {"name": "sample-portal", "authors": []}}
+            )
+
+        assert metadata.authors == []
+        assert not any("authors" in record.message for record in caplog.records)
+
+    def test_author_string_with_no_email_produces_that_string_as_the_display_name(self):
+        metadata = ProjectMetadata.from_toml_data(
+            {"project": {"name": "sample-portal", "authors": ["Jane Doe"]}}
+        )
+
+        assert metadata.authors == ["Jane Doe"]
+
+    def test_author_string_that_is_only_an_email_produces_an_empty_display_name(self):
+        """display_name splits on "<" and keeps what comes before it; an
+        email-only string has nothing before the "<" (fairdm_docs/metadata.py:42)."""
+        metadata = ProjectMetadata.from_toml_data(
+            {"project": {"name": "sample-portal", "authors": ["<jane@example.com>"]}}
+        )
+
+        assert metadata.authors == [""]
+
+    def test_author_table_with_email_and_no_name_produces_an_empty_display_name(self):
+        metadata = ProjectMetadata.from_toml_data(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "authors": [{"email": "jane@example.com"}],
+                }
+            }
+        )
+
+        assert metadata.authors == [""]
+
+    def test_dynamic_version_without_a_poetry_fallback_defaults_and_warns(self, caplog):
+        with caplog.at_level("WARNING"):
+            metadata = ProjectMetadata.from_toml_data(
+                {"project": {"name": "sample-portal", "dynamic": ["version"]}}
+            )
+
+        assert metadata.version == "0.0.0"
+        assert any("version" in record.message for record in caplog.records)
+
+    def test_repository_declared_twice_under_different_capitalisation_first_wins(self):
+        """TOML preserves declaration order, and resolve_address returns on the
+        first case-insensitive match it finds — so whichever spelling is written
+        first in the file wins, not "repository" specifically."""
+        metadata = ProjectMetadata.from_toml_data(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "urls": {
+                        "Repository": "https://github.com/example/first",
+                        "repository": "https://github.com/example/second",
+                    },
+                }
+            }
+        )
+
+        assert metadata.repository == "https://github.com/example/first"
+
+    def test_invalid_distribution_name_is_used_verbatim(self):
+        """FR-007: the name is used as declared; nothing in this feature validates it."""
+        metadata = ProjectMetadata.from_toml_data(
+            {"project": {"name": "Not A Valid Name!"}}
+        )
+
+        assert metadata.name == "Not A Valid Name!"
