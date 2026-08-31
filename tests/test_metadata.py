@@ -118,3 +118,18 @@ class TestDefaults:
         assert any("version" in message for message in messages)
         assert any("authors" in message for message in messages)
         assert any("description" in message for message in messages)
+
+    def test_dynamic_version_falls_back_to_tool_poetry(self):
+        metadata = ProjectMetadata.from_toml_data(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "description": "A sample research data portal",
+                    "authors": ["Jane Doe"],
+                    "dynamic": ["version"],
+                },
+                "tool": {"poetry": {"version": "2.5.0"}},
+            }
+        )
+
+        assert metadata.version == "2.5.0"
