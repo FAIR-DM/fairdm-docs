@@ -4,6 +4,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+from sphinx.util.logging import getLogger
+
+logger = getLogger(__name__)
+
+DEFAULT_VERSION = "0.0.0"
+DEFAULT_AUTHORS = ["Unknown"]
+DEFAULT_DESCRIPTION = ""
+
 
 @dataclass
 class ProjectMetadata:
@@ -27,14 +35,44 @@ class ProjectMetadata:
             return author.split("<")[0].strip()
         return author.strip()
 
+    @staticmethod
+    def resolve_version(project: dict[str, Any], data: dict[str, Any]) -> str | None:
+        """The declared version, or its `[tool.poetry]` fallback when dynamic, or None."""
+        if "version" in project:
+            return project["version"]
+        if "version" in project.get("dynamic", []):
+            poetry_version = data.get("tool", {}).get("poetry", {}).get("version")
+            if poetry_version is not None:
+                return poetry_version
+        return None
+
     @classmethod
     def from_toml_data(cls, data: dict[str, Any]) -> "ProjectMetadata":
         """Build a ProjectMetadata from an already-parsed pyproject.toml mapping."""
         project = data["project"]
-        authors = [cls.display_name(author) for author in project["authors"]]
+
+        version = cls.resolve_version(project, data)
+        if version is None:
+            logger.warning(f"No version declared in [project]; defaulting to {DEFAULT_VERSION!r}.")
+            version = DEFAULT_VERSION
+
+        if "description" in project:
+            description = project["description"]
+        else:
+            logger.warning(
+                f"No description declared in [project]; defaulting to {DEFAULT_DESCRIPTION!r}."
+            )
+            description = DEFAULT_DESCRIPTION
+
+        if "authors" in project:
+            authors = [cls.display_name(author) for author in project["authors"]]
+        else:
+            logger.warning(f"No authors declared in [project]; defaulting to {DEFAULT_AUTHORS!r}.")
+            authors = list(DEFAULT_AUTHORS)
+
         return cls(
             name=project["name"],
-            version=project["version"],
-            description=project["description"],
+            version=version,
+            description=description,
             authors=authors,
         )
