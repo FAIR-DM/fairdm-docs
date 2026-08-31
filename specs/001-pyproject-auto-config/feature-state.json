@@ -2,7 +2,7 @@
   "feature": "001-pyproject-auto-config",
   "branch": "001-pyproject-auto-config",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -23,6 +23,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-08-31T11:36:01Z",
       "note": "Reviewer dispatched with the three standard lenses plus a reconciliation lens over the audit's satisfied/open split"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-31T12:26:47Z",
+      "note": "design review returned request_changes; all three findings applied as plan edits and verified"
     }
   ],
   "gates": {
@@ -58,18 +63,40 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:39"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity"
+            ]
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:53"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestRenderedSite::test_title_version_and_copyright_reach_the_rendered_html"
+            ]
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_metadata.py",
+              "tests/test_conf.py"
+            ]
+          }
         },
         {
           "id": "T033",
@@ -98,88 +125,134 @@
       "tasks": [
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:71"
+              "fairdm_docs/metadata.py:31"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestProjectMetadata::test_name_version_and_description_are_the_declared_values"
             ]
           }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:149"
+              "fairdm_docs/metadata.py:22"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAuthors::test_author_string_with_email_produces_a_display_name",
+              "tests/test_metadata.py::TestAuthors::test_author_string_without_email_produces_a_display_name"
             ]
           }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:146"
+              "fairdm_docs/metadata.py:22"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAuthors::test_author_table_produces_the_same_display_name_as_the_string_form"
             ]
           }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:328"
+              "fairdm_docs/metadata.py:18"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestProjectMetadata::test_copyright_is_the_current_year_and_the_display_names"
             ]
           }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:9"
+            ],
+            "tests": [
+              "tests/test_metadata.py"
+            ]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:324"
+              "fairdm_docs/conf.py:182"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity::test_project_is_the_declared_name_verbatim"
             ]
           }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:325"
+              "fairdm_docs/conf.py:183"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity::test_version_and_release_are_the_declared_version"
             ]
           }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:327"
+              "fairdm_docs/conf.py:185"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity::test_author_and_copyright_are_built_from_the_declared_authors"
             ]
           }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:179"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity"
+            ]
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:60"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestRenderedSite::test_title_version_and_copyright_reach_the_rendered_html"
+            ]
+          }
         }
       ]
     },

@@ -154,3 +154,45 @@ landed would not contain the file it is supposed to extend.
 
 **Settled:** the dependency is written into `tasks.md` as blocking edges rather than left as a
 remark, and each story starts from the feature branch after the one before it has landed on it.
+
+## D13 — US1 builds `from_toml_data` only; `conf.py` does not call `from_file`.
+
+The plan's `conf.py` snippet shows `ProjectMetadata.from_file(find_pyproject_toml())`. `from_file`'s
+whole reason to exist is FR-018 and FR-019 — converting a decode error and a missing file into
+`ConfigError` — and US1's brief rules that out explicitly: "no failure handling in this story." T008
+also only asks for `ProjectMetadata` and `from_toml_data`.
+
+`conf.py` already resolves `pyproject_data` above this point, through the existing
+`load_pyproject_toml` / `find_pyproject_toml(use_env_var=True)` fallback that belongs to R4 and is
+untouched by this story. Calling `from_file` a second time would re-run that resolution separately,
+with no `use_env_var` fallback, and could in principle land on a different file than the one
+`_extract_fairdm_config` already read.
+
+**Settled:** `conf.py` builds `metadata` with `ProjectMetadata.from_toml_data(pyproject_data)`,
+reusing the file already resolved. `from_file` does not exist yet; US3 (T025) adds it together with
+the failure handling that is its reason to exist.
+
+## D14 — The theme's source buttons crash on every build until US4, sidestepped in tests rather than patched in `conf.py`.
+
+`_apply_theme_config` and the `comments_config` block both keyed off `metadata["urls"]`, which no
+longer exists — `ProjectMetadata` does not carry addresses in this story ("No addresses ... in this
+story," and FR-004/005/011 are US4's). Both are changed to a literal `repository_url = ""`, the
+minimum needed for the file to still parse and run with the new type; the button flags
+(`use_repository_button` and its two siblings) are left exactly as they were, `True`.
+
+That default and those flags together mean `sphinx_book_theme`'s `add_source_buttons` handler is
+enabled with nothing to point it at, and it crashes the build
+(`TypeError: cannot unpack non-iterable NoneType object`) — for any declaration that does not name a
+`[project.urls]` entry, which is exactly the shape T013 asks for. This is not a new defect: it
+reproduces against the code exactly as it stood before this story, given the same input, and is
+already tracked as its own roadmap item (`docs/ROADMAP.md` R3, dated 2026-08-26, ahead of this
+specification's rewrite) — the research probe behind D7/D9 sidestepped it the same way, by declaring
+a repository address it did not otherwise need.
+
+**Settled:** `conf.py`'s theme wiring is not touched beyond the mechanical `metadata["urls"]` →
+`repository_url = ""` fix. The `built_portal` test fixture in `conftest.py` passes `confoverrides`
+that turn the three button flags off for the duration of a test build, so `TestRenderedSite` proves
+identity values reach a rendered page without also fixing, or masking, R3's defect. The trigger
+condition is unchanged by this story — any declaration without `[project.urls]` crashed before this
+story and still does outside a test that overrides the button flags — this story neither introduces
+nor closes it. Revisit when R3 lands.
