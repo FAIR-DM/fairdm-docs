@@ -11,8 +11,6 @@ from sphinx.util.logging import getLogger
 from fairdm_docs.config import ConfigError
 from fairdm_docs.utils import find_pyproject_toml
 
-logger = getLogger(__name__)
-
 DEFAULT_VERSION = "0.0.0"
 DEFAULT_AUTHORS = ["Unknown"]
 DEFAULT_DESCRIPTION = ""
@@ -88,6 +86,7 @@ class ProjectMetadata:
             )
 
         project = data["project"]
+        logger = getLogger(__name__)
 
         if "name" not in project:
             raise ConfigError(

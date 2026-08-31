@@ -195,6 +195,18 @@ class TestAddresses:
 
         assert metadata.address == "https://github.com/example/sample-portal"
 
+    def test_homepage_is_used_when_no_repository_is_declared(self):
+        metadata = ProjectMetadata.from_toml_data(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "urls": {"Homepage": "https://example.org"},
+                }
+            }
+        )
+
+        assert metadata.address == "https://example.org"
+
     def test_no_urls_table_leaves_both_addresses_empty(self):
         metadata = ProjectMetadata.from_toml_data(
             {"project": {"name": "sample-portal"}}

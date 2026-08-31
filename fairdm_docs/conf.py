@@ -70,12 +70,13 @@ def _resolve_branding_assets() -> dict[str, str]:
     }
 
 
-def _apply_theme_config(theme: str) -> dict[str, Any]:
+def _apply_theme_config(theme: str, metadata: ProjectMetadata) -> dict[str, Any]:
     """
     Generate theme-specific options based on selected theme.
 
     Args:
         theme: Theme name (sphinx_book_theme or pydata_sphinx_theme)
+        metadata: The portal's declared identity, whose address the theme links to
 
     Returns:
         Dictionary of theme-specific options
@@ -163,25 +164,35 @@ def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _read_declaration() -> tuple[ProjectMetadata, dict[str, Any]]:
+    """
+    Read the portal's declaration once, for both the identity and the options.
+
+    Search from cwd first; only consult FAIRDM_DOCS_PROJECT_DIR (set by the CLI)
+    when that fails, e.g. because Sphinx changed cwd to the conf.py location (D21).
+    Both return values come from the same file, so the optional configuration
+    cannot be read from one pyproject.toml while the identity comes from another.
+
+    Returns:
+        The portal's declared identity, and its [tool.fairdm.docs] configuration
+    """
+    path = find_pyproject_toml(start_dir=None)
+    if path is None:
+        path = find_pyproject_toml(use_env_var=True)
+
+    try:
+        metadata = ProjectMetadata.from_file(path.parent if path is not None else None)
+    except ConfigError as exc:
+        # Sphinx's own eval_config_file passes its ConfigError straight through to
+        # the console; anything else it re-wraps with a traceback embedded (D19).
+        raise SphinxConfigError(str(exc)) from exc
+
+    return metadata, _extract_fairdm_config(load_pyproject_toml(path))
+
+
 # Project information --------------------------------------
 # Load and extract metadata from pyproject.toml (PEP 621)
-# Search from cwd first; only consult FAIRDM_DOCS_PROJECT_DIR (set by the CLI)
-# when that fails, e.g. because Sphinx changed cwd to the conf.py location (D21).
-pyproject_path = find_pyproject_toml(start_dir=None)
-if pyproject_path is None:
-    pyproject_path = find_pyproject_toml(use_env_var=True)
-
-try:
-    metadata = ProjectMetadata.from_file(
-        pyproject_path.parent if pyproject_path is not None else None
-    )
-except ConfigError as exc:
-    # Sphinx's own eval_config_file passes its ConfigError straight through to
-    # the console; anything else it re-wraps with a traceback embedded (D19).
-    raise SphinxConfigError(str(exc)) from exc
-
-pyproject_data = load_pyproject_toml(pyproject_path)
-fairdm_config = _extract_fairdm_config(pyproject_data)
+metadata, fairdm_config = _read_declaration()
 
 project = metadata.name  # verbatim — FR-007
 version = metadata.version  # FR-008
@@ -209,7 +220,7 @@ html_last_updated_fmt = "%b %d, %Y"
 
 # Apply theme-specific configuration
 # This respects the theme selected via [tool.fairdm.docs] or default
-html_theme_options = _apply_theme_config(html_theme)
+html_theme_options = _apply_theme_config(html_theme, metadata)
 
 # https://utteranc.es
 # https://sphinx-comments.readthedocs.io/en/latest/utterances.html

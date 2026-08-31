@@ -8,6 +8,7 @@ can tell a deliberate change from an accident.
 
 ## D1 — The specification covered two features. It now covers one.
 
+
 The original spec carried four user stories. Two of them described a portal's packaging metadata
 becoming the identity of its documentation site. The other two described selecting a theme and
 other settings from a `[tool.fairdm.docs]` table.
@@ -24,7 +25,10 @@ Requirements removed on this ground: theme selection from the settings table, pr
 that table and a developer's own configuration, validation of a theme name, and the handling of
 unrecognised keys.
 
+**ADR:** none — a scope boundary between this specification and a roadmap item. It records where work went, and constrains nothing after this run.
+
 ## D2 — Four more requirements had already been re-scheduled elsewhere.
+
 
 The roadmap assigns work this specification also claimed. Where that happened, the roadmap wins,
 because it was written later and with the whole package in view.
@@ -44,7 +48,10 @@ says*, which is R2. Likewise between *the repository address is extracted*, whic
 R11 keeps the systemic gap: end-to-end build tests, the model documentation, dependency bounds.
 The tests for the requirements below belong to this specification and are written here.
 
+**ADR:** none — as D1: a re-scheduling record, not a design choice.
+
 ## D3 — Errors: the specification was right about intent, wrong about the name.
+
 
 The original required a `ConfigurationError`. No such class exists anywhere in the package. The
 code raises `ValueError` in three places (`conf.py:87`, `:92`, `:102`).
@@ -58,7 +65,10 @@ field gets a stack trace pointing into this package.
 the package already has, `ConfigError` (`config.py:15`), rather than introducing a second name for
 the same idea. The code is wrong and closing that is work.
 
+**ADR:** docs/adr/0008-configuration-failures-are-one-error-type.md
+
 ## D4 — Warnings: neither the specification nor the code had it right.
+
 
 The original required Python's `logging` module at WARNING level. The code uses `warnings.warn`
 with `UserWarning` (`conf.py:122`, `:130`, `:139`).
@@ -71,7 +81,10 @@ something to consider.
 **Settled:** the requirement is written in terms of the outcome — a defaulted field is named in the
 build output — rather than naming an API. The mechanism is settled in the plan.
 
+**ADR:** docs/adr/0008-configuration-failures-are-one-error-type.md
+
 ## D5 — Malformed TOML is unhandled, and the requirement stands.
+
 
 The original required a descriptive message for a TOML syntax error. Nothing handles
 `tomllib.TOMLDecodeError`; it propagates raw from `utils.py:97`, and the caller catches
@@ -79,7 +92,10 @@ The original required a descriptive message for a TOML syntax error. Nothing han
 
 **Settled:** the requirement was right and was never built. It stays, and it is work.
 
+**ADR:** none — a requirement that was specified and never built. Building it made no architectural choice.
+
 ## D6 — Case-insensitive lookup: the code is right and the specification overstated it.
+
 
 The original required that key lookups be case-insensitive, without qualification. The code applies
 this to `[project.urls]` keys only (`conf.py:161-163`).
@@ -91,7 +107,10 @@ keys under `[project.urls]` are different: their names are chosen by whoever wro
 
 **Settled:** narrowed to `[project.urls]`. The rest is matched exactly as PEP 621 spells it.
 
+**ADR:** docs/adr/0007-a-declaration-is-used-exactly-as-written.md
+
 ## D7 — The site title mangles the portal's name.
+
 
 Undocumented behaviour, found in the code and mentioned nowhere in the original specification.
 `conf.py:324` builds the site title as `metadata["name"].replace("-", " ").title()`.
@@ -103,21 +122,30 @@ transformation also cannot be undone by the developer from within this specifica
 **Settled:** the declared name is used exactly as declared. This is a defect against G4 and closing
 it is work. A portal wanting a different display title is asking for a setting, which is R10.
 
+**ADR:** docs/adr/0007-a-declaration-is-used-exactly-as-written.md
+
 ## D8 — An error message prints a backslash rather than a line break.
+
 
 `conf.py:103` embeds a literal `\n` in a regular string, so the message about a missing
 `project.name` shows the two characters to the developer instead of breaking the line.
 
 **Settled:** a defect. Fixed here.
 
+**ADR:** none — a defect in one string literal.
+
 ## D9 — Author tables were supported but undocumented.
+
 
 PEP 621 allows authors as `{name = "...", email = "..."}` tables as well as strings. The code
 handles both (`conf.py:146-148`); the original specification described only the string form.
 
 **Settled:** the code is right and the specification was incomplete. Both forms are now specified.
 
+**ADR:** none — conformance with what PEP 621 already permits. The standard decides this, not the package.
+
 ## D10 — The original task list is not evidence.
+
 
 `tasks.md` recorded 57 items done and 15 open. Those marks were made by the run that wrote them and
 nothing in this re-examination relies on them. The task list was rewritten from the specification as
@@ -128,7 +156,10 @@ it. Code with no test leaves its item open, and the remaining work on it is the 
 measured at 0% coverage (`conf.py`, 137 statements) that threshold is what most of this run's work
 comes from.
 
+**ADR:** none — how this re-examination treated the previous run's marks. It binds nothing beyond it.
+
 ## D11 — Three artefacts of the superseded specification are removed.
+
 
 `data-model.md`, `quickstart.md` and `checklists/requirements.md` were generated for the February
 version of this specification and were not touched when it was rewritten. Nothing in the current
@@ -146,7 +177,10 @@ plan is worse than one with no such file, because the contradiction is only visi
 already knows which document won. What is current is in `spec.md`, `plan.md` and this file, and what
 was replaced is in the history.
 
+**ADR:** none — removal of files belonging to a superseded draft.
+
 ## D12 — The four stories edit one new file, so they are sequential.
+
 
 `metadata.py` is created by US1 and added to by US2, US3 and US4. Each story is otherwise
 independent, which reads as a licence to build them side by side. A story branched before US1 has
@@ -155,7 +189,10 @@ landed would not contain the file it is supposed to extend.
 **Settled:** the dependency is written into `tasks.md` as blocking edges rather than left as a
 remark, and each story starts from the feature branch after the one before it has landed on it.
 
+**ADR:** none — the build order of one feature's stories.
+
 ## D13 — US1 builds `from_toml_data` only; `conf.py` does not call `from_file`.
+
 
 The plan's `conf.py` snippet shows `ProjectMetadata.from_file(find_pyproject_toml())`. `from_file`'s
 whole reason to exist is FR-018 and FR-019 — converting a decode error and a missing file into
@@ -172,7 +209,10 @@ with no `use_env_var` fallback, and could in principle land on a different file 
 reusing the file already resolved. `from_file` does not exist yet; US3 (T025) adds it together with
 the failure handling that is its reason to exist.
 
+**ADR:** none — superseded within this run by D19 and D21, which wired `conf.py` to `from_file` after all.
+
 ## D14 — The theme's source buttons crash on every build until US4, sidestepped in tests rather than patched in `conf.py`.
+
 
 `_apply_theme_config` and the `comments_config` block both keyed off `metadata["urls"]`, which no
 longer exists — `ProjectMetadata` does not carry addresses in this story ("No addresses ... in this
@@ -197,7 +237,10 @@ condition is unchanged by this story — any declaration without `[project.urls]
 story and still does outside a test that overrides the button flags — this story neither introduces
 nor closes it. Revisit when R3 lands.
 
+**ADR:** none — a defect left with the roadmap item that owns it (R3). The decision is to leave it alone, not to design around it.
+
 ## D15 — Test declarations are written where their tests are, not gathered up front.
+
 
 T003 asked for a directory of declarations built before any test reads one. In practice each was
 small enough to write beside the test that needs it, as a mapping or a short string, so the first
@@ -210,7 +253,10 @@ Each story writes the declarations its own tests read, inline or through `tmp_pa
 stays open until the last story, at which point it is satisfied by all of them together rather than
 by a directory.
 
+**ADR:** none — where a test's inputs are written. The project's testing standard owns this.
+
 ## D16 — Defaulting checks key presence, not truthiness.
+
 
 FR-012 says a field defaults when the system "does not find" it. `version`, `description` and
 `authors` are each tested with `"field" in project` rather than `if project.get("field")`.
@@ -225,7 +271,10 @@ picked an unverified answer for it.
 **Revisit if:** T033 finds that a present-but-empty value should also default; the fix is a
 truthiness check in the same three `if` branches in `fairdm_docs/metadata.py`.
 
+**ADR:** docs/adr/0007-a-declaration-is-used-exactly-as-written.md
+
 ## D17 — `from_file` locates the file itself; it does not receive an already-found path.
+
 
 The plan's `conf.py` snippet (`## The design`) shows `ProjectMetadata.from_file(find_pyproject_toml())`
 — `from_file` receiving the result of a search the caller already ran. T025's brief describes the
@@ -244,7 +293,10 @@ itself. This is consistent with D13, which already established that `conf.py` do
 later story wires `from_file` into `conf.py` and needs it to accept `use_env_var`, which
 `find_pyproject_toml` supports but nothing here yet asks for.
 
+**ADR:** none — the signature of one constructor, narrowed again by D21 before the run ended.
+
 ## D18 — T026 drives the CLI's existing `ConfigError` boundary via a patched Sphinx build, not a real one.
+
 
 T026 asks for a metadata failure driven through `runner.invoke(app, ["build"])` with no traceback
 in the output. `conf.py` does not call `from_file` in this story (D13, D17), so there is no
@@ -266,7 +318,10 @@ turns this story's new failures into a message, without asserting anything about
 wires `from_file` into `conf.py` or `cli.py`. Revisit once that wiring lands: a real, unmocked build
 becomes the more direct test at that point.
 
+**ADR:** none — a testing tactic for a code path that did not yet exist. D19 replaced it with a real build once it did.
+
 ## D19 — `conf.py` routes its read through `from_file`, and re-raises as Sphinx's own error type.
+
 
 D13 deferred the `conf.py` wiring to US3, and US3's brief then put `conf.py` out of its scope. The
 result is that `from_file` has no caller outside the tests. Two of the five failures the
@@ -295,7 +350,10 @@ argument today. Whichever way those are reconciled — `from_file` learning the 
 being narrowed to admit a resolved path — the reconciliation belongs to this task and gets recorded
 as its own entry. Neither constraint may be dropped in silence.
 
+**ADR:** docs/adr/0008-configuration-failures-are-one-error-type.md
+
 ## D20 — A defaulted address is silent; version, authors and description are not.
+
 
 FR-012 lists both addresses among the optional fields that default, and FR-013 reads as if every
 defaulted optional field is warned about. `TestDefaults::test_one_warning_is_emitted_per_defaulted_field`
@@ -309,7 +367,10 @@ to addresses this story adds. **Revisit if:** T015's test is deliberately widene
 addresses too — the fix is two more `logger.warning` calls in `from_toml_data`, next to the
 `homepage`/`repository` extraction.
 
+**ADR:** none — the scope of one warning, held in place by a test an earlier story wrote. The revisit condition above is the whole of it.
+
 ## D21 — D13/D17 reconciled by locating the file with the original two-stage precedence, then handing `from_file` the directory it already found. `from_file`'s signature is untouched.
+
 
 D19 named the conflict and left the reconciliation to T032a. The first attempt gave `from_file` a
 `use_env_var` parameter passed straight through to `find_pyproject_toml`, called unconditionally
@@ -350,7 +411,10 @@ mapping, and teaching it to expose one is a change to its public surface for a c
 `_extract_fairdm_config` its own reason to read `pyproject.toml` independently, at which point the
 double read is worth collapsing.
 
+**ADR:** none — which file is read, and in what order, belongs to R4. Recorded here so that item inherits the precedence and the environment-variable leak behind it.
+
 ## D22 — The guardrail flag on `tests/test_metadata.py` is cleared: the change is purely additive.
+
 
 The convergence check flags the file because the last task touched a test file that existed at the
 base commit. Reading the diff `49d02ae..HEAD` for that file: one hunk, `@@ -288,3 +288,90 @@`, 87
@@ -360,3 +424,34 @@ modified, weakened or deleted.
 
 **Settled:** cleared, no escalation. Adding a new class to an existing test file is what the policy
 explicitly permits, and the file-level granularity of the check is what raised it.
+
+**ADR:** none — a convergence check cleared by reading a diff.
+
+## D23 — The two review findings are applied, and the docs gate is settled rather than deferred.
+
+
+**REV-001** — `address`'s homepage-only branch had no direct test, so `repository or homepage` could
+have been reduced to `repository` without the suite noticing. One test added to `TestAddresses`.
+
+**REV-002** — `_apply_theme_config` read `metadata` as a module global, correct only by virtue of
+`conf.py`'s execution order. It takes the metadata as an argument again.
+
+The documentation gate had been red since US1 on names this branch added at module level and on
+three example pages nobody had re-read. Both are settled here rather than carried into the PR:
+
+- `logger` moved into `from_toml_data`, the one method that warns. It was never needed at module
+  scope.
+- `pyproject_path` and `pyproject_data` are gone. `_read_declaration` returns the identity and the
+  `[tool.fairdm.docs]` configuration together, which is also the clearest statement of D13's
+  guarantee that both come from the same file. `conf.py` is star-imported by every portal's
+  `docs/conf.py`, so a module-level name there is part of what a portal inherits, not an
+  implementation detail.
+- The three `docs/examples/` pages were audited against the code as it now stands. Corrected: the
+  title is the declared name verbatim, the address rules including the case-insensitive lookup and
+  the homepage fallback, what a name-only build reports, and what an unreadable declaration
+  produces. Also corrected while reading them, and pre-existing: the PyData theme options block
+  described an `html_context` the package has never set, and the extensions list named two
+  extensions (`sphinx.ext.autodoc`, `sphinxcontrib.bibtex`) that are not configured and omitted five
+  that are.
+
+**ADR:** none — two review findings applied and a documentation gate settled. No new constraint follows.

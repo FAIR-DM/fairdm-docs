@@ -2,7 +2,7 @@
   "feature": "001-pyproject-auto-config",
   "branch": "001-pyproject-auto-config",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -33,6 +33,11 @@
       "state": "REVIEW",
       "at": "2026-08-31T16:30:00Z",
       "note": "All five stories done. Convergence gate green: 95 tests pass, verify clean. Tamper flag on tests/test_metadata.py cleared as purely additive (D22)."
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-31T18:40:00Z",
+      "note": "Both review findings applied (D23). Documentation gate settled rather than deferred: module-level names removed, three example pages audited against the code. Full check green including docs against origin/main."
     }
   ],
   "gates": {
@@ -105,8 +110,7 @@
               "tests/test_metadata.py::TestEdgeCases",
               "tests/test_conf.py::TestSiteIdentity",
               "tests/test_conf.py::TestRenderedSite"
-            ],
-            "note": "Satisfied by all four stories together, per D15: tests/fixtures/ was not extended and each story wrote its own declarations inline or through tmp_path."
+            ]
           }
         },
         {
@@ -125,8 +129,8 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "README.md",
-              "CHANGELOG.md"
+              "README.md:189",
+              "CHANGELOG.md:12"
             ]
           }
         },
@@ -138,8 +142,7 @@
             "commands": [
               "poetry run pytest --cov=fairdm_docs --cov-report=term-missing",
               "forge verify --repo /home/sam/projects/fairdm/fairdm-docs"
-            ],
-            "note": "95 passed. fairdm_docs/metadata.py 100%, config.py 97%, conf.py 74%, total 70%. Lint, typecheck, test and build gates all passed. SC-006 met: every requirement is covered, and the identity requirements are covered by tests/test_conf.py::TestRenderedSite reading rendered HTML."
+            ]
           }
         }
       ]
