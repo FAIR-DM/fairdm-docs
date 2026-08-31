@@ -112,3 +112,39 @@ on unrelated output (e.g. "Running Sphinx v8.1.3").
 
 Did: full repo test suite, lint, typecheck, build and conformance via the story's verify command.
 Verified: see completion report `report-us2.json`.
+
+## 2026-08-31T15:04:50Z · Implementer US3 · T019-T025
+
+Did: `ProjectMetadata.from_toml_data` now checks for the `[project]` table before reading it,
+raising `ConfigError` naming what to add — with a link to the README's migration guide when a
+`[tool.poetry]` table is present instead — and raising `ConfigError` naming the `name` field when
+`[project]` has no `name`. `ProjectMetadata.from_file` is new: it locates the file with
+`fairdm_docs.utils.find_pyproject_toml`, reads it with `tomllib`, converts a missing file or a
+`tomllib.TOMLDecodeError` into `ConfigError`, and otherwise delegates to `from_toml_data`. See
+`decisions.md` D17 for the `from_file` signature, which departs from the plan's literal snippet.
+Verified: `poetry run pytest tests/test_metadata.py::TestFailures -v` — RED first (`KeyError` on
+the three `from_toml_data` cases, `AttributeError: no attribute 'from_file'` on the two `from_file`
+cases), then 6 passed after the change. Each acceptance criterion probed per `craft-tdd`: T022's
+test asserts the parser's own `TOMLDecodeError` text appears verbatim inside the `ConfigError`
+message, not just the word "TOML"; T024's test asserts `type(exc_info.value) is ConfigError`
+across all five conditions, not just `isinstance`, so a new subclass would fail it.
+Next: T026.
+
+## 2026-08-31T15:04:50Z · Implementer US3 · T026
+
+Did: `tests/test_cli.py::TestConfigurationFailures` drives a `[tool.poetry]`-only declaration
+through `runner.invoke(app, ["build"])`, with `sphinx.cmd.build.main` patched to call the real
+`ProjectMetadata.from_file()` as its side effect (conf.py does not call `from_file` in this story —
+D13, D18 — so there is no in-scope production seam to drive this through unmocked). No change to
+`cli.py`: FR-015 already holds because `from_file` raises the same `ConfigError` the command's
+existing `except ConfigError` block at `cli.py:195` catches and echoes as a message.
+Verified: `poetry run pytest tests/test_cli.py::TestConfigurationFailures -v` — passed on first
+write, so probed per `craft-tdd` rather than accepted: reverted the `from_file()` call in the
+test's side effect and confirmed `result.exit_code != 0` failed (`assert 0 != 0`) before restoring
+it, ruling out a vacuous pass. Full `tests/test_cli.py` — 31 passed, no regressions.
+Next: story report.
+
+## 2026-08-31T15:04:50Z · Implementer US3 · report
+
+Did: full repo test suite, lint, typecheck and build via the story's verify command.
+Verified: see completion report `report-us3.json`.

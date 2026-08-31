@@ -224,3 +224,44 @@ picked an unverified answer for it.
 
 **Revisit if:** T033 finds that a present-but-empty value should also default; the fix is a
 truthiness check in the same three `if` branches in `fairdm_docs/metadata.py`.
+
+## D17 — `from_file` locates the file itself; it does not receive an already-found path.
+
+The plan's `conf.py` snippet (`## The design`) shows `ProjectMetadata.from_file(find_pyproject_toml())`
+— `from_file` receiving the result of a search the caller already ran. T025's brief describes the
+opposite: "`from_file` locates the file with `fairdm_docs.utils.find_pyproject_toml`", i.e. the
+search happens inside `from_file`. The two disagree on which side calls `find_pyproject_toml`.
+
+T023 needs `from_file` to accept a starting directory and report it in the "where it looked"
+message on a miss (FR-019). A `from_file(path: Path | None)` signature that takes an
+already-resolved path has nothing to report on `None` beyond "somewhere" — the caller's search
+directory is gone by the time `from_file` sees it. Doing the search inside `from_file` keeps the
+starting directory in scope for the error message.
+
+**Settled:** `from_file(cls, start_dir: Path | None = None)` calls `find_pyproject_toml(start_dir)`
+itself. This is consistent with D13, which already established that `conf.py` does not call
+`from_file` in this story — there is no call site this signature has to match yet. Revisit if a
+later story wires `from_file` into `conf.py` and needs it to accept `use_env_var`, which
+`find_pyproject_toml` supports but nothing here yet asks for.
+
+## D18 — T026 drives the CLI's existing `ConfigError` boundary via a patched Sphinx build, not a real one.
+
+T026 asks for a metadata failure driven through `runner.invoke(app, ["build"])` with no traceback
+in the output. `conf.py` does not call `from_file` in this story (D13, D17), so there is no
+in-scope production code path where a real, unmocked build would ever reach it — `cli.py:build`
+only calls `load_config()` (a different failure surface, already tested in
+`TestConfigurationValidationErrors`) before handing off to Sphinx.
+
+Running a real Sphinx build against a bad declaration would exercise a different failure than the
+one this story adds: Sphinx's own `eval_config_file` catches any exception conf.py raises during
+import and re-wraps it in Sphinx's `ConfigError` with `traceback.format_exc()` embedded in the
+message text — the opposite of what FR-015/SC-004 ask for, and not something this story's
+three-file scope can fix (`conf.py` is out of scope; D14 already left its theme-wiring defect
+alone for the same reason).
+
+**Settled:** `tests/test_cli.py::TestConfigurationFailures` patches `sphinx.cmd.build.main` with a
+side effect that calls the real `ProjectMetadata.from_file()` against a real bad declaration
+written to `tmp_path` — proving today's existing `except ConfigError` block in `cli.py` (D3) already
+turns this story's new failures into a message, without asserting anything about how a future story
+wires `from_file` into `conf.py` or `cli.py`. Revisit once that wiring lands: a real, unmocked build
+becomes the more direct test at that point.
