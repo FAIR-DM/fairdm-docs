@@ -237,3 +237,21 @@ first-wins address, each temporarily flipped to the wrong expected value) — bo
 right reason, then restored and green. Full `tests/test_metadata.py` — 29 passed, no regressions.
 `ruff check`, `ruff format --check` and `mypy` on the changed file clean.
 Next: T034.
+
+## 2026-08-31T16:05:00Z · Implementer SHARED · T034
+
+Did: `README.md:189` said `name` was "used for documentation title" without saying how — now it
+states the title is the declared name verbatim, with an example (`fairdm-docs` stays
+`fairdm-docs`, not `Fairdm Docs`) and a pointer to the `docs/conf.py` override for a portal that
+wants something else. Added a paragraph below the optional-fields list stating that a missing
+`version`, `authors` or `description` defaults and warns, and a missing `urls.homepage` or
+`urls.repository` defaults silently — the rest of the README's statements about identity, version,
+authors and copyright (the Configuration Reference table, the migration examples) already matched
+the code and needed no change. `CHANGELOG.md`'s `[Unreleased] › Changed` section gets a new first
+entry for the title change, in the file's existing voice: what changed, the old behaviour it
+replaces and why, and the escape hatch. No task codes, decision references or requirement codes in
+either file.
+Verified: `poetry run pytest` (full suite) — 95 passed, no regressions. `./forge verify --repo
+/home/sam/projects/fairdm/fairdm-docs` — conformance, poetry:lint, poetry:typecheck, poetry:test
+and poetry:build all passed.
+Next: story report.

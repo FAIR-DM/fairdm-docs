@@ -186,7 +186,10 @@ The package automatically extracts metadata from the PEP 621 standard `[project]
 
 **Required fields:**
 
-- `name` - Project name (used for documentation title)
+- `name` - The declared project name, used verbatim as the documentation title with no
+  reformatting. A portal named `fairdm-docs` gets the title `fairdm-docs`, not `Fairdm Docs`. A
+  different title is a `docs/conf.py` override — see [Option 3: Advanced
+  Customization](#option-3-advanced-customization).
 
 **Optional fields** (with sensible defaults if missing):
 
@@ -195,6 +198,10 @@ The package automatically extracts metadata from the PEP 621 standard `[project]
 - `description` - Short description for meta tags
 - `urls.homepage` - Homepage URL
 - `urls.repository` - Repository URL for GitHub integration
+
+A missing `version`, `authors` or `description` falls back to its default and logs a warning when
+the site builds. A missing `urls.homepage` or `urls.repository` falls back to an empty value with
+no warning.
 
 **Example `pyproject.toml`:**
 

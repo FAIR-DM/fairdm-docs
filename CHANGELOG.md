@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The documentation title is now the declared project name, used verbatim.** It used to be
+  reformatted for display — hyphens replaced with spaces and each word capitalized, so a project
+  named `fairdm-docs` got the title `Fairdm Docs`. That reformatting guessed at a display form and
+  got it wrong for any name with an acronym or deliberate casing of its own, so it is gone: the
+  title is now exactly what `pyproject.toml` declares. A portal that wants a different title can
+  still set `project` (or `html_title`) in its own `docs/conf.py`, after the
+  `from fairdm_docs.conf import *` line.
 - **Version reset to `0.0.1`.** Nothing was ever tagged, released or published, so the earlier
   numbers described intent rather than a released artefact. The package now works towards `0.1.0`
   and `1.0.0` milestones from a clean base, and `pyproject.toml` is the single source of truth for

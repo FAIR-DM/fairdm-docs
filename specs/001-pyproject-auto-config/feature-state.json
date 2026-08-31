@@ -104,8 +104,14 @@
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "README.md",
+              "CHANGELOG.md"
+            ]
+          }
         },
         {
           "id": "T035",
