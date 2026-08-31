@@ -2,7 +2,7 @@
   "feature": "001-pyproject-auto-config",
   "branch": "001-pyproject-auto-config",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "IMPLEMENT",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -28,6 +28,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-31T12:26:47Z",
       "note": "design review returned request_changes; all three findings applied as plan edits and verified"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-31T16:30:00Z",
+      "note": "All five stories done. Convergence gate green: 95 tests pass, verify clean. Tamper flag on tests/test_metadata.py cleared as purely additive (D22)."
     }
   ],
   "gates": {
@@ -58,7 +63,7 @@
       "priority": "P0",
       "issue": null,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -89,8 +94,20 @@
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_metadata.py::TestDefaults",
+              "tests/test_metadata.py::TestAuthors",
+              "tests/test_metadata.py::TestUrls",
+              "tests/test_metadata.py::TestFailures",
+              "tests/test_metadata.py::TestEdgeCases",
+              "tests/test_conf.py::TestSiteIdentity",
+              "tests/test_conf.py::TestRenderedSite"
+            ],
+            "note": "Satisfied by all four stories together, per D15: tests/fixtures/ was not extended and each story wrote its own declarations inline or through tmp_path."
+          }
         },
         {
           "id": "T033",
@@ -115,8 +132,15 @@
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest --cov=fairdm_docs --cov-report=term-missing",
+              "forge verify --repo /home/sam/projects/fairdm/fairdm-docs"
+            ],
+            "note": "95 passed. fairdm_docs/metadata.py 100%, config.py 97%, conf.py 74%, total 70%. Lint, typecheck, test and build gates all passed. SC-006 met: every requirement is covered, and the identity requirements are covered by tests/test_conf.py::TestRenderedSite reading rendered HTML."
+          }
         }
       ]
     },

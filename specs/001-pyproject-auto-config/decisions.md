@@ -349,3 +349,14 @@ mapping, and teaching it to expose one is a change to its public surface for a c
 (`_extract_fairdm_config`, R10's) this story does not own. **Revisit if:** R10 gives
 `_extract_fairdm_config` its own reason to read `pyproject.toml` independently, at which point the
 double read is worth collapsing.
+
+## D22 — The guardrail flag on `tests/test_metadata.py` is cleared: the change is purely additive.
+
+The convergence check flags the file because the last task touched a test file that existed at the
+base commit. Reading the diff `49d02ae..HEAD` for that file: one hunk, `@@ -288,3 +288,90 @@`, 87
+added lines and zero removed. Every existing class and assertion in the file is byte-identical; the
+change appends a new `TestEdgeCases` class after the end of `TestFailures`. Nothing pre-existing was
+modified, weakened or deleted.
+
+**Settled:** cleared, no escalation. Adding a new class to an existing test file is what the policy
+explicitly permits, and the file-level granularity of the check is what raised it.
