@@ -140,6 +140,71 @@ class TestDefaults:
         assert metadata.version == "2.5.0"
 
 
+class TestAddresses:
+    """The declared homepage and repository addresses (FR-002, FR-004, FR-005, FR-012)."""
+
+    def test_homepage_and_repository_are_read_from_project_urls(self):
+        metadata = ProjectMetadata.from_toml_data(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "urls": {
+                        "Homepage": "https://example.org",
+                        "Repository": "https://github.com/example/sample-portal",
+                    },
+                }
+            }
+        )
+
+        assert metadata.homepage == "https://example.org"
+        assert metadata.repository == "https://github.com/example/sample-portal"
+
+    @pytest.mark.parametrize("key", ["Repository", "repository", "REPOSITORY"])
+    def test_repository_key_is_matched_regardless_of_case(self, key):
+        metadata = ProjectMetadata.from_toml_data(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "urls": {key: "https://github.com/example/sample-portal"},
+                }
+            }
+        )
+
+        assert metadata.repository == "https://github.com/example/sample-portal"
+
+    def test_pep_621_field_names_are_not_matched_case_insensitively(self):
+        """D6: case-insensitivity is narrowed to [project.urls]; PEP 621's own
+        field names elsewhere are matched exactly."""
+        with pytest.raises(ConfigError) as exc_info:
+            ProjectMetadata.from_toml_data({"project": {"Name": "sample-portal"}})
+
+        assert "name" in str(exc_info.value)
+
+    def test_repository_is_preferred_when_both_addresses_are_declared(self):
+        metadata = ProjectMetadata.from_toml_data(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "urls": {
+                        "Homepage": "https://example.org",
+                        "Repository": "https://github.com/example/sample-portal",
+                    },
+                }
+            }
+        )
+
+        assert metadata.address == "https://github.com/example/sample-portal"
+
+    def test_no_urls_table_leaves_both_addresses_empty(self):
+        metadata = ProjectMetadata.from_toml_data(
+            {"project": {"name": "sample-portal"}}
+        )
+
+        assert metadata.homepage == ""
+        assert metadata.repository == ""
+        assert metadata.address == ""
+
+
 class TestFailures:
     """Each of the five ways a declaration cannot be read raises ConfigError with an actionable message."""
 

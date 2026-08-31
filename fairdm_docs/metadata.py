@@ -27,10 +27,17 @@ class ProjectMetadata:
     version: str
     description: str
     authors: list[str]
+    homepage: str
+    repository: str
 
     @property
     def copyright(self) -> str:
         return f"{datetime.now().year}, {', '.join(self.authors)}"
+
+    @property
+    def address(self) -> str:
+        """The address to use where a single one is required: repository, else homepage (FR-005)."""
+        return self.repository or self.homepage
 
     @staticmethod
     def display_name(author: str | dict[str, Any]) -> str:
@@ -40,6 +47,14 @@ class ProjectMetadata:
         if "<" in author:
             return author.split("<")[0].strip()
         return author.strip()
+
+    @staticmethod
+    def resolve_address(urls: dict[str, Any], key: str) -> str:
+        """The [project.urls] value for key, matched without regard to case (FR-004); empty if absent."""
+        for name, value in urls.items():
+            if name.lower() == key:
+                return str(value)
+        return ""
 
     @staticmethod
     def resolve_version(project: dict[str, Any], data: dict[str, Any]) -> str | None:
@@ -106,11 +121,17 @@ class ProjectMetadata:
             )
             authors = list(DEFAULT_AUTHORS)
 
+        urls = project.get("urls", {})
+        homepage = cls.resolve_address(urls, "homepage")
+        repository = cls.resolve_address(urls, "repository")
+
         return cls(
             name=project["name"],
             version=version,
             description=description,
             authors=authors,
+            homepage=homepage,
+            repository=repository,
         )
 
     @classmethod
