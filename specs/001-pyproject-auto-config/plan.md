@@ -1,298 +1,144 @@
-# Implementation Plan: PEP 621 pyproject.toml Auto-Configuration
+# Implementation Plan — 001
 
-**Branch**: `001-pyproject-auto-config` | **Date**: 2026-02-10 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/001-pyproject-auto-config/spec.md`
+**Specification**: [spec.md](spec.md) · **Research**: [research.md](research.md) ·
+**Prior version and what changed**: [decisions.md](decisions.md)
 
 ## Summary
 
-Refactor `fairdm_docs/conf.py` to extract documentation configuration from PEP 621 standard `[project]` section in `pyproject.toml`, with optional `[tool.fairdm.docs]` customization, smart defaults for missing optional fields, and clear errors for missing critical fields. Support two official themes (sphinx-book-theme, pydata-sphinx-theme) with automatic theme-specific configuration.
+A portal's PEP 621 declaration becomes one value object, and the Sphinx configuration module reads
+its identity off that object. Everything the specification requires — the two author forms, the
+case-insensitive address keys, the defaults, the warnings and the five failures — belongs to the
+value object and is tested directly. The configuration module keeps only the assignments Sphinx
+reads, and one test builds a real site and reads the values back out of the HTML.
 
-**Primary requirement**: Zero-config documentation - users import one line and get fully-configured docs  
-**Technical approach**: Read pyproject.toml with tomllib, extract PEP 621 metadata with case-insensitive key lookups, apply precedence chain (conf.py > [tool.fairdm.docs] > defaults), configure theme-specific options
+## Technical context
 
-## Technical Context
+| | |
+|---|---|
+| Language | Python 3.11+ (`tomllib` is stdlib from 3.11) |
+| Primary dependencies | Sphinx, sphinx-book-theme, myst-parser, autodoc2 |
+| Testing | pytest, pytest-cov |
+| Storage | none — one file read |
+| Target | a Sphinx build on a developer's machine or in CI |
+| Performance | not a factor; the file is read once per build |
+| Constraints | the module is executed by Sphinx as a configuration file, so its module-level namespace is the interface (Article XI) |
 
-**Language/Version**: Python 3.10+  
-**Primary Dependencies**: 
-- sphinx (>=8.1)
-- myst-parser (>=4.0)
-- sphinx-autobuild (>=2024.10)
-- sphinx-autodoc2 (>=0.5)
-- sphinx-comments (>=0.0.3)
-- sphinx-copybutton (>=0.5)
-- sphinx-design (>=0.6)
-- sphinx-exec-code (>=0.16,<0.17)
-- sphinxext-opengraph (>=0.9)
-- sphinxcontrib-bibtex (>=2.6.3,<3.0.0)
-- sphinx-book-theme (>1.1) - default
-- pydata-sphinx-theme (>=0.16.1) - optional
+## Constitution check
 
-**Storage**: File-based (pyproject.toml reading, branding asset detection at docs/_static/brand/)  
-**Testing**: Manual testing with sample projects (minimal PEP 621, full metadata, theme variants)  
-**Target Platform**: Cross-platform (Windows, Linux, macOS) - Python package  
-**Project Type**: Single library (fairdm_docs package)  
-**Performance Goals**: Configuration loading <100ms, file parsing <50ms  
-**Constraints**: 
-- Must not break existing users (backward compatibility)
-- Must work with Django integration (keep django.setup())
-- Must support both Poetry and pip package managers
-- Must handle case variations in pyproject.toml keys (Homepage vs homepage)
+| Article | How this plan meets it |
+|---|---|
+| I — Test-First | Every task below writes its test before its implementation, and the task list is ordered so the test task precedes the implementation task it covers. |
+| II — Simplicity | One new module, one class, no configuration surface added. |
+| III — Anti-Abstraction | See Complexity Tracking. |
+| IV — Integration-First | SC-006 requires a test that reads a rendered site, and the research probe proved a real build is feasible in-suite. Three tasks build real sites. |
+| VI — Documentation | The title change is user-visible behaviour, so README and CHANGELOG ship in this change. |
+| VII — Dependency discipline | Nothing is added. `sphinx` is already a runtime dependency. |
+| X — Test structure | `fairdm_docs/metadata.py` → `tests/test_metadata.py`; the configuration module → `tests/test_conf.py`; `Test<Subject>` classes; shared setup in a new `conftest.py`, which the repository currently lacks. |
+| XI — Cohesion | The extraction is three module-level functions sharing one subject, which this article puts on a class. The configuration module's module-level namespace is this article's named exception and stays as it is. |
+| XIII — Zero configuration is the measured path | US2 is that path, and it becomes a test that builds a site from a project declaring one field. |
+| XIV — Backward compatibility | The title change is breaking in the sense the article means. The package is below 1.0.0, so the deprecation window is advisory, and CHANGELOG carries the change with what a portal does if it wants the old title. |
+| XVI — Never assume a production environment | Nothing here reaches outside the file being read. |
 
-**Scale/Scope**: Single configuration module refactor affecting ~350 lines in fairdm_docs/conf.py
+## Project structure
 
-## Constitution Check
-
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
-
-### I. Convention Over Configuration ✅
-
-**Compliance**: Feature core purpose - automatic metadata extraction from pyproject.toml with smart defaults
-
-**Verification**: 
-- FR-002: Extracts project metadata automatically
-- FR-004: Provides defaults (version="0.0.0", authors=["Unknown"])
-- No manual configuration required for basic usage
-
-### II. Zero-Config Philosophy ✅
-
-**Compliance**: Single import line (`from fairdm_docs.conf import *`) provides full functionality
-
-**Verification**:
-- US1: One-line conf.py creates working documentation
-- SC-001: Functional docs in under 1 minute
-- Abstracts Sphinx, MyST, theme complexities
-
-### III. Backward Compatibility ⚠️ REQUIRES JUSTIFICATION
-
-**Violation**: Legacy `[tool.poetry]` format support removed (strict PEP 621)
-
-**Justification**: 
-- PEP 621 is Python packaging standard since 2021 (5 years old)
-- Current implementation already uses `[tool.poetry]` - this is **migration within same package**, not breaking external API
-- Clear error message with migration guide provided (FR-005a)
-- Users can migrate pyproject.toml before upgrading fairdm-docs version
-- This is a **MINOR version bump** (0.1.0 → 0.2.0) with migration guide in CHANGELOG
-
-**Mitigation**:
-- Document migration path in CHANGELOG.md
-- Provide example PEP 621 pyproject.toml in README
-- Error message includes migration guide link
-
-**Decision**: Acceptable - internal refactoring with clear migration path
-
-### IV. Documentation-First ✅
-
-**Compliance**: 
-- Feature documented in spec.md with examples
-- Will update README.md with PEP 621 examples (Phase 1)
-- Error messages pre-written in spec (FR-005, FR-012, FR-013)
-
-### V. Extensibility with Sensible Defaults ✅
-
-**Compliance**:
-- Two official themes supported
-- `[tool.fairdm.docs]` allows TOML-based customization
-- conf.py overrides still work (precedence chain FR-017)
-- Unknown config keys ignored gracefully (FR-019)
-
-**GATE STATUS**: ✅ PASS (with justified backward compatibility consideration)
-
-## Project Structure
-
-### Documentation (this feature)
-
-```text
-specs/001-pyproject-auto-config/
-├── plan.md              # This file
-├── spec.md              # Feature specification
-├── research.md          # Phase 0 output (SKIPPED)
-├── data-model.md        # Phase 1 output
-├── quickstart.md        # Phase 1 output
-└── checklists/
-    └── requirements.md  # Validation checklist
 ```
-
-### Source Code (repository root)
-
-```text
 fairdm_docs/
-├── __init__.py
-├── conf.py              # PRIMARY: Refactor metadata extraction
-├── _static/             # Default branding assets
-│   ├── logo.svg
-│   └── icon.svg
-├── _templates/
-│   └── model.md.jinja
-└── extensions/
-    ├── __init__.py
-    ├── auto_django_model.py
-    └── autodoc_models.py
+├── metadata.py      NEW — the declaration as a value object
+├── conf.py          keeps the Sphinx namespace, loses the extraction
+├── config.py        unchanged — supplies ConfigError
+└── utils.py         unchanged — finding and parsing the file stays R4's
 
-examples/
-├── basic_conf.md        # UPDATE: Show PEP 621 usage
-├── custom_theme_conf.md # UPDATE: Add [tool.fairdm.docs] example
-└── fairdm_portal_conf.md
-
-tests/ (not in current structure - add if requested)
-├── fixtures/
-│   ├── minimal_pep621_pyproject.toml
-│   ├── full_pep621_pyproject.toml
-│   ├── legacy_poetry_pyproject.toml
-│   └── fairdm_docs_config_pyproject.toml
-└── test_conf_extraction.py
-
-README.md                # UPDATE: PEP 621 examples
-CHANGELOG.md             # UPDATE: Document breaking change
+tests/
+├── conftest.py      NEW — a temporary portal, and a real build of one
+├── test_metadata.py NEW — every requirement, directly
+├── test_conf.py     NEW — the values that reach a rendered site
+└── fixtures/        extended with the declarations these tests need
 ```
 
-**Structure Decision**: Single project layout. Primary work in `fairdm_docs/conf.py`. Examples and documentation updates. Optional test fixtures if manual testing proves insufficient.
+## The design
 
-## Phase 0: Research (SKIPPED)
+### `fairdm_docs/metadata.py`
 
-**Decision**: Skip Phase 0 research. All technical decisions are clear:
+One class, `ProjectMetadata`, holding what a portal declared: `name`, `version`, `description`,
+`authors` as display names, `homepage` and `repository`. Two constructors:
 
-- ✅ PEP 621 standard documented: <https://packaging.python.org/en/latest/specifications/pyproject-toml/>
-- ✅ tomllib available in Python 3.11+, tomli backport for 3.10 (already in use)
-- ✅ Sphinx theme configuration patterns known (existing implementation)
-- ✅ Configuration precedence pattern standard (env vars > config file > defaults)
+- `from_toml_data(data)` — takes an already-parsed mapping. This is where FR-001 to FR-006, FR-012,
+  FR-013, FR-016 and FR-017 live, and it is the reason the behaviour becomes testable without
+  touching the filesystem.
+- `from_file(path)` — reads and parses, then delegates. FR-018 and FR-019 live here, converting
+  `tomllib.TOMLDecodeError` and a missing file into the package's own error.
 
-**No unknowns requiring research**. Proceeding directly to Phase 1.
+One derived value, `copyright`, from the current year and the display names (FR-009).
 
-## Phase 1: Design & Contracts
+Failures raise `ConfigError` from `fairdm_docs.config` (FR-015), which `cli.py` already catches at
+two points and reports as a message. No new error type is introduced. The import direction is
+`metadata` → `config` → `utils`, which is acyclic, verified against the current imports.
 
-### Data Model
+Warnings go through `sphinx.util.logging.getLogger(__name__)` (FR-014), which the research probe
+proved is the only mechanism that reaches the build output. This repository already uses that logger
+in `extensions/autodoc_models.py`.
 
-See [data-model.md](data-model.md) for detailed entity definitions:
+Names carry no leading underscore. The class is the boundary; what is on it is on it.
 
-- **ProjectMetadata**: name, version, authors[], description, urls{homepage, repository}
-- **FairDMDocsConfig**: theme (optional)
-- **ThemeConfig**: theme_name, theme_options{}, logo_path, favicon_path
-- **BrandingAssets**: logo_path (with fallback chain), icon_path
+### `fairdm_docs/conf.py`
 
-### API Contracts
-
-**Internal Module API** (no REST/GraphQL - this is a configuration module):
+Loses `normalize_key`, `get_case_insensitive`, `extract_project_metadata` and the defaults and
+warnings that go with them. Keeps the module-level namespace Sphinx reads, now assigned from the
+value object:
 
 ```python
-# fairdm_docs/conf.py - Public exports (imported via `from fairdm_docs.conf import *`)
+metadata = ProjectMetadata.from_file(find_pyproject_toml())
 
-# Sphinx configuration variables (auto-populated)
-project: str                    # From [project].name
-version: str                    # From [project].version or "0.0.0"
-release: str                    # Same as version
-copyright: str                  # Generated from [project].authors + current year
-authors: list[str]             # From [project].authors
-language: str = "en"           # Default
-
-html_theme: str                # From [tool.fairdm.docs].theme or "sphinx_book_theme"
-html_theme_options: dict       # Theme-specific, auto-configured
-html_static_path: list[str]    # ["_static"]
-html_logo: str                 # Branding asset path or fallback
-html_favicon: str              # Branding asset path or fallback
-
-extensions: list[str]          # Pre-configured Sphinx extensions
-myst_enable_extensions: list[str]  # MyST parser features
-
-# Internal helper functions (not exported)
-def _load_pyproject() -> dict
-def _extract_project_metadata(data: dict) -> ProjectMetadata
-def _extract_fairdm_config(data: dict) -> FairDMDocsConfig
-def _resolve_branding_assets() -> BrandingAssets
-def _apply_theme_config(theme: str, metadata: ProjectMetadata) -> dict
-def _get_config_precedence(pyproject_config, module_defaults) -> dict
+project = metadata.name          # verbatim — FR-007, and the D7 defect closed
+version = metadata.version       # FR-008
+release = metadata.version
+author = ", ".join(metadata.authors)   # FR-010
+copyright = metadata.copyright   # FR-009
 ```
 
-**Configuration Precedence**:
-1. User's `conf.py` overrides (Python code after import)
-2. `[tool.fairdm.docs]` section in pyproject.toml
-3. Package defaults in `fairdm_docs/conf.py`
+The theme configuration reads `metadata.repository` and `metadata.homepage` (FR-011). Whether
+buttons are drawn from them is R3's and is not touched.
 
-### Quickstart Guide
+Everything else in the module — the extension list, `source_suffix`, `html_static_path`, the
+autodoc2 and Django blocks, the LaTeX and epub sections — is out of scope and is left alone. Several
+are defective; R3, R4, R5 and R6 own them.
 
-See [quickstart.md](quickstart.md) for user-facing setup instructions.
+### `tests/conftest.py`
 
-Key steps:
-1. Install: `poetry add --group dev fairdm-docs`
-2. Create `docs/conf.py` with one line: `from fairdm_docs.conf import *`
-3. Ensure `pyproject.toml` has `[project]` section with `name`
-4. Run: `sphinx-build docs docs/_build/html`
+Two fixtures, because Article X puts construction boilerplate here rather than in the assertions:
 
-## Testing Strategy
+- one that writes a temporary project from a declaration given as a string or a mapping,
+- one that builds such a project's documentation for real, through `from fairdm_docs.conf import *`,
+  and returns the rendered HTML together with the build output.
 
-**Manual Testing Approach** (no automated tests in current structure):
+The built project's index is `index.rst`. `conf.py` registers `.rst` alone as a source suffix, which
+is R3's defect; using it here keeps these tests about which values reach the page.
 
-Create test fixtures in `specs/001-pyproject-auto-config/fixtures/`:
+## Complexity tracking
 
-1. **minimal_pyproject.toml**: Only `[project]` with `name`
-2. **full_pyproject.toml**: All PEP 621 fields populated
-3. **fairdm_config_pyproject.toml**: With `[tool.fairdm.docs]` section
-4. **legacy_pyproject.toml**: Only `[tool.poetry]` (should error)
-5. **no_project_pyproject.toml**: Missing both sections (should error)
+**A new module, where the specification could have been met by editing one.**
 
-**Test Procedure**:
-1. Create minimal docs/ directory with test fixture as pyproject.toml
-2. Create conf.py with `from fairdm_docs.conf import *`
-3. Run `sphinx-build` and verify output
-4. Check HTML contains correct metadata
-5. Verify appropriate warnings/errors logged
+Article III asks what a new piece of structure buys, and refuses it if the answer is future
+flexibility. The answer here is present and concrete: SC-006 requires that every requirement is
+covered by a test, and today none of them can be, because `conf.py` performs its work as
+module-level statements that read a file from disk and raise when it is absent. Importing anything
+from it runs the whole chain. That is measured, not asserted — the module is 137 statements at 0%
+coverage, and the coverage is 0% because there is no way in.
 
-**Test Matrix**:
+What is being added is one concrete class with two constructors, directly instantiated. No base
+class, no interface, no registry, no indirection, and no second way to do anything. Article XI
+independently requires the class, because the three functions being moved share one subject.
 
-| Fixture | Expected Result |
-|---------|-----------------|
-| minimal | Success with defaults, warnings for missing optional fields |
-| full | Success with all metadata populated |
-| fairdm_config | Success with pydata theme applied |
-| legacy | ConfigurationError with migration message |
-| no_project | ConfigurationError requesting [project] section |
+**What is deliberately not done.** `pyproject.toml` is read in two places in this package, and the
+two readers disagree about roughly half of what they read. Unifying them is R10's subject and it
+covers the settings table as well as the metadata. Doing it here would be the larger, vaguer change
+Article II warns about, and it would put this change on the critical path of an item scheduled
+separately.
 
-## Risk Mitigation
+## Notes carried into the tasks
 
-### Risk: Configuration precedence confusion
-
-**Mitigation**: 
-- Add DEBUG-level logging showing config source for each setting
-- Document precedence clearly in docstrings
-- Show examples in README
-
-### Risk: Theme options clash when switching
-
-**Mitigation**:
-- Separate theme option dictionaries per theme
-- Auto-detect theme before applying options
-- Test both themes in fixture matrix
-
-### Risk: Dynamic versioning breaks extraction
-
-**Mitigation**:
-- Detect `dynamic = ["version"]` in pyproject.toml
-- Raise clear error: "Dynamic versioning not supported. Set static version in [project].version"
-- Document requirement in README
-
-## Definition of Done
-
-- [ ] All functional requirements (FR-001 through FR-019) implemented
-- [ ] Constitution principles validated (zero-config, convention over configuration)
-- [ ] All 4 user stories testable and demonstrated
-- [ ] Test matrix passes (5 fixtures)
-- [ ] README.md updated with PEP 621 examples
-- [ ] CHANGELOG.md documents migration from [tool.poetry]
-- [ ] examples/ directory updated
-- [ ] quickstart.md created
-- [ ] No breaking changes to public API (conf.py variables)
-- [ ] Error messages match spec exactly (FR-005, FR-005a, FR-012, FR-013, FR-018)
-
-## Next Steps
-
-1. Review and approve this implementation plan
-2. Run `/speckit.tasks` to generate detailed task breakdown
-3. Begin Phase 2.1 implementation (core metadata extraction)
-4. Test with fixtures after each phase
-5. Update documentation incrementally
-
-**Estimated Effort**: 
-- Phase 2.1-2.2: 4-6 hours (core extraction + themes)
-- Phase 2.3-2.4: 2-3 hours (optional config + branding)
-- Phase 2.5: 2-3 hours (documentation)
-- Phase 2.6: 1-2 hours (legacy handling)
-- **Total**: ~10-14 hours development + testing
+- The suite currently has no `conftest.py`, so the shared-fixture task creates one.
+- `tests/fixtures/` holds five declarations already; the new ones extend that directory rather than
+  starting another.
+- The old task list for this specification is not evidence and no line of it is carried over
+  (decisions.md, D10).
