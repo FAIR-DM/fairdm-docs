@@ -455,3 +455,23 @@ three example pages nobody had re-read. Both are settled here rather than carrie
   that are.
 
 **ADR:** none — two review findings applied and a documentation gate settled. No new constraint follows.
+
+## D24 — Both convergence flags against `origin/main` are cleared.
+
+The whole-branch check raises two, and neither is what it is looking for.
+
+`specs/001-pyproject-auto-config/test_branding.py` is reported as a deleted test. It was never
+part of the suite: `testpaths` is `["tests"]`, so nothing under `specs/` is collected. The file
+carried its own simplified copy of `_resolve_branding_assets` and asserted against the copy rather
+than against the package, so it could not have failed on a change to the real function. It also
+covers branding, which D2 moved to R4. It went with the other artefacts of the February draft in
+the specification rewrite (D11), which is the commit the check names.
+
+`tests/test_cli.py` is reported as a modified pre-existing test. The diff against `origin/main` is
+29 added lines and zero removed: one import, and `TestConfigurationFailures` appended after the
+end of the file's last class. Every existing test in it is byte-identical, the same shape D22
+cleared for `tests/test_metadata.py`.
+
+**Settled:** cleared, no escalation.
+
+**ADR:** none — two flags read and dismissed on the diff.
