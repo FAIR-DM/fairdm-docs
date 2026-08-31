@@ -155,7 +155,15 @@ class TestConfigurationFailures:
         assert "syntax" in message.lower()
         assert "Traceback" not in message
 
-    def test_missing_pyproject_is_reported_without_a_traceback(self, tmp_path):
+    def test_missing_pyproject_is_reported_without_a_traceback(
+        self, tmp_path, monkeypatch
+    ):
+        # FAIRDM_DOCS_PROJECT_DIR is a fallback conf.py consults only once a
+        # cwd-based search fails; a CLI build sets it directly on os.environ
+        # (not via monkeypatch.setenv), so an earlier test's directory can
+        # otherwise leak into this one's fallback search.
+        monkeypatch.delenv("FAIRDM_DOCS_PROJECT_DIR", raising=False)
+
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         (docs_dir / "index.rst").write_text("Portal\n======\n")
@@ -165,4 +173,5 @@ class TestConfigurationFailures:
             start_building(docs_dir, tmp_path / "_build")
 
         message = str(exc_info.value)
+        assert "pyproject.toml" in message
         assert "Traceback" not in message

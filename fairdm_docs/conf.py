@@ -165,14 +165,22 @@ def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
 
 # Project information --------------------------------------
 # Load and extract metadata from pyproject.toml (PEP 621)
+# Search from cwd first; only consult FAIRDM_DOCS_PROJECT_DIR (set by the CLI)
+# when that fails, e.g. because Sphinx changed cwd to the conf.py location (D21).
+pyproject_path = find_pyproject_toml(start_dir=None)
+if pyproject_path is None:
+    pyproject_path = find_pyproject_toml(use_env_var=True)
+
 try:
-    metadata = ProjectMetadata.from_file(use_env_var=True)
+    metadata = ProjectMetadata.from_file(
+        pyproject_path.parent if pyproject_path is not None else None
+    )
 except ConfigError as exc:
     # Sphinx's own eval_config_file passes its ConfigError straight through to
     # the console; anything else it re-wraps with a traceback embedded (D19).
     raise SphinxConfigError(str(exc)) from exc
 
-pyproject_data = load_pyproject_toml(find_pyproject_toml(use_env_var=True))
+pyproject_data = load_pyproject_toml(pyproject_path)
 fairdm_config = _extract_fairdm_config(pyproject_data)
 
 project = metadata.name  # verbatim — FR-007
