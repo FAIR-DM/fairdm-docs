@@ -525,11 +525,11 @@
         {
           "id": "T032a",
           "status": "done",
-          "attempts": 1,
+          "attempts": 2,
           "evidence": {
             "code": [
               "fairdm_docs/metadata.py:116",
-              "fairdm_docs/conf.py:163"
+              "fairdm_docs/conf.py:166"
             ],
             "tests": [
               "tests/test_conf.py::TestConfigurationFailures"

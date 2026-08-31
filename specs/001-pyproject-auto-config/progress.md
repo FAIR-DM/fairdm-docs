@@ -178,13 +178,11 @@ Next: T032a.
 
 ## 2026-08-31T15:35:44Z · Implementer US4 · T032a
 
-Did: `ProjectMetadata.from_file` gained a `use_env_var` parameter mirroring
-`find_pyproject_toml`'s own (D21, reconciling D13 and D17). `conf.py`'s project-information block
-now builds `metadata` with `ProjectMetadata.from_file(use_env_var=True)`, catching `ConfigError`
-and re-raising `sphinx.errors.ConfigError` with the same message text so Sphinx's pass-through
-branch handles it (D19) instead of the generic branch that embeds a traceback. `pyproject_data`
-for `_extract_fairdm_config` is now fetched with an explicit second
-`find_pyproject_toml`/`load_pyproject_toml` call, deliberately (D21) rather than reusing
+Did: `conf.py`'s project-information block builds `metadata` with
+`ProjectMetadata.from_file(...)`, catching `ConfigError` and re-raising `sphinx.errors.ConfigError`
+with the same message text so Sphinx's pass-through branch handles it (D19) instead of the generic
+branch that embeds a traceback. `pyproject_data` for `_extract_fairdm_config` is fetched with an
+explicit `find_pyproject_toml`/`load_pyproject_toml` call, deliberately (D21) rather than reusing
 `from_file`'s internal read. The dead `raise ValueError(...)` fallback is gone.
 Verified: `tests/test_conf.py::TestConfigurationFailures`, two tests — RED first (both raised
 `sphinx.errors.ConfigError` already, since Sphinx's generic branch wraps any exception, but the
@@ -193,3 +191,29 @@ passed after the change. Full `tests/test_conf.py`, `tests/test_metadata.py` and
 — 61 passed, no regressions (`tests/test_cli.py::TestConfigurationFailures`, D18's patched-build
 test, still passes unmodified). `ruff check` and `mypy` on both changed files clean.
 Next: story report.
+
+## 2026-08-31T15:50:00Z · Implementer US4 · T032a fix, found by the §5 full-suite run
+
+Did: the design above first shipped as `ProjectMetadata.from_file(use_env_var=True)` called
+unconditionally, with `from_file` given a new `use_env_var` parameter passed straight through to
+`find_pyproject_toml`. `./forge verify`'s `poetry:test` step failed — not on the two new tests, on
+eight, including `TestSiteIdentity` and `TestRenderedSite` tests unrelated to T032a — because
+`find_pyproject_toml(use_env_var=True)` prefers `FAIRDM_DOCS_PROJECT_DIR` over cwd whenever the var
+is set, and `cli.py` sets it with a raw `os.environ[...] =` that a `tests/test_cli.py` build test
+never unsets, so it leaks into whatever runs after it in the same suite. Every scoped run I'd used
+while looping on this task (`tests/test_conf.py` alone, `tests/test_metadata.py` alone) started
+with that var unset and never showed it; only the full-suite run did, exactly why §5 mandates it
+run before the report rather than being inferred from narrower runs. See D21 for the reproduction
+and the full account.
+Fixed: reverted `from_file`'s signature. `conf.py` now locates the file itself with the same
+two-stage precedence D13's original code used — cwd first, `use_env_var=True` only as a fallback
+once cwd search returns `None` — then calls the unmodified `from_file(pyproject_path.parent)`.
+`tests/test_conf.py::TestConfigurationFailures::test_missing_pyproject_is_reported_without_a_traceback`
+is the one test that genuinely reaches that fallback branch (the "no pyproject.toml" case requires
+cwd search to fail), so it is still exposed to the same pre-existing leak on an unlucky suite order;
+it now calls `monkeypatch.delenv("FAIRDM_DOCS_PROJECT_DIR", raising=False)` to control for that,
+since `tests/test_cli.py` is not mine to change.
+Verified: `poetry run pytest tests/test_cli.py tests/test_conf.py -v` — reproduced the 8 failures
+against the buggy version, then 40 passed after the fix, in that same cross-file order. Full
+`./forge verify` — all steps passed, including `poetry:test` (previously the one that caught this).
+`ruff check` and `mypy` clean on the re-touched files.

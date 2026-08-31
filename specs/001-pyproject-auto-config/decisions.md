@@ -309,22 +309,43 @@ to addresses this story adds. **Revisit if:** T015's test is deliberately widene
 addresses too — the fix is two more `logger.warning` calls in `from_toml_data`, next to the
 `homepage`/`repository` extraction.
 
-## D21 — D13/D17 reconciled by giving `from_file` the same `use_env_var` parameter `find_pyproject_toml` already has; `conf.py` reads the file twice.
+## D21 — D13/D17 reconciled by locating the file with the original two-stage precedence, then handing `from_file` the directory it already found. `from_file`'s signature is untouched.
 
-D19 named the conflict and left the reconciliation to T032a. `from_file(start_dir, use_env_var)`
-now passes `use_env_var` straight through to `find_pyproject_toml`, unchanged when `False` (every
-existing call site, all of them in `tests/test_metadata.py`, keeps working) and matching D13's
-old fallback when `True`: env var first if set, cwd search otherwise. D17's signature — search
-inside `from_file` rather than receiving a resolved path — is kept exactly as settled, because
-narrowing it to admit a resolved path would have left `from_file(tmp_path)` with nothing to put
-in the "searched from" message on a miss, breaking `TestFailures::test_missing_pyproject_fails_
-naming_where_it_looked` (US3, not mine to change).
+D19 named the conflict and left the reconciliation to T032a. The first attempt gave `from_file` a
+`use_env_var` parameter passed straight through to `find_pyproject_toml`, called unconditionally
+as `from_file(use_env_var=True)`. The story's own mandatory full-suite run (§5) caught what
+`tests/test_conf.py` alone did not: `find_pyproject_toml`'s `use_env_var=True` branch prefers the
+`FAIRDM_DOCS_PROJECT_DIR` env var over the caller's `start_dir`/cwd whenever it is set, and
+`cli.py:94`/`:229` set that var with a raw `os.environ[...] =` (not `monkeypatch.setenv`), so it
+survives past the end of whichever test set it. Any earlier `tests/test_cli.py` test that invoked
+a build left it pointing at that test's own `tmp_path`; every `tests/test_conf.py` test run after
+it — not just the new T032a ones — read the wrong portal's identity, because the env var is
+consulted before cwd rather than only once cwd fails. `poetry run pytest tests/test_cli.py
+tests/test_conf.py` reproduced eight failures; `tests/test_conf.py` run alone showed none.
 
-`conf.py` still calls `find_pyproject_toml`/`load_pyproject_toml` a second time after `from_file`
-succeeds, to get the raw mapping `_extract_fairdm_config` reads — `from_file` returns a
-`ProjectMetadata`, not the mapping, and teaching it to expose one is a change to its public
-surface for a caller (`_extract_fairdm_config`, R10's) this story does not own. Both calls use
-`use_env_var=True` identically, so they resolve the same file deterministically; the second read
-costs a stat and a page parse, not a behaviour difference. **Revisit if:** R10 gives
+**Settled:** locate the file exactly as D13's original `conf.py` did — `find_pyproject_toml(start_dir=None)`
+(cwd) first, `find_pyproject_toml(use_env_var=True)` only when that returns `None` — then call the
+unmodified `ProjectMetadata.from_file(pyproject_path.parent)`. Passing a directory (not the resolved
+file) keeps D17 exactly as settled: `from_file` still does its own (now trivially short, one-entry)
+search and still has a directory to report in the "searched from" message on a miss.
+`tests/test_cli.py::TestConfigurationFailures::test_metadata_failure_reported_as_message_not_traceback`
+(D18) calls `ProjectMetadata.from_file()` directly with no `start_dir`, unaffected by any of this.
+
+The env-var-as-fallback branch is still reachable — genuinely, not just via the leak — whenever
+Sphinx has changed cwd away from the project root and the CLI set the var for that reason, which
+is its whole purpose (`utils.py`'s own docstring). `tests/test_conf.py::TestConfigurationFailures::
+test_missing_pyproject_is_reported_without_a_traceback` exercises exactly that fallback path (cwd
+search must fail for the "no pyproject.toml" case to trigger at all), so it is directly exposed to
+the same pre-existing leak on a suite run where an earlier test left the var set. **Settled:** the
+test calls `monkeypatch.delenv("FAIRDM_DOCS_PROJECT_DIR", raising=False)`, since `tests/test_cli.py`
+is not mine to change and the leak is `cli.py`'s, not this story's, to fix. **Revisit if:** a later
+story gives `cli.py`'s tests `monkeypatch.setenv` instead of a raw assignment — the guard in this
+test would then be redundant but still harmless.
+
+`conf.py` calls `find_pyproject_toml`/`load_pyproject_toml` a second time (via `from_file`'s own
+internal, now-trivial search, plus a further explicit `load_pyproject_toml(pyproject_path)`) to get
+the raw mapping `_extract_fairdm_config` reads — `from_file` returns a `ProjectMetadata`, not the
+mapping, and teaching it to expose one is a change to its public surface for a caller
+(`_extract_fairdm_config`, R10's) this story does not own. **Revisit if:** R10 gives
 `_extract_fairdm_config` its own reason to read `pyproject.toml` independently, at which point the
 double read is worth collapsing.
