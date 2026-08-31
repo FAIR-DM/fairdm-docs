@@ -265,3 +265,32 @@ written to `tmp_path` — proving today's existing `except ConfigError` block in
 turns this story's new failures into a message, without asserting anything about how a future story
 wires `from_file` into `conf.py` or `cli.py`. Revisit once that wiring lands: a real, unmocked build
 becomes the more direct test at that point.
+
+## D19 — `conf.py` routes its read through `from_file`, and re-raises as Sphinx's own error type.
+
+D13 deferred the `conf.py` wiring to US3, and US3's brief then put `conf.py` out of its scope. The
+result is that `from_file` has no caller outside the tests. Two of the five failures the
+specification names are therefore not reachable in a real build: an invalid `pyproject.toml` still
+raises `tomllib.TOMLDecodeError` out of `load_pyproject_toml`, and an absent one still raises the
+`ValueError` written at `fairdm_docs/conf.py:174`. SC-004 asks for all five, so as it stands the
+specification is not satisfied and the gap is one I introduced between two briefs.
+
+Sphinx's `eval_config_file` (`sphinx/config.py:524-542`) decides what the developer sees. It has a
+bare `except ConfigError: raise` that passes an error straight through to the console untouched,
+and a generic `except Exception` that re-raises with `traceback.format_exc()` embedded in the
+message. The pass-through is keyed on `sphinx.errors.ConfigError`, not on ours — so ours, raised
+from `conf.py`, lands in the generic branch and the developer reads a traceback. Catching our
+`ConfigError` in `conf.py` and re-raising Sphinx's with the same message text takes the
+pass-through branch instead, and the message reaches the console with nothing wrapped around it.
+
+**Settled:** T032a routes `conf.py`'s read through `ProjectMetadata.from_file` and re-raises as
+`sphinx.errors.ConfigError`, tested against a real build rather than a patched one. D18's note that
+a real build becomes the more direct test once the wiring lands is what this task acts on.
+
+Two constraints pull against each other here and the task has to hold both. D13 protected the
+`find_pyproject_toml(use_env_var=True)` fallback, and with it the guarantee that the metadata comes
+from the same file `_extract_fairdm_config` read. D17 settled that `from_file` locates the file
+itself rather than receiving an already-found path, and `from_file` carries no `use_env_var`
+argument today. Whichever way those are reconciled — `from_file` learning the fallback, or D17
+being narrowed to admit a resolved path — the reconciliation belongs to this task and gets recorded
+as its own entry. Neither constraint may be dropped in silence.

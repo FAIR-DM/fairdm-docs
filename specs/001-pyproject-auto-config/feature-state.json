@@ -331,7 +331,7 @@
       "priority": "P3",
       "issue": 10,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -496,6 +496,11 @@
               "fairdm_docs/conf.py:243"
             ]
           }
+        },
+        {
+          "id": "T032a",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     }

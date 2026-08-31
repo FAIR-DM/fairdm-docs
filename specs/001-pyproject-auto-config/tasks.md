@@ -120,6 +120,11 @@ out of the HTML.
   preference, covering T027 to T030. (FR-004, FR-005)
 - **T032** `tests/test_conf.py::TestSiteIdentity` — the extracted addresses reach the site's theme
   configuration. Whether furniture is drawn from them is out of scope. (FR-011)
+- **T032a** `fairdm_docs/conf.py` and `tests/test_conf.py::TestConfigurationFailures` — route the
+  configuration file's own read through `ProjectMetadata.from_file`, and re-raise its failure as
+  Sphinx's `ConfigError` so a real build reports the message without a traceback. Assert it on a
+  real build of a declaration that is not valid TOML, and of a directory holding no declaration.
+  (FR-015, FR-018, FR-019, SC-004)
 
 **Checkpoint**: every requirement in the specification has a test.
 
@@ -144,6 +149,8 @@ out of the HTML.
 - Phase 1 blocks everything.
 - T008 blocks T012. T012 blocks T013.
 - T017 blocks T018. T025 blocks T026. T031 blocks T032.
+- T025 blocks T032a. T032a is the only task that rewrites how `conf.py` reads the file, and it needs
+  `from_file` to exist first.
 - T008 blocks T017. T017 blocks T025. T025 blocks T031. The four stories all edit
   `fairdm_docs/metadata.py`, which T008 creates and T017, T025 and T031 each add to. They are
   therefore built one after another, each starting from the feature branch once the story before it
