@@ -2,7 +2,7 @@
   "feature": "001-pyproject-auto-config",
   "branch": "001-pyproject-auto-config",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "PR_READY",
+  "state": "GATE_MERGE",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -31,13 +31,18 @@
     },
     {
       "state": "REVIEW",
-      "at": "2026-08-31T16:30:00Z",
+      "at": "2026-08-31T16:19:53Z",
       "note": "All five stories done. Convergence gate green: 95 tests pass, verify clean. Tamper flag on tests/test_metadata.py cleared as purely additive (D22)."
     },
     {
       "state": "PR_READY",
-      "at": "2026-08-31T18:40:00Z",
+      "at": "2026-08-31T16:37:41Z",
       "note": "Both review findings applied (D23). Documentation gate settled rather than deferred: module-level names removed, three example pages audited against the code. Full check green including docs against origin/main."
+    },
+    {
+      "state": "GATE_MERGE",
+      "at": "2026-08-31T16:40:07Z",
+      "note": "PR #12 out of draft. Body carries the audit's scope, the 35-of-35-open reconciliation, ADR 0007 and 0008, and the two items filed out as #13 and #14. Full check green against origin/main; both whole-branch flags adjudicated in D24."
     }
   ],
   "gates": {
@@ -597,6 +602,6 @@
   },
   "pr": {
     "number": 12,
-    "draft": true
+    "draft": false
   }
 }
