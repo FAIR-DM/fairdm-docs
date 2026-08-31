@@ -15,6 +15,7 @@ from typer.testing import CliRunner
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from fairdm_docs.cli import app
+from fairdm_docs.metadata import ProjectMetadata
 
 runner = CliRunner()
 
@@ -408,6 +409,34 @@ port = -1
         assert (
             "-1" in output or "negative" in output.lower() or "port" in output.lower()
         )
+
+
+class TestConfigurationFailures:
+    """A project-metadata failure is reported as a message, not a traceback (T026)."""
+
+    def test_metadata_failure_reported_as_message_not_traceback(
+        self, tmp_path, monkeypatch
+    ):
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[tool.poetry]\nname = 'test'\n")
+
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+
+        monkeypatch.chdir(tmp_path)
+
+        def build_reads_project_metadata(*args, **kwargs):
+            ProjectMetadata.from_file()
+            return 0
+
+        with patch("sphinx.cmd.build.main", side_effect=build_reads_project_metadata):
+            result = runner.invoke(app, ["build"])
+
+        assert result.exit_code != 0
+        output = result.stdout + result.stderr
+        assert "Traceback" not in output
+        assert "PEP 621" in output
 
 
 class TestCheckCommand:
