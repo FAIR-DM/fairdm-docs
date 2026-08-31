@@ -107,3 +107,14 @@ class TestDefaults:
         assert metadata.version == "0.0.0"
         assert metadata.authors == ["Unknown"]
         assert metadata.description == ""
+
+    def test_one_warning_is_emitted_per_defaulted_field(self, caplog):
+        with caplog.at_level("WARNING"):
+            ProjectMetadata.from_toml_data({"project": {"name": "sample-portal"}})
+
+        messages = [record.message for record in caplog.records]
+
+        assert len(messages) == 3
+        assert any("version" in message for message in messages)
+        assert any("authors" in message for message in messages)
+        assert any("description" in message for message in messages)
