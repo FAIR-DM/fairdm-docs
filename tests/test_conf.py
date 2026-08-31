@@ -72,6 +72,26 @@ authors = ["Jane Doe <jane@example.com>", "John Smith"]
         assert conf.author == "Jane Doe, John Smith"
         assert "Jane Doe, John Smith" in conf.copyright
 
+    def test_repository_address_reaches_the_theme_configuration(self, portal):
+        portal_dir = portal(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "version": "1.0.0",
+                    "description": "",
+                    "authors": ["Jane Doe"],
+                    "urls": {"Repository": "https://github.com/example/sample-portal"},
+                }
+            }
+        )
+
+        conf = load_site_config(portal_dir)
+
+        assert (
+            conf.html_theme_options["repository_url"]
+            == "https://github.com/example/sample-portal"
+        )
+
 
 class TestRenderedSite:
     """A real build of a portal whose identity is fully declared."""

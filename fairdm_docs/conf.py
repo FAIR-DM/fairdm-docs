@@ -77,9 +77,7 @@ def _apply_theme_config(theme: str) -> dict[str, Any]:
     Returns:
         Dictionary of theme-specific options
     """
-    # Address extraction (FR-004, FR-005, FR-011) is a later story; no repository
-    # URL is available yet.
-    repository_url = ""
+    repository_url = metadata.address
 
     if theme == "pydata_sphinx_theme":
         # PyData theme options
@@ -210,9 +208,7 @@ html_theme_options = _apply_theme_config(html_theme)
 # https://utteranc.es
 # https://sphinx-comments.readthedocs.io/en/latest/utterances.html
 comments_config = {}
-# Address extraction (FR-004, FR-005, FR-011) is a later story; no repository
-# URL is available yet.
-repository_url = ""
+repository_url = metadata.address
 if repository_url:
     repo_parts = repository_url.rstrip("/").split("/")[-2:]
     if len(repo_parts) == 2:
