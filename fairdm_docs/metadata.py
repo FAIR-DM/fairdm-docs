@@ -135,9 +135,15 @@ class ProjectMetadata:
         )
 
     @classmethod
-    def from_file(cls, start_dir: Path | None = None) -> "ProjectMetadata":
-        """Locate, read and parse a portal's pyproject.toml, then build from it."""
-        path = find_pyproject_toml(start_dir)
+    def from_file(
+        cls, start_dir: Path | None = None, use_env_var: bool = False
+    ) -> "ProjectMetadata":
+        """Locate, read and parse a portal's pyproject.toml, then build from it.
+
+        use_env_var mirrors find_pyproject_toml's own parameter of the same name
+        (D19): when set, FAIRDM_DOCS_PROJECT_DIR overrides start_dir if present.
+        """
+        path = find_pyproject_toml(start_dir, use_env_var=use_env_var)
         if path is None:
             searched_from = start_dir if start_dir is not None else Path.cwd()
             raise ConfigError(

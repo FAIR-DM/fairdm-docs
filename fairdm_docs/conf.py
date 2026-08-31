@@ -4,6 +4,9 @@ import warnings
 from pathlib import Path
 from typing import Any
 
+from sphinx.errors import ConfigError as SphinxConfigError
+
+from fairdm_docs.config import ConfigError
 from fairdm_docs.metadata import ProjectMetadata
 from fairdm_docs.utils import find_pyproject_toml, load_pyproject_toml
 
@@ -163,18 +166,13 @@ def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
 # Project information --------------------------------------
 # Load and extract metadata from pyproject.toml (PEP 621)
 try:
-    pyproject_data = load_pyproject_toml(start_dir=None)
-except FileNotFoundError:
-    # Try with environment variable for Sphinx context
-    pyproject_path = find_pyproject_toml(use_env_var=True)
-    if pyproject_path:
-        pyproject_data = load_pyproject_toml(pyproject_path)
-    else:
-        raise ValueError(
-            f"pyproject.toml not found. Ensure it exists at your project root directory. Searched from: {Path.cwd()}"
-        ) from None
+    metadata = ProjectMetadata.from_file(use_env_var=True)
+except ConfigError as exc:
+    # Sphinx's own eval_config_file passes its ConfigError straight through to
+    # the console; anything else it re-wraps with a traceback embedded (D19).
+    raise SphinxConfigError(str(exc)) from exc
 
-metadata = ProjectMetadata.from_toml_data(pyproject_data)
+pyproject_data = load_pyproject_toml(find_pyproject_toml(use_env_var=True))
 fairdm_config = _extract_fairdm_config(pyproject_data)
 
 project = metadata.name  # verbatim — FR-007

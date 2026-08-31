@@ -1,9 +1,12 @@
 """Tests for the values fairdm_docs.conf assigns from the portal's declared identity."""
 
+import io
 import os
 import sys
 
 import pytest
+from sphinx.application import Sphinx
+from sphinx.errors import ConfigError as SphinxConfigError
 
 
 def load_site_config(portal_dir):
@@ -122,3 +125,44 @@ name = "sample-portal"
         assert "version" in output
         assert "authors" in output
         assert "description" in output
+
+
+def start_building(docs_dir, outdir):
+    """Construct a real Sphinx application against docs_dir, as a build would."""
+    sys.modules.pop("fairdm_docs.conf", None)
+    return Sphinx(
+        srcdir=str(docs_dir),
+        confdir=str(docs_dir),
+        outdir=str(outdir / "html"),
+        doctreedir=str(outdir / "doctrees"),
+        buildername="html",
+        status=io.StringIO(),
+        warning=io.StringIO(),
+    )
+
+
+class TestConfigurationFailures:
+    """A real build reports a project-metadata failure as a message, not a traceback (T032a)."""
+
+    def test_invalid_toml_is_reported_without_a_traceback(self, portal):
+        portal_dir = portal("[project\nname = 'broken'")
+
+        with pytest.raises(SphinxConfigError) as exc_info:
+            start_building(portal_dir / "docs", portal_dir / "_build")
+
+        message = str(exc_info.value)
+        assert "TOML" in message
+        assert "syntax" in message.lower()
+        assert "Traceback" not in message
+
+    def test_missing_pyproject_is_reported_without_a_traceback(self, tmp_path):
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.rst").write_text("Portal\n======\n")
+        (docs_dir / "conf.py").write_text("from fairdm_docs.conf import *\n")
+
+        with pytest.raises(SphinxConfigError) as exc_info:
+            start_building(docs_dir, tmp_path / "_build")
+
+        message = str(exc_info.value)
+        assert "Traceback" not in message
