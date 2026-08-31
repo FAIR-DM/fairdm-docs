@@ -90,3 +90,15 @@ authors = ["Jane Doe <jane@example.com>"]
         assert "sample-portal" in html
         assert "1.2.3" in html
         assert "Jane Doe" in html
+
+    def test_a_declaration_with_only_a_name_still_builds(self, built_portal):
+        _, output = built_portal(
+            """
+[project]
+name = "sample-portal"
+"""
+        )
+
+        assert "version" in output
+        assert "authors" in output
+        assert "description" in output
