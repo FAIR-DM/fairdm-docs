@@ -1,16 +1,22 @@
 """The portal's declared identity, read once from its pyproject.toml."""
 
+import tomllib
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from sphinx.util.logging import getLogger
+
+from fairdm_docs.config import ConfigError
+from fairdm_docs.utils import find_pyproject_toml
 
 logger = getLogger(__name__)
 
 DEFAULT_VERSION = "0.0.0"
 DEFAULT_AUTHORS = ["Unknown"]
 DEFAULT_DESCRIPTION = ""
+MIGRATION_GUIDE = "https://github.com/FAIR-DM/fairdm-docs#migration-from-toolpoetry"
 
 
 @dataclass
@@ -49,7 +55,33 @@ class ProjectMetadata:
     @classmethod
     def from_toml_data(cls, data: dict[str, Any]) -> "ProjectMetadata":
         """Build a ProjectMetadata from an already-parsed pyproject.toml mapping."""
+        if "project" not in data:
+            if "poetry" in data.get("tool", {}):
+                raise ConfigError(
+                    "This project's pyproject.toml has a [tool.poetry] table but no "
+                    "[project] table.\n"
+                    "fairdm-docs requires PEP 621 project metadata; the legacy "
+                    "[tool.poetry] format is not read.\n"
+                    f"See the migration guide: {MIGRATION_GUIDE}"
+                )
+            raise ConfigError(
+                "This project's pyproject.toml has no [project] table.\n"
+                "Add one with at least a name:\n"
+                "\n"
+                "[project]\n"
+                'name = "your-portal-name"\n'
+            )
+
         project = data["project"]
+
+        if "name" not in project:
+            raise ConfigError(
+                "The [project] table in pyproject.toml has no name.\n"
+                "Add a name field:\n"
+                "\n"
+                "[project]\n"
+                'name = "your-portal-name"\n'
+            )
 
         version = cls.resolve_version(project, data)
         if version is None:
@@ -80,3 +112,21 @@ class ProjectMetadata:
             description=description,
             authors=authors,
         )
+
+    @classmethod
+    def from_file(cls, start_dir: Path | None = None) -> "ProjectMetadata":
+        """Locate, read and parse a portal's pyproject.toml, then build from it."""
+        path = find_pyproject_toml(start_dir)
+        if path is None:
+            searched_from = start_dir if start_dir is not None else Path.cwd()
+            raise ConfigError(
+                f"No pyproject.toml found. Searched from: {searched_from}"
+            )
+
+        try:
+            with open(path, "rb") as f:
+                data = tomllib.load(f)
+        except tomllib.TOMLDecodeError as exc:
+            raise ConfigError(f"{path} is not valid TOML syntax: {exc}") from exc
+
+        return cls.from_toml_data(data)
