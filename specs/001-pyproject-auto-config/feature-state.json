@@ -260,48 +260,69 @@
       "tasks": [
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:105"
+              "fairdm_docs/metadata.py:50"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestDefaults::test_absent_optional_fields_take_their_defaults"
             ]
           }
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:122"
+              "fairdm_docs/metadata.py:56"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestDefaults::test_one_warning_is_emitted_per_defaulted_field"
             ]
           }
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:108"
+              "fairdm_docs/metadata.py:39"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestDefaults::test_dynamic_version_falls_back_to_tool_poetry"
             ]
           }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:122"
+              "fairdm_docs/metadata.py:39",
+              "fairdm_docs/metadata.py:50"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestDefaults"
             ]
           }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:50"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestRenderedSite::test_a_declaration_with_only_a_name_still_builds"
+            ]
+          }
         }
       ]
     },

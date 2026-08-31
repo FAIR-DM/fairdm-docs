@@ -61,3 +61,54 @@ pre-story code too, with the same input; see `decisions.md` D14), then 5 passed 
 Did: full repo test suite, lint, typecheck and build.
 Verified: `poetry run pytest -q` — 66 passed (56 pre-existing + 10 new). `ruff check`, `mypy`,
 `deptry` via `pre-commit run` on every changed file — all passed. Story verify command below.
+
+## 2026-08-31T14:35:00Z · Implementer US2 · T014
+
+Did: `ProjectMetadata.from_toml_data` now defaults `version` to `"0.0.0"`, `authors` to
+`["Unknown"]` and `description` to `""` when the `[project]` table omits them, using `"field" in
+project` presence checks rather than truthiness (see `decisions.md` D16). Nothing raises when all
+three are absent.
+Verified: `poetry run pytest tests/test_metadata.py::TestDefaults -x -q` — 1 passed. RED observed
+first (`KeyError: 'authors'`) before the change.
+Next: T015 (warnings), T016 (dynamic-version fallback) — both already covered by this same slice;
+writing their tests next to prove it rather than assume it.
+
+## 2026-08-31T14:38:00Z · Implementer US2 · T015
+
+Did: each defaulted field logs one `sphinx.util.logging.getLogger(__name__).warning(...)` call
+naming the field, matching the mechanism `extensions/autodoc_models.py` already uses (FR-014).
+Verified: `poetry run pytest tests/test_metadata.py::TestDefaults -q` — 2 passed, via `caplog`.
+Landed already-green (the T014 slice implemented all three warnings together); probed rather than
+assumed — temporarily removed the `authors` warning call and confirmed the test dropped to
+`2 == 3` before reverting.
+
+## 2026-08-31T14:41:00Z · Implementer US2 · T016
+
+Did: `ProjectMetadata.resolve_version` returns the `[project]` version if declared, else the
+`[tool.poetry]` version when `"version"` is in `[project.dynamic]`, else `None` (which
+`from_toml_data` then defaults and warns on).
+Verified: `poetry run pytest tests/test_metadata.py::TestDefaults -q` — 3 passed. Also
+already-green from the same slice; probed by removing the dynamic-fallback branch and confirming
+the test failed (`'0.0.0' == '2.5.0'`) before reverting.
+
+## 2026-08-31T14:44:00Z · Implementer US2 · T017
+
+Did: no separate change — its full scope (defaults, per-field warnings, dynamic-version fallback,
+all in `fairdm_docs/metadata.py`) landed in the T014 commit and is proven by the T014-T016 tests
+above. Recorded as its own progress entry because the task list names it separately; the code and
+test evidence are identical to T014-T016's.
+
+## 2026-08-31T14:47:00Z · Implementer US2 · T018
+
+Did: `tests/test_conf.py::TestRenderedSite` gained a real build from a declaration carrying only
+`name`, asserting the build succeeds and that `version`, `authors` and `description` each appear
+in the build output (the Sphinx warning stream `built_portal` returns).
+Verified: `poetry run pytest tests/test_conf.py::TestRenderedSite -q` — 2 passed. Probed rather
+than assumed: with all three warning calls temporarily removed, the same test failed
+(`assert 'version' in '...'`) against real Sphinx build output, ruling out a false-positive match
+on unrelated output (e.g. "Running Sphinx v8.1.3").
+
+## 2026-08-31T14:50:00Z · Implementer US2 · report
+
+Did: full repo test suite, lint, typecheck, build and conformance via the story's verify command.
+Verified: see completion report `report-us2.json`.

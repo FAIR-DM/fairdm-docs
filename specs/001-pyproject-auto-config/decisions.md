@@ -209,3 +209,18 @@ consumer will want.
 Each story writes the declarations its own tests read, inline or through `tmp_path`. T003 therefore
 stays open until the last story, at which point it is satisfied by all of them together rather than
 by a directory.
+
+## D16 — Defaulting checks key presence, not truthiness.
+
+FR-012 says a field defaults when the system "does not find" it. `version`, `description` and
+`authors` are each tested with `"field" in project` rather than `if project.get("field")`.
+
+The two disagree on a field that is present but empty — `authors = []`, `description = ""`. That
+case is T033's (Phase 6, out of this story's task list), and truthiness would silently default it
+today with no test covering the choice either way. Presence-checking now means this story's
+behaviour is exactly what FR-012 states — declared-but-empty is not "not found" — and leaves T033
+free to add its own explicit test for the empty-value case without this story having already
+picked an unverified answer for it.
+
+**Revisit if:** T033 finds that a present-but-empty value should also default; the fix is a
+truthiness check in the same three `if` branches in `fairdm_docs/metadata.py`.
