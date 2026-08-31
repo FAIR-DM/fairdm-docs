@@ -37,7 +37,7 @@ Serves G1.
 
 ### R2 — The portal's own metadata becomes the site's identity
 
-*needs verification · advances G4*
+*verified against [specs/001-pyproject-auto-config](../specs/001-pyproject-auto-config/spec.md) · advances G4*
 
 The name, version, description, authors and repository address a portal already declares for packaging are read straight out of that declaration and become the site's title, version line, copyright and repository links. A portal that has stated a fact once is never asked to state it again, and a missing optional fact warns rather than stopping the build.
 

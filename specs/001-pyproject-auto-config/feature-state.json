@@ -1,0 +1,607 @@
+{
+  "feature": "001-pyproject-auto-config",
+  "branch": "001-pyproject-auto-config",
+  "repo": "FAIR-DM/fairdm-docs",
+  "state": "GATE_MERGE",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-31T09:40:00Z",
+      "note": "Specification rewritten around R2; prior version and reasons in decisions.md"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-31T10:05:00Z",
+      "note": "Scope narrowed to R2 on approval; remaining adjudications delegated"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-31T11:29:00Z",
+      "note": "Task list written greenfield and committed before reconciliation"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-31T11:36:01Z",
+      "note": "Reviewer dispatched with the three standard lenses plus a reconciliation lens over the audit's satisfied/open split"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-31T12:26:47Z",
+      "note": "design review returned request_changes; all three findings applied as plan edits and verified"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-31T16:19:53Z",
+      "note": "All five stories done. Convergence gate green: 95 tests pass, verify clean. Tamper flag on tests/test_metadata.py cleared as purely additive (D22)."
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-31T16:37:41Z",
+      "note": "Both review findings applied (D23). Documentation gate settled rather than deferred: module-level names removed, three example pages audited against the code. Full check green including docs against origin/main."
+    },
+    {
+      "state": "GATE_MERGE",
+      "at": "2026-08-31T16:40:07Z",
+      "note": "PR #12 out of draft. Body carries the audit's scope, the 35-of-35-open reconciliation, ADR 0007 and 0008, and the two items filed out as #13 and #14. Full check green against origin/main; both whole-branch flags adjudicated in D24."
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "sam",
+      "at": "2026-08-31T10:05:00Z",
+      "self_resolved": [
+        "Locating the pyproject.toml is out of scope and stays with R4",
+        "Drawing page furniture from the extracted addresses is out of scope and stays with R3",
+        "The [tool.fairdm.docs] settings table leaves this specification and is R10's",
+        "The declared name is used verbatim; a different display title is a setting, which is R10",
+        "Case-insensitive lookup is narrowed to [project.urls] keys only",
+        "Warnings are required to reach the documentation build's own output"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US0",
+      "priority": "P0",
+      "issue": null,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:39"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:53"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestRenderedSite::test_title_version_and_copyright_reach_the_rendered_html"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_metadata.py::TestDefaults",
+              "tests/test_metadata.py::TestAuthors",
+              "tests/test_metadata.py::TestUrls",
+              "tests/test_metadata.py::TestFailures",
+              "tests/test_metadata.py::TestEdgeCases",
+              "tests/test_conf.py::TestSiteIdentity",
+              "tests/test_conf.py::TestRenderedSite"
+            ]
+          }
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_metadata.py::TestEdgeCases"
+            ]
+          }
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "README.md:189",
+              "CHANGELOG.md:12"
+            ]
+          }
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest --cov=fairdm_docs --cov-report=term-missing",
+              "forge verify --repo /home/sam/projects/fairdm/fairdm-docs"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 8,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:31"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestProjectMetadata::test_name_version_and_description_are_the_declared_values"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:22"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAuthors::test_author_string_with_email_produces_a_display_name",
+              "tests/test_metadata.py::TestAuthors::test_author_string_without_email_produces_a_display_name"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:22"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAuthors::test_author_table_produces_the_same_display_name_as_the_string_form"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:18"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestProjectMetadata::test_copyright_is_the_current_year_and_the_display_names"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:9"
+            ],
+            "tests": [
+              "tests/test_metadata.py"
+            ]
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:182"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity::test_project_is_the_declared_name_verbatim"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:183"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity::test_version_and_release_are_the_declared_version"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:185"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity::test_author_and_copyright_are_built_from_the_declared_authors"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:179"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:60"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestRenderedSite::test_title_version_and_copyright_reach_the_rendered_html"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 9,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:50"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestDefaults::test_absent_optional_fields_take_their_defaults"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:56"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestDefaults::test_one_warning_is_emitted_per_defaulted_field"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:39"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestDefaults::test_dynamic_version_falls_back_to_tool_poetry"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:39",
+              "fairdm_docs/metadata.py:50"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestDefaults"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:50"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestRenderedSite::test_a_declaration_with_only_a_name_still_builds"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "issue": 10,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:58"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_poetry_only_table_fails_requiring_pep_621"
+            ]
+          }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:67"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_neither_table_fails_saying_what_to_add"
+            ]
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:77"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_project_with_no_name_fails_naming_the_field"
+            ]
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:129"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_invalid_toml_fails_identifying_the_syntax_problem"
+            ]
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:120"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_missing_pyproject_fails_naming_where_it_looked"
+            ]
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_every_failure_raises_the_single_config_error_type"
+            ]
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:116"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures"
+            ]
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestConfigurationFailures::test_metadata_failure_reported_as_message_not_traceback"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P4",
+      "issue": 11,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:116"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses::test_homepage_and_repository_are_read_from_project_urls"
+            ]
+          }
+        },
+        {
+          "id": "T028",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:45"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses::test_repository_key_is_matched_regardless_of_case",
+              "tests/test_metadata.py::TestAddresses::test_pep_621_field_names_are_not_matched_case_insensitively"
+            ]
+          }
+        },
+        {
+          "id": "T029",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:36"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses::test_repository_is_preferred_when_both_addresses_are_declared"
+            ]
+          }
+        },
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:116"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses::test_no_urls_table_leaves_both_addresses_empty"
+            ]
+          }
+        },
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:116"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses"
+            ]
+          }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/conf.py:80",
+              "fairdm_docs/conf.py:210"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestSiteIdentity::test_repository_address_reaches_the_theme_configuration"
+            ]
+          }
+        },
+        {
+          "id": "T032a",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:116",
+              "fairdm_docs/conf.py:166"
+            ],
+            "tests": [
+              "tests/test_conf.py::TestConfigurationFailures"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 1500000
+    }
+  },
+  "pr": {
+    "number": 12,
+    "draft": false
+  }
+}

@@ -36,8 +36,26 @@ from fairdm_docs.conf import *
 The package will automatically:
 - Install and configure PyData Sphinx Theme
 - Set up GitHub integration with "Edit on GitHub" button
-- Configure the repository URL from `project.urls.Repository`
+- Configure the repository URL from `[project.urls]`
 - Apply theme-specific defaults
+
+## How the Repository Address Is Found
+
+Keys under `[project.urls]` are matched without regard to case, so `Repository`, `repository` and `REPOSITORY` all work. PEP 621's own field names elsewhere in `[project]` are matched exactly as the standard spells them.
+
+Where both are declared the repository address wins; where only a homepage is declared, that is used. Declare neither and the theme is configured without an address.
+
+## Reading Your Own Metadata
+
+The import brings a `metadata` object with it, an instance of `ProjectMetadata`, carrying what the declaration said:
+
+```python
+from fairdm_docs.conf import *
+
+html_theme_options["announcement"] = f"Version {metadata.version} is out."
+```
+
+Its fields are `name`, `version`, `description`, `authors`, `homepage` and `repository`, plus `copyright` and `address` — the single address the theme is configured with.
 
 ## Configuration Precedence
 
@@ -71,8 +89,9 @@ theme = "sphinx_book_theme"  # or omit this line entirely
 ```
 
 Auto-configured options:
-- `repository_url` from `project.urls.Repository`
+- `repository_url` from `[project.urls]`
 - `use_repository_button = true`
+- `use_issues_button = true`
 - `use_edit_page_button = true`
 - Utterances comments enabled (if public GitHub repo)
 
@@ -84,9 +103,9 @@ theme = "pydata_sphinx_theme"
 ```
 
 Auto-configured options:
-- `icon_links` with GitHub repository link
-- `use_edit_page_button = true`
-- `navigation_with_keys = false`
+- `github_url` from `[project.urls]`
+- `icon_links` with a GitHub link, where an address is declared
+- `navbar_end` with the theme switcher and the icon links
 
 ## Custom Branding
 

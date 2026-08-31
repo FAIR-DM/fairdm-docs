@@ -88,7 +88,7 @@ With this `pyproject.toml`, `fairdm-docs` automatically sets up:
 
 ### Basic Sphinx Settings
 
-- `project = "aus-geoscience-portal"`
+- `project = "aus-geoscience-portal"` — the declared name, exactly as written
 - `version = "2.5.1"`
 - `copyright = "2026, Australian Geoscience Collaboration"`
 - `author = "Australian Geoscience Collaboration"`
@@ -100,6 +100,8 @@ With this `pyproject.toml`, `fairdm-docs` automatically sets up:
 html_theme = "pydata_sphinx_theme"
 
 html_theme_options = {
+    "github_url": "https://github.com/ausgeo/portal",
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "icon_links": [
         {
             "name": "GitHub",
@@ -107,17 +109,11 @@ html_theme_options = {
             "icon": "fa-brands fa-github",
         },
     ],
-    "use_edit_page_button": True,
-    "navigation_with_keys": False,
-}
-
-html_context = {
-    "github_user": "ausgeo",
-    "github_repo": "portal",
-    "github_version": "main",
-    "doc_path": "docs",
 }
 ```
+
+The address comes from `[project.urls]`: the repository where one is declared, the homepage
+otherwise. Declare neither and `icon_links` is empty rather than pointing nowhere.
 
 ### Branding
 
@@ -134,11 +130,12 @@ All these extensions come pre-configured:
 - `myst_parser` - Markdown support
 - `sphinx_design` - Cards, tabs, grids
 - `sphinx_copybutton` - Copy code blocks
-- `sphinx.ext.autodoc` - API documentation
-- `sphinx_autodoc2` - Modern autodoc
+- `autodoc2` - API documentation from your source
 - `sphinxext.opengraph` - Social media cards
-- `sphinxcontrib.bibtex` - Citations
 - `sphinx_comments` - Utterances comments
+- `sphinx.ext.napoleon` - Google and NumPy docstring styles
+- `sphinx.ext.intersphinx` - Links into other projects' documentation
+- `sphinx.ext.viewcode`, `sphinx.ext.todo`, `sphinx.ext.duration`, `sphinx.ext.githubpages`, `sphinx.ext.autosectionlabel`
 
 ### MyST Features
 

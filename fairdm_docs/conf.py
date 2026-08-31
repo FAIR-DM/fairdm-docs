@@ -1,10 +1,13 @@
 import os
 import sys
 import warnings
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from sphinx.errors import ConfigError as SphinxConfigError
+
+from fairdm_docs.config import ConfigError
+from fairdm_docs.metadata import ProjectMetadata
 from fairdm_docs.utils import find_pyproject_toml, load_pyproject_toml
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -27,149 +30,6 @@ if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
             "Install Django or set django=false in [tool.fairdm.docs]",
             stacklevel=2,
         )
-
-
-# ============================================================================
-# HELPER FUNCTIONS FOR PEP 621 METADATA EXTRACTION
-# ============================================================================
-
-
-def _normalize_key(key: str) -> str:
-    """
-    Normalize dictionary keys to lowercase for case-insensitive lookups.
-
-    Handles PEP 621 case variations like 'Homepage' vs 'homepage'.
-
-    Args:
-        key: Dictionary key to normalize
-
-    Returns:
-        Lowercase version of the key
-    """
-    return key.lower()
-
-
-def _get_case_insensitive(d: dict[str, Any], key: str, default: Any = None) -> Any:
-    """
-    Get value from dictionary with case-insensitive key lookup.
-
-    Args:
-        d: Dictionary to search
-        key: Key to find (case-insensitive)
-        default: Default value if key not found
-
-    Returns:
-        Value associated with key (any case variation) or default
-    """
-    key_lower = _normalize_key(key)
-    for k, v in d.items():
-        if _normalize_key(k) == key_lower:
-            return v
-    return default
-
-
-def _extract_project_metadata(data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Extract project metadata from PEP 621 [project] section.
-
-    Args:
-        data: Parsed pyproject.toml data
-
-    Raises:
-        ValueError: If required [project].name field missing
-
-    Returns:
-        Dictionary with extracted metadata (name, version, authors, description, urls)
-    """
-    # Validate [project] section exists
-    if "project" not in data:
-        if "tool" in data and "poetry" in data["tool"]:
-            raise ValueError(
-                "PEP 621 [project] section required. "
-                "Legacy [tool.poetry] format is not supported. "
-                "Please migrate: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/"
-            )
-        raise ValueError(
-            "PEP 621 [project] section required. "
-            "Add [project] section with at least 'name' field to your pyproject.toml."
-        )
-
-    project = data["project"]
-
-    # Required field: name
-    name = project.get("name")
-    if not name:
-        raise ValueError(
-            "Missing required 'project.name' in pyproject.toml. Add [project]\\nname = 'your-project-name'"
-        )
-
-    # Optional fields with defaults
-    version = project.get("version", "0.0.0")
-
-    # Handle dynamic versioning by checking tool.poetry as fallback
-    # Check if version exists in tool.poetry (common for transitional projects)
-    if (
-        version == "0.0.0"
-        and "dynamic" in project
-        and "version" in project["dynamic"]
-        and "tool" in data
-        and "poetry" in data["tool"]
-    ):
-        version = data["tool"]["poetry"].get("version", "0.0.0")
-
-    # Warn if version is still default
-    if version == "0.0.0":
-        warnings.warn(
-            "project.version not found in pyproject.toml, using default '0.0.0'",
-            UserWarning,
-            stacklevel=2,
-        )
-
-    description = project.get("description", "")
-    if not description:
-        warnings.warn(
-            "project.description not found in pyproject.toml, documentation may lack description",
-            UserWarning,
-            stacklevel=2,
-        )
-
-    # Parse authors (format: "Name <email>" or "Name")
-    authors = project.get("authors", ["Unknown"])
-    if authors == ["Unknown"]:
-        warnings.warn(
-            "project.authors not found in pyproject.toml, using default ['Unknown']",
-            UserWarning,
-            stacklevel=2,
-        )
-    author_names = []
-    for author in authors:
-        if isinstance(author, dict):
-            # PEP 621 also supports {name = "...", email = "..."}
-            author_names.append(author.get("name", "Unknown"))
-        elif isinstance(author, str):
-            # Extract name from "Name <email>" format
-            if "<" in author:
-                author_names.append(author.split("<")[0].strip())
-            else:
-                author_names.append(author.strip())
-        else:
-            author_names.append("Unknown")
-
-    # Extract URLs with case-insensitive handling
-    urls = project.get("urls", {})
-    homepage = _get_case_insensitive(urls, "homepage", "")
-    repository = _get_case_insensitive(urls, "repository", "")
-
-    return {
-        "name": name,
-        "version": version,
-        "description": description,
-        "authors": author_names,
-        "urls": {
-            "homepage": homepage,
-            "repository": repository,
-        },
-    }
 
 
 def _resolve_branding_assets() -> dict[str, str]:
@@ -210,18 +70,18 @@ def _resolve_branding_assets() -> dict[str, str]:
     }
 
 
-def _apply_theme_config(theme: str, metadata: dict[str, Any]) -> dict[str, Any]:
+def _apply_theme_config(theme: str, metadata: ProjectMetadata) -> dict[str, Any]:
     """
     Generate theme-specific options based on selected theme.
 
     Args:
         theme: Theme name (sphinx_book_theme or pydata_sphinx_theme)
-        metadata: Extracted project metadata
+        metadata: The portal's declared identity, whose address the theme links to
 
     Returns:
         Dictionary of theme-specific options
     """
-    repository_url = metadata["urls"]["repository"] or metadata["urls"]["homepage"]
+    repository_url = metadata.address
 
     if theme == "pydata_sphinx_theme":
         # PyData theme options
@@ -304,28 +164,41 @@ def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _read_declaration() -> tuple[ProjectMetadata, dict[str, Any]]:
+    """
+    Read the portal's declaration once, for both the identity and the options.
+
+    Search from cwd first; only consult FAIRDM_DOCS_PROJECT_DIR (set by the CLI)
+    when that fails, e.g. because Sphinx changed cwd to the conf.py location (D21).
+    Both return values come from the same file, so the optional configuration
+    cannot be read from one pyproject.toml while the identity comes from another.
+
+    Returns:
+        The portal's declared identity, and its [tool.fairdm.docs] configuration
+    """
+    path = find_pyproject_toml(start_dir=None)
+    if path is None:
+        path = find_pyproject_toml(use_env_var=True)
+
+    try:
+        metadata = ProjectMetadata.from_file(path.parent if path is not None else None)
+    except ConfigError as exc:
+        # Sphinx's own eval_config_file passes its ConfigError straight through to
+        # the console; anything else it re-wraps with a traceback embedded (D19).
+        raise SphinxConfigError(str(exc)) from exc
+
+    return metadata, _extract_fairdm_config(load_pyproject_toml(path))
+
+
 # Project information --------------------------------------
 # Load and extract metadata from pyproject.toml (PEP 621)
-try:
-    pyproject_data = load_pyproject_toml(start_dir=None)
-except FileNotFoundError:
-    # Try with environment variable for Sphinx context
-    pyproject_path = find_pyproject_toml(use_env_var=True)
-    if pyproject_path:
-        pyproject_data = load_pyproject_toml(pyproject_path)
-    else:
-        raise ValueError(
-            f"pyproject.toml not found. Ensure it exists at your project root directory. Searched from: {Path.cwd()}"
-        ) from None
+metadata, fairdm_config = _read_declaration()
 
-metadata = _extract_project_metadata(pyproject_data)
-fairdm_config = _extract_fairdm_config(pyproject_data)
-
-project = metadata["name"].replace("-", " ").title()
-version = metadata["version"]  # The short X.Y version
+project = metadata.name  # verbatim — FR-007
+version = metadata.version  # FR-008
 release = version
-authors = metadata["authors"]
-copyright = f"{datetime.now().year}, {', '.join(authors)}"
+author = ", ".join(metadata.authors)  # FR-010
+copyright = metadata.copyright  # FR-009
 language = "en"
 
 # General configuration -------------------------------------
@@ -352,7 +225,7 @@ html_theme_options = _apply_theme_config(html_theme, metadata)
 # https://utteranc.es
 # https://sphinx-comments.readthedocs.io/en/latest/utterances.html
 comments_config = {}
-repository_url = metadata["urls"]["repository"] or metadata["urls"]["homepage"]
+repository_url = metadata.address
 if repository_url:
     repo_parts = repository_url.rstrip("/").split("/")[-2:]
     if len(repo_parts) == 2:
@@ -527,7 +400,7 @@ autosectionlabel_prefix_document = True
 # html_use_opensearch = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = f"{metadata['name']}_docs"
+htmlhelp_basename = f"{metadata.name}_docs"
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -546,9 +419,9 @@ latex_elements: dict[str, str] = {
 latex_documents = [
     (
         "index",
-        f"{metadata['name']}.tex",
+        f"{metadata.name}.tex",
         f"{project} Documentation",
-        authors[0] if authors else "Unknown",
+        metadata.authors[0] if metadata.authors else "Unknown",
         "manual",
     ),
 ]
@@ -581,9 +454,9 @@ latex_documents = [
 man_pages = [
     (
         "index",
-        metadata["name"],
+        metadata.name,
         f"{project} Documentation",
-        authors[0] if authors else "Unknown",
+        metadata.authors[0] if metadata.authors else "Unknown",
         1,
     )
 ]
@@ -600,11 +473,11 @@ man_pages = [
 texinfo_documents = [
     (
         "index",
-        metadata["name"],
+        metadata.name,
         f"{project} Documentation",
-        authors[0] if authors else "Unknown",
-        metadata["name"],
-        metadata["description"],
+        metadata.authors[0] if metadata.authors else "Unknown",
+        metadata.name,
+        metadata.description,
         "Miscellaneous",
     ),
 ]

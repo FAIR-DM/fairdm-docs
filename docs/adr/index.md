@@ -12,3 +12,5 @@ one's status changes to point at its replacement and both stay in place.
 | [0004](0004-a-build-reads-the-development-environment-never-production.md) | A build reads the development environment, never production | accepted |
 | [0005](0005-brand-assets-are-taken-from-the-portal.md) | Brand assets are taken from the portal, not restated | accepted, not yet implemented |
 | [0006](0006-model-documentation-stays-in-scope.md) | Model documentation stays in scope | accepted, not yet implemented |
+| [0007](0007-a-declaration-is-used-exactly-as-written.md) | A declaration is used exactly as written | accepted |
+| [0008](0008-configuration-failures-are-one-error-type.md) | Configuration failures are one error type, surfaced where the developer is reading | accepted |
