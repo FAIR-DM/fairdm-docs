@@ -444,48 +444,69 @@
       "tasks": [
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:159"
+              "fairdm_docs/metadata.py:116"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses::test_homepage_and_repository_are_read_from_project_urls"
             ]
           }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:52"
+              "fairdm_docs/metadata.py:45"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses::test_repository_key_is_matched_regardless_of_case",
+              "tests/test_metadata.py::TestAddresses::test_pep_621_field_names_are_not_matched_case_insensitively"
             ]
           }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:224"
+              "fairdm_docs/metadata.py:36"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses::test_repository_is_preferred_when_both_addresses_are_declared"
             ]
           }
         },
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:159"
+              "fairdm_docs/metadata.py:116"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses::test_no_urls_table_leaves_both_addresses_empty"
             ]
           }
         },
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:116"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestAddresses"
+            ]
+          }
         },
         {
           "id": "T032",

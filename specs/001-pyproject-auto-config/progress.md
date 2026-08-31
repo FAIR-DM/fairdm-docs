@@ -148,3 +148,20 @@ Next: story report.
 
 Did: full repo test suite, lint, typecheck and build via the story's verify command.
 Verified: see completion report `report-us3.json`.
+
+## 2026-08-31T15:32:46Z · Implementer US4 · T027-T031
+
+Did: `ProjectMetadata` gained `homepage` and `repository` fields, a `resolve_address` static
+method for the case-insensitive `[project.urls]` lookup (D6 — narrowed to that one table), and an
+`address` property preferring `repository` over `homepage` for contexts that need a single value
+(FR-005). `from_toml_data` extracts both from `project.get("urls", {})`; a declaration with no
+`[project.urls]` table leaves both empty and raises nothing.
+No warning is emitted when an address defaults, unlike version/authors/description: `TestDefaults`
+(US2, T015) asserts exactly 3 warnings for a name-only declaration, which has no `[project.urls]`
+table either — a 4th or 5th warning would fail a test I may not modify. Recorded as `decisions.md`
+D20.
+Verified: `poetry run pytest tests/test_metadata.py::TestAddresses -v` — RED first (6 failed,
+`AttributeError: 'ProjectMetadata' object has no attribute 'repository'`/`'homepage'`/`'address'`),
+then 6 passed after the change. Full `tests/test_metadata.py` — 21 passed, no regressions,
+including the T015 warning-count test above. `ruff check` and `mypy` on both changed files clean.
+Next: T032, T032a.

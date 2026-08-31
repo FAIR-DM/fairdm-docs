@@ -294,3 +294,17 @@ itself rather than receiving an already-found path, and `from_file` carries no `
 argument today. Whichever way those are reconciled — `from_file` learning the fallback, or D17
 being narrowed to admit a resolved path — the reconciliation belongs to this task and gets recorded
 as its own entry. Neither constraint may be dropped in silence.
+
+## D20 — A defaulted address is silent; version, authors and description are not.
+
+FR-012 lists both addresses among the optional fields that default, and FR-013 reads as if every
+defaulted optional field is warned about. `TestDefaults::test_one_warning_is_emitted_per_defaulted_field`
+(US2, T015) asserts exactly 3 warnings for `{"project": {"name": "sample-portal"}}` — a
+declaration that also has no `[project.urls]` table, so if a defaulted address warned too, this
+count would be 4 or 5. That test was written by an earlier story and this one may not modify it.
+
+**Settled:** `resolve_address` returns `""` on a miss with no warning. FR-013's "one warning per
+optional field" is read as covering the three fields US2 already built warnings for, not extended
+to addresses this story adds. **Revisit if:** T015's test is deliberately widened to cover
+addresses too — the fix is two more `logger.warning` calls in `from_toml_data`, next to the
+`homepage`/`repository` extraction.
