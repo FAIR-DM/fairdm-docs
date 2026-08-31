@@ -255,7 +255,7 @@
       "priority": "P2",
       "issue": 9,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -336,63 +336,101 @@
       "tasks": [
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:85"
+              "fairdm_docs/metadata.py:58"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_poetry_only_table_fails_requiring_pep_621"
             ]
           }
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:92"
+              "fairdm_docs/metadata.py:67"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_neither_table_fails_saying_what_to_add"
             ]
           }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:100"
+              "fairdm_docs/metadata.py:77"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_project_with_no_name_fails_naming_the_field"
             ]
           }
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:129"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_invalid_toml_fails_identifying_the_syntax_problem"
+            ]
+          }
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0,
+          "status": "done",
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm_docs/conf.py:317"
+              "fairdm_docs/metadata.py:120"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_missing_pyproject_fails_naming_where_it_looked"
             ]
           }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_metadata.py::TestFailures::test_every_failure_raises_the_single_config_error_type"
+            ]
+          }
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_docs/metadata.py:116"
+            ],
+            "tests": [
+              "tests/test_metadata.py::TestFailures"
+            ]
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestConfigurationFailures::test_metadata_failure_reported_as_message_not_traceback"
+            ]
+          }
         }
       ]
     },
