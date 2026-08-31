@@ -39,11 +39,11 @@ class ProjectMetadata:
     def resolve_version(project: dict[str, Any], data: dict[str, Any]) -> str | None:
         """The declared version, or its `[tool.poetry]` fallback when dynamic, or None."""
         if "version" in project:
-            return project["version"]
+            return str(project["version"])
         if "version" in project.get("dynamic", []):
             poetry_version = data.get("tool", {}).get("poetry", {}).get("version")
             if poetry_version is not None:
-                return poetry_version
+                return str(poetry_version)
         return None
 
     @classmethod
@@ -53,7 +53,9 @@ class ProjectMetadata:
 
         version = cls.resolve_version(project, data)
         if version is None:
-            logger.warning(f"No version declared in [project]; defaulting to {DEFAULT_VERSION!r}.")
+            logger.warning(
+                f"No version declared in [project]; defaulting to {DEFAULT_VERSION!r}."
+            )
             version = DEFAULT_VERSION
 
         if "description" in project:
@@ -67,7 +69,9 @@ class ProjectMetadata:
         if "authors" in project:
             authors = [cls.display_name(author) for author in project["authors"]]
         else:
-            logger.warning(f"No authors declared in [project]; defaulting to {DEFAULT_AUTHORS!r}.")
+            logger.warning(
+                f"No authors declared in [project]; defaulting to {DEFAULT_AUTHORS!r}."
+            )
             authors = list(DEFAULT_AUTHORS)
 
         return cls(

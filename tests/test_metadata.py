@@ -102,7 +102,9 @@ class TestDefaults:
     """Optional fields default when a declaration omits them."""
 
     def test_absent_optional_fields_take_their_defaults(self):
-        metadata = ProjectMetadata.from_toml_data({"project": {"name": "sample-portal"}})
+        metadata = ProjectMetadata.from_toml_data(
+            {"project": {"name": "sample-portal"}}
+        )
 
         assert metadata.version == "0.0.0"
         assert metadata.authors == ["Unknown"]
