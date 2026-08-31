@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-26
 
-This document was designed against [GOALS.md](../GOALS.md). See also [CONTEXT.md](../CONTEXT.md) for domain terminology and [memory/constitution.md](../memory/constitution.md) for project standards.
+This document was designed against [GOALS.md](../GOALS.md). See also [CONTEXT.md](../CONTEXT.md) for domain terminology and [CONSTITUTION.md](../CONSTITUTION.md) for project standards.
 
 The first two items have code behind them. They are carried here so the sequence reads whole, from an empty repository onwards, and neither is claimed as finished until it has been checked against the specification that describes it.
 
