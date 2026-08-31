@@ -196,3 +196,16 @@ identity values reach a rendered page without also fixing, or masking, R3's defe
 condition is unchanged by this story — any declaration without `[project.urls]` crashed before this
 story and still does outside a test that overrides the button flags — this story neither introduces
 nor closes it. Revisit when R3 lands.
+
+## D15 — Test declarations are written where their tests are, not gathered up front.
+
+T003 asked for a directory of declarations built before any test reads one. In practice each was
+small enough to write beside the test that needs it, as a mapping or a short string, so the first
+story added none. That is the right shape: a declaration written next to its assertion is readable
+without a second file open, and one written before its consumer exists is a guess about what the
+consumer will want.
+
+**Settled:** `tests/fixtures/` keeps the five declarations it already had and is not extended.
+Each story writes the declarations its own tests read, inline or through `tmp_path`. T003 therefore
+stays open until the last story, at which point it is satisfied by all of them together rather than
+by a directory.

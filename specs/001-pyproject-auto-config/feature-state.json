@@ -89,14 +89,8 @@
         },
         {
           "id": "T003",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_metadata.py",
-              "tests/test_conf.py"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T033",
@@ -120,7 +114,7 @@
       "priority": "P1",
       "issue": 8,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {

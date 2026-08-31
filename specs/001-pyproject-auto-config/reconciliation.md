@@ -11,7 +11,8 @@ package's README and its behaviour survived a passing suite.
 
 **Measured, 2026-08-31, on `d7acc35`:** 56 tests pass. `fairdm_docs/conf.py` is 137 statements at
 **0% coverage**. No test in the suite imports it. Every requirement in this specification is
-implemented in that module.
+implemented in that module. Every line number cited below is a line in that tree, so a citation
+read after the work has started points at where the code was, not where it is.
 
 ## The split
 
