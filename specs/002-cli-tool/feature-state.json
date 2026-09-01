@@ -3,13 +3,38 @@
   "feature": "002-cli-tool",
   "branch": "002-cli-tool",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
-    { "state": "SPECIFY", "at": "2026-09-01T10:06:51Z", "note": "spec.md rewritten against goals, roadmap and decision records" },
-    { "state": "GATE_SPEC", "at": "2026-09-01T10:07:00Z", "note": "self-resolved: Sam delegated the whole run to the merge gate" },
-    { "state": "SETUP", "at": "2026-09-01T10:20:00Z", "note": "epic #15 + five story sub-issues filed; draft PR #21 opened" },
-    { "state": "PLAN", "at": "2026-09-01T11:19:05Z", "note": "plan.md, research.md and tasks.md written; reconciliation.md checks tasks.md against main@26ae898" },
-    { "state": "DESIGN_REVIEW", "at": "2026-09-01T12:42:00Z", "note": "S3R: one reviewer, four lenses (spec-compliance, security, architecture, reconciliation). Verdict approve, risk low. Findings applied as plan/task edits (REC-001, ARCH-001 added T038, SPEC-001); no re-plan" }
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-01T10:06:51Z",
+      "note": "spec.md rewritten against goals, roadmap and decision records"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-01T10:07:00Z",
+      "note": "self-resolved: Sam delegated the whole run to the merge gate"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-09-01T10:20:00Z",
+      "note": "epic #15 + five story sub-issues filed; draft PR #21 opened"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-01T11:19:05Z",
+      "note": "plan.md, research.md and tasks.md written; reconciliation.md checks tasks.md against main@26ae898"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-01T12:42:00Z",
+      "note": "S3R: one reviewer, four lenses (spec-compliance, security, architecture, reconciliation). Verdict approve, risk low. Findings applied as plan/task edits (REC-001, ARCH-001 added T038, SPEC-001); no re-plan"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-01T12:44:06Z",
+      "note": "S3R approved with 3 findings applied (no re-plan); starting S4 with US0 shared test infrastructure"
+    }
   ],
   "gates": {
     "spec": {
@@ -40,7 +65,7 @@
         "REC-001 (medium): T011/T013/T014/T015 evidence proves build only, not check as their text claims; T017 reworded to close the check half rather than reopening the four",
         "ARCH-001 (medium): D8's dead-code removal had no task; added T038, and corrected plan.md's wrong premise that the two port-conflict message templates are already identical text",
         "SPEC-001 (low): FR-001 and FR-004 had no task tag; FR-004 folded into T010's real-build assertion, FR-001 left untagged as a packaging concern already covered by pyproject.toml's console-script entry",
-        "Three wording-drift notes (utils.py:97→98 citation, FR-011/FR-012 mistag on T031/T032, an overstated check-exit-code claim in reconciliation.md) corrected"
+        "Three wording-drift notes (utils.py:97\u219298 citation, FR-011/FR-012 mistag on T031/T032, an overstated check-exit-code claim in reconciliation.md) corrected"
       ]
     },
     "merge": {
@@ -52,15 +77,74 @@
     {
       "id": "US0",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
-        { "id": "T001", "status": "todo", "attempts": 0 },
-        { "id": "T002", "status": "todo", "attempts": 0 },
-        { "id": "T003", "status": "todo", "attempts": 0 },
-        { "id": "T036", "status": "todo", "attempts": 0 },
-        { "id": "T037", "status": "todo", "attempts": 0 },
-        { "id": "T038", "status": "todo", "attempts": 0 }
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["tests/conftest.py:58"],
+            "tests": ["tests/test_conftest.py::TestDocumentedPortal"],
+            "commands": ["poetry run pytest tests/test_conftest.py -q"],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["tests/conftest.py:73"],
+            "tests": ["tests/test_conftest.py::TestRunFairdmDocs"],
+            "commands": ["poetry run pytest tests/test_conftest.py -q"],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["tests/conftest.py:150"],
+            "tests": ["tests/test_conftest.py::TestDocumentationSourceFixtures"],
+            "commands": ["poetry run pytest tests/test_conftest.py -q"],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T036",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "commands": ["git diff 7f855c4..d882a1b -- README.md CHANGELOG.md"],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T037",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "commands": [
+              "forge verify --repo fairdm-docs --base 002-cli-tool (re-run independently by the orchestrator after a conformance fix)",
+              "poetry run pytest -q (105 passed)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T038",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/config.py:35", "fairdm_docs/cli.py:99"],
+            "tests": ["tests/test_config.py::TestConfigurationLoading::test_build_configuration_defaults", "tests/test_cli.py::TestLiveServerCommand::test_build_live_error_when_port_occupied"],
+            "commands": ["poetry run pytest tests/test_config.py tests/test_cli.py -q"],
+            "verified_by_ci": false
+          }
+        }
       ]
     },
     {
@@ -69,13 +153,41 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T004", "status": "todo", "attempts": 0 },
-        { "id": "T005", "status": "todo", "attempts": 0 },
-        { "id": "T006", "status": "todo", "attempts": 0 },
-        { "id": "T007", "status": "todo", "attempts": 0 },
-        { "id": "T008", "status": "todo", "attempts": 0 },
-        { "id": "T009", "status": "todo", "attempts": 0 },
-        { "id": "T010", "status": "todo", "attempts": 0 }
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -89,18 +201,30 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/config.py:80"],
-            "tests": ["tests/test_cli.py::TestBuildCommand::test_build_error_when_no_pyproject"]
+            "code": [
+              "fairdm_docs/config.py:80"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestBuildCommand::test_build_error_when_no_pyproject"
+            ]
           }
         },
-        { "id": "T012", "status": "todo", "attempts": 0 },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
         {
           "id": "T013",
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/config.py:143"],
-            "tests": ["tests/test_cli.py::TestBuildCommand::test_build_error_when_source_missing"]
+            "code": [
+              "fairdm_docs/config.py:143"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestBuildCommand::test_build_error_when_source_missing"
+            ]
           }
         },
         {
@@ -108,8 +232,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/config.py:147"],
-            "tests": ["tests/test_cli.py::TestConfigurationValidationErrors::test_invalid_port_shows_clear_error"]
+            "code": [
+              "fairdm_docs/config.py:147"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestConfigurationValidationErrors::test_invalid_port_shows_clear_error"
+            ]
           }
         },
         {
@@ -117,14 +245,34 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/config.py:151"],
-            "tests": ["tests/test_cli.py::TestConfigurationValidationErrors::test_invalid_verbosity_shows_clear_error"]
+            "code": [
+              "fairdm_docs/config.py:151"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestConfigurationValidationErrors::test_invalid_verbosity_shows_clear_error"
+            ]
           }
         },
-        { "id": "T016", "status": "todo", "attempts": 0 },
-        { "id": "T017", "status": "todo", "attempts": 0 },
-        { "id": "T018", "status": "todo", "attempts": 0 },
-        { "id": "T019", "status": "todo", "attempts": 0 }
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -133,14 +281,46 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T020", "status": "todo", "attempts": 0 },
-        { "id": "T021", "status": "todo", "attempts": 0 },
-        { "id": "T022", "status": "todo", "attempts": 0 },
-        { "id": "T023", "status": "todo", "attempts": 0 },
-        { "id": "T024", "status": "todo", "attempts": 0 },
-        { "id": "T025", "status": "todo", "attempts": 0 },
-        { "id": "T026", "status": "todo", "attempts": 0 },
-        { "id": "T027", "status": "todo", "attempts": 0 }
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -149,9 +329,21 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T028", "status": "todo", "attempts": 0 },
-        { "id": "T029", "status": "todo", "attempts": 0 },
-        { "id": "T030", "status": "todo", "attempts": 0 }
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -160,19 +352,51 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T031", "status": "todo", "attempts": 0 },
-        { "id": "T032", "status": "todo", "attempts": 0 },
-        { "id": "T033", "status": "todo", "attempts": 0 },
-        { "id": "T034", "status": "todo", "attempts": 0 },
-        { "id": "T035", "status": "todo", "attempts": 0 }
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     }
   ],
   "budgets": {
-    "converge_cycles": { "used": 0, "max": 2 },
-    "review_cycles": { "used": 0, "max": 1 },
-    "design_review_cycles": { "used": 0, "max": 1 },
-    "tokens": { "used": 0, "max": 1500000 }
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 1500000
+    }
   },
   "pr": {
     "number": 21,
