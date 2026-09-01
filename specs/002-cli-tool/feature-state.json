@@ -5,16 +5,16 @@
   "repo": "FAIR-DM/fairdm-docs",
   "state": "DESIGN_REVIEW",
   "state_history": [
-    { "state": "SPECIFY", "at": "2026-09-01T12:00:00Z", "note": "spec.md rewritten against goals, roadmap and decision records" },
-    { "state": "GATE_SPEC", "at": "2026-09-01T12:10:00Z", "note": "self-resolved: Sam delegated the whole run to the merge gate" },
-    { "state": "SETUP", "at": "2026-09-01T12:20:00Z", "note": "epic #15 + five story sub-issues filed; draft PR #21 opened" },
-    { "state": "PLAN", "at": "2026-09-01T13:00:00Z", "note": "plan.md, research.md and tasks.md written; reconciliation.md checks tasks.md against main@26ae898" },
-    { "state": "DESIGN_REVIEW", "at": "2026-09-01T13:15:00Z", "note": "S3R: one reviewer, four lenses (spec-compliance, security, architecture, reconciliation). Verdict approve, risk low. Findings applied as plan/task edits (REC-001, ARCH-001 added T038, SPEC-001); no re-plan" }
+    { "state": "SPECIFY", "at": "2026-09-01T10:06:51Z", "note": "spec.md rewritten against goals, roadmap and decision records" },
+    { "state": "GATE_SPEC", "at": "2026-09-01T10:07:00Z", "note": "self-resolved: Sam delegated the whole run to the merge gate" },
+    { "state": "SETUP", "at": "2026-09-01T10:20:00Z", "note": "epic #15 + five story sub-issues filed; draft PR #21 opened" },
+    { "state": "PLAN", "at": "2026-09-01T11:19:05Z", "note": "plan.md, research.md and tasks.md written; reconciliation.md checks tasks.md against main@26ae898" },
+    { "state": "DESIGN_REVIEW", "at": "2026-09-01T12:42:00Z", "note": "S3R: one reviewer, four lenses (spec-compliance, security, architecture, reconciliation). Verdict approve, risk low. Findings applied as plan/task edits (REC-001, ARCH-001 added T038, SPEC-001); no re-plan" }
   ],
   "gates": {
     "spec": {
       "approved_by": "sam (delegated to the merge gate, 2026-09-01)",
-      "at": "2026-09-01T12:10:00Z",
+      "at": "2026-09-01T10:07:00Z",
       "self_resolved": [
         "Scope is the command surface only; R3, R4, R6, R10, R11 and issue #14 keep everything beneath it (D1)",
         "FR-004 is stale against ADR 0002 and is rewritten to the layered configuration model (D2)",
@@ -35,7 +35,7 @@
     },
     "design_review": {
       "approved_by": "design-panel",
-      "at": "2026-09-01T13:15:00Z",
+      "at": "2026-09-01T12:42:00Z",
       "self_resolved": [
         "REC-001 (medium): T011/T013/T014/T015 evidence proves build only, not check as their text claims; T017 reworded to close the check half rather than reopening the four",
         "ARCH-001 (medium): D8's dead-code removal had no task; added T038, and corrected plan.md's wrong premise that the two port-conflict message templates are already identical text",

@@ -1,6 +1,6 @@
 # Progress — 002
 
-## 2026-09-01T12:10:00Z · Spec gate
+## 2026-09-01T10:07:00Z · Spec gate
 
 Sam delegated the run in full: "I don't want to be involved. Please answer the questions yourself
 and preform the full spec audit yourself. See you at the merge gate." Every adjudication normally
@@ -8,13 +8,13 @@ raised at grilling and at the Spec gate is self-resolved and recorded in `decisi
 is closed as delegated rather than waited on. `feature-state.json` records `gates.spec` with the
 delegation timestamp and the self-resolved list.
 
-## 2026-09-01T12:20:00Z · Setup
+## 2026-09-01T10:20:00Z · Setup
 
 Epic #15 and five story sub-issues (#16-#20) filed per `kit/checklists/issue-contract.md`;
 `forge check-issue-titles` green. Draft PR #21 opened against `main`, `Closes` block seeded for
 all six issues. Branch `002-cli-tool` pushed as the bot (push actor confirmed).
 
-## 2026-09-01T13:00:00Z · Plan
+## 2026-09-01T11:19:05Z · Plan
 
 `plan.md`, `research.md` written. Four probes ran against real, temporary projects rather than
 being inferred from the source: a real build through `fairdm-docs build` (succeeds, closing
@@ -33,7 +33,7 @@ proves a real build or a real link resolution.
 Plan notification (veto window, not a gate) folded into this entry per the delegation — no
 separate wait.
 
-## 2026-09-01T13:15:00Z · S3R design review
+## 2026-09-01T12:42:00Z · S3R design review
 
 One reviewer, four lenses (spec-compliance, security, architecture, reconciliation), dispatched
 via `sessions_spawn` on the Sonnet tier. All three craft skills loaded with receipts. Verdict
