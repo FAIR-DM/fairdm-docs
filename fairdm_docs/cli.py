@@ -14,7 +14,7 @@ from typing import Annotated
 
 import typer
 
-from fairdm_docs.config import ConfigError, load_config
+from fairdm_docs.config import ERROR_MESSAGES, ConfigError, load_config
 
 app = typer.Typer(
     name="fairdm-docs",
@@ -97,10 +97,7 @@ def build(
             # Check port availability (T042)
             if not is_port_available(config.port):
                 typer.echo(
-                    f"❌ Error: Port {config.port} is already in use.\n"
-                    f"   Configure a different port in pyproject.toml:\n"
-                    f"   [tool.fairdm.docs]\n"
-                    f"   port = {config.port + 1}",
+                    ERROR_MESSAGES["port_conflict"](config.port),
                     err=True,
                 )
                 raise typer.Exit(code=1)
