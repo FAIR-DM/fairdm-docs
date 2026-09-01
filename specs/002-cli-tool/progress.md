@@ -56,3 +56,27 @@ overstated exit-code claim in `reconciliation.md`'s T017 discussion).
 Findings file: `design-review-findings.json`.
 
 Next: S4 implementation starting from US0 (shared test infrastructure).
+
+## 2026-09-01T14:50:06+02:00 · Implementer US0 · T001–T003, T036, T038
+
+Did: built the shared test infrastructure Phase 1 blocks on, plus the two Phase 7 tasks scoped to
+this story. `documented_portal` (T001) writes a portal from a declared name/version and a
+docs-callback. `run_fairdm_docs` (T002) invokes `fairdm_docs.cli.main()` for real — sets argv,
+catches `SystemExit`, captures stdout/stderr — with no mocking of `sphinx.cmd.build.main`. T003
+added four documentation-source fixtures (`single_page`, `broken_link`, `redirected_link`,
+`with_own_conf`) and a stdlib `http.server`-based `redirect_server` fixture; see decisions.md D14
+for why the redirect source carries a placeholder rather than a live address. T038 deleted
+`BuildConfiguration.config_dir` (and its `tests/test_config.py:38` assertion) and wired `cli.py`'s
+port-conflict message to `ERROR_MESSAGES["port_conflict"]`. T036 corrected the `check` command's
+internal-link claim and the CHANGELOG's matching "internal and external" claim per D3, and added
+an Exit Codes section to the README per FR-021/FR-022 — with the live-server gap called out rather
+than papered over (D14).
+
+Verified: `poetry run pytest` 105 passed (was 96 at baseline; +9 in `tests/test_conftest.py`).
+`poetry run ruff check .` clean on every touched file at each commit.
+
+Next: full verify (T037) before the completion report.
+
+Watch: the worktree's venv did not have the `sphinx-book-theme` extra installed at session start
+(`poetry install --extras sphinx-book-theme` fixed it) — the baseline suite was red for that
+reason before any code was touched, not because of an existing defect.

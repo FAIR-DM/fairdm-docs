@@ -244,3 +244,36 @@ call in this file is therefore the author's, recorded so it can be reversed on r
 discovered later. Merging remains the maintainer's.
 
 **ADR:** none.
+
+## D14 — US0 implementation notes (S4)
+
+**Decision:** the `redirected_link` documentation source (`tests/fixtures/redirected_link/index.rst`,
+T003) holds a literal `__REDIRECT_URL__` placeholder rather than a live address, because the
+address it needs to link to only exists once the `redirect_server` fixture (also T003, an
+`http.server`-based fixture in `tests/conftest.py`) has bound an ephemeral port for the running
+test. A story that builds a portal from this source should read the file, replace the placeholder
+with the URL `redirect_server` yields, and hand the result to `documented_portal`'s populate
+callback.
+
+**Why:** the source has to be a static file for the other four fixtures' pattern to stay uniform,
+but the one thing this source is *for* — a redirect a real check can follow — cannot be known
+until test time.
+
+**Revisit if:** a second dynamic-content source is needed; at that point a small helper that does
+the placeholder substitution is worth adding to `conftest.py` rather than leaving every caller to
+repeat it.
+
+---
+
+**Decision:** README's new "Exit Codes" section (T036) documents `130` on interrupt for `build`
+and `check`, but says explicitly that the live preview server's `Ctrl+C` still exits `0`
+(`cli.py:146`) rather than folding it into the general claim.
+
+**Why:** D6 commits to unifying this, but the fix is not in US0's task list and this worktree does
+not carry it. Documenting the target behaviour without the caveat would have made the README wrong
+again in the same task that was correcting it for D3/D4.
+
+**Revisit if:** the story that implements D6 lands — the caveat sentence should come out of the
+README in that same change.
+
+**ADR:** none — implementation notes, not specification decisions.

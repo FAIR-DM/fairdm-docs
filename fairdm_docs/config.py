@@ -28,7 +28,6 @@ class BuildConfiguration:
         build_dir: Build output directory
         port: Port for live preview server
         verbosity: Sphinx output verbosity level
-        config_dir: Directory containing conf.py (defaults to package location)
         django: Whether to import and setup Django (default: False)
     """
 
@@ -36,7 +35,6 @@ class BuildConfiguration:
     build_dir: Path = field(default_factory=lambda: Path("docs/_build/html"))
     port: int = 5000
     verbosity: str = "full"
-    config_dir: Path | None = None
     django: bool = False
 
 
