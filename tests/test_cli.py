@@ -7,6 +7,7 @@ for isolated testing.
 
 import os
 import shutil
+import socket
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -1050,3 +1051,34 @@ class TestCLIHelp:
 
         assert result.exit_code == 0
         assert "Validate documentation" in result.stdout
+
+
+class TestSettings:
+    """Real, end-to-end proof that each `[tool.fairdm.docs]` setting changes
+    build behaviour, and that a setting a portal does not name keeps its
+    documented default (FR-015 through FR-019, SC-003). `TestBuildCommand`
+    above proves the argv Sphinx is handed for these settings; this class
+    proves the settings actually change what the build does."""
+
+    def test_source_dir_setting_changes_where_the_build_reads_from(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T020: source_dir named in the table is read from instead of the
+        default docs/ — proven by content that exists only there, not just
+        that the build succeeded."""
+        portal_dir = documented_portal("custom-source-dir", "0.1.0", lambda docs_dir: None)
+        documentation_dir = portal_dir / "documentation"
+        documentation_dir.mkdir()
+        (documentation_dir / "index.rst").write_text(
+            "Portal\n======\n\nOnly the documentation directory has this line.\n"
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "custom-source-dir"\nversion = "0.1.0"\n\n'
+            '[tool.fairdm.docs]\nsource_dir = "documentation"\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        assert "Only the documentation directory has this line." in html
