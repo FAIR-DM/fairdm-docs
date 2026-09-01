@@ -143,7 +143,7 @@ def build(
                 raise typer.Exit(code=process.returncode)
             except KeyboardInterrupt:
                 typer.echo("\n⚠️  Server stopped by user")
-                raise typer.Exit(code=0) from None
+                raise typer.Exit(code=130) from None
             except FileNotFoundError:
                 typer.echo(
                     "❌ Error: sphinx-autobuild not found.\n   Install with: pip install sphinx-autobuild",
