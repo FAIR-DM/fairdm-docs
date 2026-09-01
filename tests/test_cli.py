@@ -369,6 +369,24 @@ class TestBuild:
             in index_html.read_text()
         )
 
+    def test_uses_the_portals_own_conf_py_when_present(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T005: a documentation source with its own docs/conf.py is built
+        with that configuration, not the package's."""
+        portal_dir = documented_portal(
+            "uses-own-conf", "0.1.0", _populate_from_fixture("with_own_conf")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        # tests/fixtures/with_own_conf/conf.py hardcodes project = "with-own-conf",
+        # which only reaches the output if that file, not the package's own
+        # conf.py, configured the build.
+        assert "with-own-conf" in html
+
 
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
