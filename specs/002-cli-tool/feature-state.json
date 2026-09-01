@@ -85,9 +85,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["tests/conftest.py:58"],
-            "tests": ["tests/test_conftest.py::TestDocumentedPortal"],
-            "commands": ["poetry run pytest tests/test_conftest.py -q"],
+            "code": [
+              "tests/conftest.py:58"
+            ],
+            "tests": [
+              "tests/test_conftest.py::TestDocumentedPortal"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conftest.py -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -96,9 +102,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["tests/conftest.py:73"],
-            "tests": ["tests/test_conftest.py::TestRunFairdmDocs"],
-            "commands": ["poetry run pytest tests/test_conftest.py -q"],
+            "code": [
+              "tests/conftest.py:73"
+            ],
+            "tests": [
+              "tests/test_conftest.py::TestRunFairdmDocs"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conftest.py -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -107,9 +119,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["tests/conftest.py:150"],
-            "tests": ["tests/test_conftest.py::TestDocumentationSourceFixtures"],
-            "commands": ["poetry run pytest tests/test_conftest.py -q"],
+            "code": [
+              "tests/conftest.py:150"
+            ],
+            "tests": [
+              "tests/test_conftest.py::TestDocumentationSourceFixtures"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conftest.py -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -118,7 +136,9 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "commands": ["git diff 7f855c4..d882a1b -- README.md CHANGELOG.md"],
+            "commands": [
+              "git diff 7f855c4..d882a1b -- README.md CHANGELOG.md"
+            ],
             "verified_by_ci": false
           }
         },
@@ -139,9 +159,17 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/config.py:35", "fairdm_docs/cli.py:99"],
-            "tests": ["tests/test_config.py::TestConfigurationLoading::test_build_configuration_defaults", "tests/test_cli.py::TestLiveServerCommand::test_build_live_error_when_port_occupied"],
-            "commands": ["poetry run pytest tests/test_config.py tests/test_cli.py -q"],
+            "code": [
+              "fairdm_docs/config.py:35",
+              "fairdm_docs/cli.py:99"
+            ],
+            "tests": [
+              "tests/test_config.py::TestConfigurationLoading::test_build_configuration_defaults",
+              "tests/test_cli.py::TestLiveServerCommand::test_build_live_error_when_port_occupied"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_config.py tests/test_cli.py -q"
+            ],
             "verified_by_ci": false
           }
         }
@@ -150,43 +178,112 @@
     {
       "id": "US1",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_renders_a_root_page_to_html"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_uses_the_portals_own_conf_py_when_present"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_uses_the_packages_own_conf_py_when_none_is_provided"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_creates_a_missing_parent_of_the_build_directory"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:158"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_reports_where_it_started_and_where_it_wrote_the_site"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_full_verbosity_passes_sphinxs_own_output_through"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:94"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_sets_fairdm_docs_project_dir_to_the_portals_own_directory"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
