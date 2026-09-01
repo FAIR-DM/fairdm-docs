@@ -2,7 +2,9 @@
 
 import io
 import sys
+import threading
 from contextlib import redirect_stderr, redirect_stdout
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 
@@ -138,3 +140,33 @@ def built_portal(portal):
         return html, status.getvalue() + warning.getvalue()
 
     return build
+
+
+class _RedirectHandler(BaseHTTPRequestHandler):
+    """Answers every request with a 302 redirect, so a check against it needs
+    no network access."""
+
+    def do_GET(self) -> None:
+        self.send_response(302)
+        self.send_header("Location", "/redirected")
+        self.end_headers()
+
+    def log_message(self, format: str, *args: Any) -> None:  # noqa: A002 - overrides BaseHTTPRequestHandler's signature
+        pass  # Silence the default per-request stderr logging.
+
+
+@pytest.fixture
+def redirect_server():
+    """Start a tiny local HTTP server that responds to every GET with a 302
+    redirect, for the `redirected_link` documentation source.
+
+    Yields the server's base URL. No new dependency: `http.server` is stdlib.
+    """
+    server = HTTPServer(("127.0.0.1", 0), _RedirectHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_address[1]}/"
+    finally:
+        server.shutdown()
+        thread.join()

@@ -5,7 +5,9 @@ their given/when/then contracts require, since nothing else exercises them
 directly.
 """
 
+from http.client import HTTPConnection
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 class TestDocumentedPortal:
@@ -60,3 +62,47 @@ class TestRunFairdmDocs:
 
         assert exit_code == 0
         assert "valid" in stdout.lower()
+
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+class TestDocumentationSourceFixtures:
+    """The shared documentation sources under tests/fixtures/, used by the
+    stories that build on this one to prove US1, US3 and US5's scenarios."""
+
+    def test_single_page_has_only_a_root_index(self):
+        source = FIXTURES_DIR / "single_page"
+
+        assert [p.name for p in source.iterdir()] == ["index.rst"]
+
+    def test_broken_link_points_at_a_domain_that_will_not_resolve(self):
+        content = (FIXTURES_DIR / "broken_link" / "index.rst").read_text()
+
+        assert "this-domain-does-not-exist-fairdm-docs-002.invalid" in content
+
+    def test_redirected_link_has_a_placeholder_for_the_test_server_url(self):
+        content = (FIXTURES_DIR / "redirected_link" / "index.rst").read_text()
+
+        assert "__REDIRECT_URL__" in content
+
+    def test_with_own_conf_ships_its_own_conf_py(self):
+        source = FIXTURES_DIR / "with_own_conf"
+
+        assert (source / "conf.py").exists()
+        assert (source / "index.rst").exists()
+
+
+class TestRedirectServer:
+    """The tiny http.server-based fixture that serves a redirect for the
+    `redirected_link` source, with no new dependency."""
+
+    def test_responds_with_a_302_redirect(self, redirect_server):
+        parts = urlsplit(redirect_server)
+        connection = HTTPConnection(parts.hostname, parts.port)
+
+        connection.request("GET", parts.path or "/")
+        response = connection.getresponse()
+
+        assert response.status == 302
+        assert response.getheader("Location")
