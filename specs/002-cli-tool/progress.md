@@ -80,3 +80,32 @@ Next: full verify (T037) before the completion report.
 Watch: the worktree's venv did not have the `sphinx-book-theme` extra installed at session start
 (`poetry install --extras sphinx-book-theme` fixed it) — the baseline suite was red for that
 reason before any code was touched, not because of an existing defect.
+
+## 2026-09-01T16:43:09+02:00 · Implementer US1 · T004–T010
+
+Did: added `TestBuild` alongside the existing `TestBuildCommand` in `tests/test_cli.py` (T004-T009),
+one commit per task, each a real `fairdm-docs build` via `run_fairdm_docs` against `single_page` or
+`with_own_conf` — no mocking of `sphinx.cmd.build.main`. T004 reads rendered HTML for the page's
+own content; T005/T006 assert on markers each conf.py alone produces (`with-own-conf`'s hardcoded
+`project`, and `sphinx-book-theme.css` for the package's own theme); T007 proves the build
+directory's missing parent gets created; T008 asserts the command's own started/destination
+messages, distinguished from Sphinx's own similarly-worded output; T009 proves full verbosity
+doesn't suppress Sphinx's own "build succeeded" text. T010 added the FR-004 assertion S3R
+SPEC-001 folded in here (`FAIRDM_DOCS_PROJECT_DIR` equals the portal's own directory) — no
+`fairdm_docs/cli.py` change was needed for any of T004-T010; every acceptance criterion was
+already met by the existing implementation.
+
+Every one of the seven new tests was mutation-probed per `craft-tdd`'s pre-report checklist:
+edited the mechanism each test claims to cover, watched the test fail for the right reason, then
+reverted. T007's probe found `cli.py`'s own `build_dir.parent.mkdir(...)` call is redundant —
+Sphinx's own `ensuredir(outdir)` already creates the whole path — logged in `decisions.md` rather
+than removed, since a simplification is outside this story's task list. T008's first draft
+(`"docs/_build/html" in stdout`) turned out to pass even with the command's own destination
+message replaced, because Sphinx prints an unrelated line containing the same substring; tightened
+to the command's own `"Output: docs/_build/html"` and re-probed.
+
+Verified: `poetry run pytest tests/test_cli.py::TestBuild -q` 7 passed at each commit.
+`poetry run pytest -q` 112 passed (was 105 at baseline; +7 in `tests/test_cli.py`). `poetry run
+ruff check .` clean.
+
+Next: S4 gate — Forge re-verifies and reports.

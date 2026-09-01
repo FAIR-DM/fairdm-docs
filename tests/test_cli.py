@@ -5,6 +5,8 @@ Tests the build and check commands using Typer's CliRunner
 for isolated testing.
 """
 
+import os
+import shutil
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -18,6 +20,19 @@ from fairdm_docs.cli import app
 from fairdm_docs.metadata import ProjectMetadata
 
 runner = CliRunner()
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+def _populate_from_fixture(name: str):
+    """A `documented_portal` populate callback that copies a documentation
+    source from tests/fixtures/<name>/ into the portal's docs/ directory."""
+
+    def populate(docs_dir: Path) -> None:
+        for item in (FIXTURES_DIR / name).iterdir():
+            shutil.copy(item, docs_dir / item.name)
+
+    return populate
 
 
 class TestBuildCommand:
@@ -328,6 +343,136 @@ django = true
 
             # Django env var should be set to true
             assert os.environ.get("FAIRDM_DOCS_DJANGO") == "true"
+
+
+class TestBuild:
+    """Real, end-to-end `fairdm-docs build` runs, via `run_fairdm_docs` rather
+    than a mocked `sphinx.cmd.build.main` (constitution Article IV).
+    `TestBuildCommand` above proves the argv Sphinx is handed; this class
+    proves the build itself works."""
+
+    def test_renders_a_root_page_to_html(self, documented_portal, run_fairdm_docs):
+        """T004: a documentation source with a root page and zero
+        configuration renders a site whose HTML carries the page's own
+        content."""
+        portal_dir = documented_portal(
+            "zero-config-portal", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        index_html = portal_dir / "docs" / "_build" / "html" / "index.html"
+        assert index_html.exists()
+        assert (
+            "One page, no links, nothing else in this documentation source."
+            in index_html.read_text()
+        )
+
+    def test_uses_the_portals_own_conf_py_when_present(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T005: a documentation source with its own docs/conf.py is built
+        with that configuration, not the package's."""
+        portal_dir = documented_portal(
+            "uses-own-conf", "0.1.0", _populate_from_fixture("with_own_conf")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        # tests/fixtures/with_own_conf/conf.py hardcodes project = "with-own-conf",
+        # which only reaches the output if that file, not the package's own
+        # conf.py, configured the build.
+        assert "with-own-conf" in html
+
+    def test_uses_the_packages_own_conf_py_when_none_is_provided(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T006: a documentation source with no conf.py of its own still
+        builds, using the package's own fairdm_docs/conf.py."""
+        portal_dir = documented_portal(
+            "no-own-conf", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        # The package's own conf.py selects sphinx_book_theme; a source with
+        # no conf.py of its own only gets this theme's assets if that file
+        # configured the build.
+        assert "sphinx-book-theme.css" in html
+
+    def test_creates_a_missing_parent_of_the_build_directory(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T007: the build directory's parent is created if it does not
+        already exist, without the test pre-creating it."""
+        portal_dir = documented_portal(
+            "missing-parent", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "missing-parent"\nversion = "0.1.0"\n'
+            "\n"
+            "[tool.fairdm.docs]\n"
+            'build_dir = "output/nested/html"\n'
+        )
+        build_dir = portal_dir / "output" / "nested" / "html"
+        assert not build_dir.parent.exists()
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert (build_dir / "index.html").exists()
+
+    def test_reports_where_it_started_and_where_it_wrote_the_site(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T008: the command's own output names the build as started and, on
+        success, names where the site was written."""
+        portal_dir = documented_portal(
+            "progress-messages", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "Building documentation" in stdout
+        # "Output: docs/_build/html" is the command's own message (distinct
+        # from Sphinx's own "The HTML pages are in docs/_build/html.").
+        assert "Output: docs/_build/html" in stdout
+
+    def test_full_verbosity_passes_sphinxs_own_output_through(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T009: the default (full) verbosity does not suppress Sphinx's own
+        build output, unlike the existing mocked quiet/errors-only tests,
+        which only prove the -q/-Q flags are passed."""
+        portal_dir = documented_portal(
+            "full-verbosity", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "build succeeded" in stdout
+
+    def test_sets_fairdm_docs_project_dir_to_the_portals_own_directory(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T010 (S3R SPEC-001): FAIRDM_DOCS_PROJECT_DIR, the mechanism FR-004
+        names, is set to the invoking portal's own directory during a real
+        build, not the package's, not something else."""
+        portal_dir = documented_portal(
+            "project-dir-env-var", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert os.environ["FAIRDM_DOCS_PROJECT_DIR"] == str(portal_dir.resolve())
 
 
 class TestConfigurationValidationErrors:
