@@ -1185,3 +1185,53 @@ class TestSettings:
         assert exit_code == 0
         assert "reading sources" not in stdout
         assert "toctree contains reference to nonexisting document" not in stderr
+
+    def test_django_true_sets_up_django_before_the_build(
+        self, documented_portal, monkeypatch, run_fairdm_docs
+    ):
+        """T024: django = true results in django.setup() genuinely running
+        before the build, not just the FAIRDM_DOCS_DJANGO env var being set —
+        checked by spying on the real fairdm_docs/conf.py mechanism (a
+        wrapped django.setup) and by the resulting app registry state."""
+        portal_dir = documented_portal(
+            "django-setting", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "django-setting"\nversion = "0.1.0"\n\n'
+            "[tool.fairdm.docs]\ndjango = true\n"
+        )
+        (portal_dir / "portal_django_settings.py").write_text(
+            "SECRET_KEY = 'not-a-secret'\nINSTALLED_APPS = []\n"
+        )
+        monkeypatch.syspath_prepend(str(portal_dir))
+        monkeypatch.setenv("DJANGO_SETTINGS_MODULE", "portal_django_settings")
+
+        import django
+        from django.apps import apps as django_apps
+
+        with patch("django.setup", wraps=django.setup) as mock_setup:
+            exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert mock_setup.called
+        assert django_apps.ready
+
+    def test_django_false_leaves_django_untouched(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T024: django = false never invokes django.setup(). The absent
+        case (the key missing entirely) is covered by
+        test_no_table_uses_every_documented_default below."""
+        portal_dir = documented_portal(
+            "django-untouched", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "django-untouched"\nversion = "0.1.0"\n\n'
+            "[tool.fairdm.docs]\ndjango = false\n"
+        )
+
+        with patch("django.setup") as mock_setup:
+            exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert not mock_setup.called
