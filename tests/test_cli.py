@@ -405,6 +405,28 @@ class TestBuild:
         # configured the build.
         assert "sphinx-book-theme.css" in html
 
+    def test_creates_a_missing_parent_of_the_build_directory(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T007: the build directory's parent is created if it does not
+        already exist, without the test pre-creating it."""
+        portal_dir = documented_portal(
+            "missing-parent", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "missing-parent"\nversion = "0.1.0"\n'
+            "\n"
+            "[tool.fairdm.docs]\n"
+            'build_dir = "output/nested/html"\n'
+        )
+        build_dir = portal_dir / "output" / "nested" / "html"
+        assert not build_dir.parent.exists()
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert (build_dir / "index.html").exists()
+
 
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
