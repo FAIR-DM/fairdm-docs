@@ -968,6 +968,62 @@ class TestLiveServerCommand:
                 assert "sphinx-autobuild not found" in output
 
 
+class TestInterrupt:
+    """T018: an interrupt during an ordinary build, a live preview, or a
+    check stops the command without a traceback and exits 130 in every
+    mode (D6). Each mocks the narrowest point that can raise
+    KeyboardInterrupt (`sphinx.cmd.build.main` or `subprocess.run`), per
+    constitution Article IV."""
+
+    def test_build_interrupted_exits_130(self, tmp_path, monkeypatch):
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[project]\nname = 'test'")
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+        monkeypatch.chdir(tmp_path)
+
+        with patch("sphinx.cmd.build.main", side_effect=KeyboardInterrupt):
+            result = runner.invoke(app, ["build"])
+
+        assert result.exit_code == 130
+        output = result.stdout + result.stderr
+        assert "Traceback" not in output
+
+    def test_check_interrupted_exits_130(self, tmp_path, monkeypatch):
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[project]\nname = 'test'")
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+        monkeypatch.chdir(tmp_path)
+
+        with patch("sphinx.cmd.build.main", side_effect=KeyboardInterrupt):
+            result = runner.invoke(app, ["check"])
+
+        assert result.exit_code == 130
+        output = result.stdout + result.stderr
+        assert "Traceback" not in output
+
+    def test_live_preview_interrupted_exits_130(self, tmp_path, monkeypatch):
+        """Currently fails: the live-mode handler at cli.py's ~line 147
+        exits 0 today, which is the D6 defect T019 fixes."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[project]\nname = 'test'")
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+        monkeypatch.chdir(tmp_path)
+
+        with patch("fairdm_docs.cli.is_port_available", return_value=True):
+            with patch("subprocess.run", side_effect=KeyboardInterrupt):
+                result = runner.invoke(app, ["build", "--live"])
+
+        assert result.exit_code == 130
+        output = result.stdout + result.stderr
+        assert "Traceback" not in output
+
+
 class TestCLIHelp:
     """Test CLI help output."""
 
