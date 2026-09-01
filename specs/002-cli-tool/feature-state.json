@@ -290,7 +290,7 @@
     {
       "id": "US5",
       "priority": "P2",
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -308,8 +308,14 @@
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/config.py:90"],
+            "tests": ["tests/test_cli.py::TestConfigurationFailures::test_malformed_toml_reported_as_message_not_traceback"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestConfigurationFailures -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T013",
@@ -352,23 +358,57 @@
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/config.py:67"],
+            "tests": ["tests/test_cli.py::TestExitCodes"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestExitCodes -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_no_pyproject",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_toml_is_malformed",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_source_dir_missing",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_port_out_of_range",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_verbosity_invalid",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_zero_on_success"
+            ],
+            "commands": ["poetry run pytest tests/test_cli.py::TestExitCodes -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/cli.py:146"],
+            "tests": [
+              "tests/test_cli.py::TestInterrupt::test_build_interrupted_exits_130",
+              "tests/test_cli.py::TestInterrupt::test_check_interrupted_exits_130",
+              "tests/test_cli.py::TestInterrupt::test_live_preview_interrupted_exits_130"
+            ],
+            "commands": ["poetry run pytest tests/test_cli.py::TestInterrupt -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/cli.py:146"],
+            "tests": ["tests/test_cli.py::TestInterrupt"],
+            "commands": ["poetry run pytest -q"],
+            "verified_by_ci": false
+          }
         }
       ]
     },

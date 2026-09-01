@@ -109,3 +109,23 @@ Verified: `poetry run pytest tests/test_cli.py::TestBuild -q` 7 passed at each c
 ruff check .` clean.
 
 Next: S4 gate — Forge re-verifies and reports.
+
+## 2026-09-01T20:04:17+02:00 · Implementer US5 · T012, T016–T019
+
+Did: `load_pyproject` (`config.py`) gained a second `except tomllib.TOMLDecodeError`, raising
+`ConfigError` with the file path and the parser's own message (T012) — the ADR 0008 defect
+`research.md` Q2 traced, previously a 15-frame traceback. T016 verified the five configuration
+failures (no pyproject, missing source dir, bad port, bad verbosity, malformed TOML) already
+share that one boundary. T017 added six tests proving `check` exits non-zero for the same five
+failures `build`'s tests already covered, and zero on success — closing S3R REC-001's build-only
+gap. T018/T019: `cli.py`'s live-preview interrupt handler exited 0; now exits 130, matching
+`build` and `check` (D6).
+
+Verified: `poetry run pytest -q` green at each commit. Full verify caught one ruff-format-only
+diff (a single `raise` line rewrapped) — committed separately, then green.
+
+Watch: this story's own report omitted `decisions.md`/`progress.md` entries; this entry and the
+ledger update were written by Forge from the diff and the completion report rather than by the
+Implementer. Nothing in the diff itself was affected.
+
+Next: US4 (the settings table).
