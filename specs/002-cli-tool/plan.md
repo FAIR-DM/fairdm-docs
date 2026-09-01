@@ -87,12 +87,16 @@ The docstring at `cli.py:205-211` currently reads "Broken internal and external 
 `cli.py:147-149`'s live-mode `KeyboardInterrupt` handler currently calls `typer.Exit(code=0)`. It
 changes to `typer.Exit(code=130)`, matching the other two handlers already in the file.
 
-### Dead configuration removed (D8)
+### Dead configuration removed (D8, T038)
 
-`BuildConfiguration.config_dir` (`config.py:39`) is deleted along with its docstring line; nothing
-reads it. `ERROR_MESSAGES["port_conflict"]` (`config.py:58-63`) is called from `cli.py:99-105`
-instead of duplicated by hand, and the hand-written message is deleted once the call site is
-proven to produce an identical string.
+`BuildConfiguration.config_dir` (`config.py:39`) is deleted along with its docstring line and the
+assertion on it at `tests/test_config.py:38`; nothing else reads the field. `ERROR_MESSAGES
+["port_conflict"]` (`config.py:58-63`) is called from `cli.py:99-105` instead of duplicated by
+hand — the two are not identical text today (the hand-written copy uses a single `\n` before
+`[tool.fairdm.docs]` and no trailing newline; the template uses `\n\n` and a trailing `\n`), so the
+whitespace is normalized as part of wiring the call site, checked against
+`test_build_live_error_when_port_occupied`'s substring assertions, and the hand-written copy is
+deleted once that holds.
 
 ### Real end-to-end tests (Q1)
 

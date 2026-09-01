@@ -1,0 +1,55 @@
+{
+  "lens": "spec-compliance",
+  "verdict": "approve",
+  "risk": "low",
+  "scope": "Design review of 002-cli-tool before implementation: spec.md, decisions.md (D1-D13), plan.md, research.md (Q1-Q4 probes spot-checked, not taken on trust), tasks.md (T001-T037), reconciliation.md and feature-state.json against CONSTITUTION.md, CONTEXT.md, ADR 0002/0003/0008, plus targeted reads of fairdm_docs/cli.py, fairdm_docs/config.py, fairdm_docs/utils.py, tests/test_cli.py, tests/test_config.py and tests/test_conf.py:144-178. All four tasks reconciliation.md marks done (T011, T013, T014, T015) were independently re-verified against their cited code and test lines rather than taken from the table.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-08-24/fac7e5ad",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "findings": [
+    {
+      "id": "REC-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "T011, T013, T014 and T015 are each written as \"either command\" tests (a missing pyproject.toml, a missing source directory, an out-of-range port, an invalid verbosity), but the tests reconciliation.md cites as closing all four only ever invoke `build`. No test in the suite runs `check` against any of these four failure conditions, so the `check` half of each task's own acceptance text is unverified even though the task is marked fully done.",
+      "evidence": "tests/test_cli.py:111-123 (test_build_error_when_no_pyproject, cited for T011), :125-142 (test_build_error_when_source_missing, T013), :336-359 (test_invalid_port_shows_clear_error, T014) and :361-384 (test_invalid_verbosity_shows_clear_error, T015) each call only `runner.invoke(app, [\"build\"])`. `grep -n 'check'` over tests/test_cli.py shows every `runner.invoke(app, [\"check\", ...])` call sits in TestCheckCommand (broken-link/success cases) or TestCLIHelp — none in TestConfigurationValidationErrors or TestConfigurationFailures, where these four tests live. tasks.md's own text for all four tasks reads \"either command stops with a message...\", not \"build stops with a message\". reconciliation.md's own discussion of T017 (same file) independently flags that `check`'s exit code for a T011-T015-style failure is unproven, which is this same gap surfacing under a different task without being connected back to the four \"done\" rows.",
+      "suggested_fix": "In reconciliation.md, reword the T011/T013/T014/T015 rows to state the evidence covers `build` only, and either reopen the `check` half as explicit sub-scope of T017 (which already stays open for exactly this reason) or add one parametrized case per failure that also invokes `check`. `check` calls the identical `load_config()` at the top of its try block, so this is very unlikely to be a live defect - the fix is closing the paper gap, not implementing new behaviour."
+    },
+    {
+      "id": "ARCH-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "D8's two fixes (delete `BuildConfiguration.config_dir`; make cli.py's hand-written port-conflict message call `ERROR_MESSAGES[\"port_conflict\"]` instead of duplicating it) are committed to in plan.md's Summary (\"small corrections... two pieces of dead configuration\") and decisions.md (\"Settled: fixed in this run\"), but no task in tasks.md executes either change, and plan.md's own Project Structure list of changed files omits tests/test_config.py even though deleting `config_dir` breaks an assertion that currently passes.",
+      "evidence": "tasks.md (T001-T037) contains no occurrence of `config_dir` or `port_conflict`, and no task maps to D8 the way T016 maps to D7 or T031-T035 map to D3/D5. tests/test_config.py:38 currently asserts `config.config_dir is None` inside test_build_configuration_defaults; deleting the field per plan.md's Design section without touching this test raises AttributeError. Separately, the two message templates plan.md calls interchangeable are not textually identical today: cli.py:99-105's hand-written message has a single `\\n` before `[tool.fairdm.docs]` and no trailing newline, while config.py:58-63's ERROR_MESSAGES[\"port_conflict\"] has a double `\\n\\n` there and a trailing `\\n` after the port line - so plan.md's premise (\"once the call site is proven to produce an identical string\") does not hold against the code as it stands.",
+      "suggested_fix": "Add one small task (Phase 7 or its own) for D8: delete config.py:39's `config_dir` field and its docstring line, update tests/test_config.py:38 to drop the removed assertion, normalize the whitespace difference between the two port-conflict message templates before wiring cli.py:99-105 to call `ERROR_MESSAGES[\"port_conflict\"](config.port)`, and delete the hand-written copy once the call site's output is confirmed to still satisfy test_build_live_error_when_port_occupied's substring assertions."
+    },
+    {
+      "id": "SPEC-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "FR-001 (installing the package makes the command available) and FR-004 (the command makes its invocation directory available to the configuration it runs) have no task in tasks.md tagging them, unlike every other FR in the 001-022 range.",
+      "evidence": "`grep -c \"FR-00[14]\\b\" tasks.md` returns 0 for both. FR-001 is a packaging/entry-point concern already established by pyproject.toml's console-script registration and is low-risk to leave untraced by a runtime task. FR-004 backs the `FAIRDM_DOCS_PROJECT_DIR` mechanism (cli.py:94, :229) that fairdm_docs/conf.py:171 depends on to locate the portal after Sphinx changes cwd; tests/test_conf.py:158-177 (test_missing_pyproject_is_reported_without_a_traceback) exercises conf.py's fallback search when the variable is absent, which gives partial protection against total breakage, but no task or test in 002's own scope asserts the CLI actually sets the variable to the correct invocation directory during a real build.",
+      "suggested_fix": "Fold an assertion that `FAIRDM_DOCS_PROJECT_DIR` equals the temporary portal's directory into T004 or T010 (US1's real-build tests), since both already build a temporary project through the real command."
+    }
+  ],
+  "notes": [
+    "decisions.md D7 cites the TOMLDecodeError raise site as utils.py:97; research.md Q2 cites the same site as utils.py:98. The line is actually 98 (`return tomllib.load(f)`); 97 is the `with open(...)` line one above it.",
+    "tasks.md tags T031 and T032 with FR-011 only, but the behaviour they assert - exit 0 when every address resolves, non-zero when one does not - is FR-012's text, not FR-011's. FR-012 is functionally covered, just uncited.",
+    "reconciliation.md's T017 discussion states \"nothing proves check's [exit codes]\", but tests/test_cli.py:506-523 and :524-545 (test_check_exits_zero_on_success, test_check_exits_one_on_errors) do prove check's success/failure exit codes for broken-link outcomes. The real remaining gap, which the task correctly stays open for, is narrower: check's exit code specifically for a T011-T015-style configuration failure."
+  ],
+  "stage": "design"
+}

@@ -130,7 +130,7 @@ convergence.
 
 ## D7 — A malformed declaration is a configuration failure, not a traceback
 
-A syntactically invalid `pyproject.toml` raises `tomllib.TOMLDecodeError` out of `utils.py:97`.
+A syntactically invalid `pyproject.toml` raises `tomllib.TOMLDecodeError` out of `utils.py:98`.
 `load_pyproject` catches only `FileNotFoundError` (`config.py:82-85`), and both commands catch
 only `ConfigError` (`cli.py:195`, `cli.py:298`), so `fairdm-docs build` prints a traceback at a
 developer who mistyped a bracket.

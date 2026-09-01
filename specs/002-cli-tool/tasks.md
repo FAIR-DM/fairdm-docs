@@ -49,7 +49,9 @@ containing a root page, and read the rendered HTML back off disk.
 - **T009** [P] `tests/test_cli.py::TestBuild` — a documentation source built with the default
   `verbosity`: the builder's own output reaches the developer unaltered. (FR-006)
 - **T010** `fairdm_docs/cli.py` — whatever T004 to T009 find unmet, covering FR-002, FR-003,
-  FR-005, FR-006, FR-007.
+  FR-005, FR-006, FR-007. Also asserts, on the real build one of T004/T006 already runs, that the
+  invocation directory reaches the configuration as `FAIRDM_DOCS_PROJECT_DIR` — the one mechanism
+  FR-004 names that had no task tagging it. (FR-004)
 
 **Checkpoint**: a portal with nothing configured gets a rendered site from one command.
 
@@ -61,6 +63,11 @@ failure in loading it is where each of their own error paths bottoms out.
 **Goal**: every way the command can fail produces one message, never a traceback.
 **Independently testable**: produce each failure in turn and assert on the message and the
 absence of a traceback.
+
+Each of T011 through T015 is written against "either command", but the reconciliation below found
+that the code proves only `build`'s side of each — `check()` calls the identical `load_config()`
+at the top of its own try block, so this is unlikely to be a live defect, but it is unproven and
+stays unproven until T017 closes it (S3R REC-001).
 
 - **T011** [P] `tests/test_cli.py::TestConfigurationFailures` — no `pyproject.toml` anywhere above
   the working directory: either command stops with a message saying a Python project is required,
@@ -79,8 +86,10 @@ absence of a traceback.
   is accepted. (FR-020)
 - **T016** `fairdm_docs/config.py` — a single failure boundary covering T011 to T015, so every one
   of these arrives at the same message shape. (FR-020, SC-004)
-- **T017** [P] `tests/test_cli.py::TestExitCodes` — every failure in T011 to T015 exits non-zero;
-  a successful build and a successful check each exit 0. (FR-021)
+- **T017** [P] `tests/test_cli.py::TestExitCodes` — every failure in T011 to T015 exits non-zero
+  **for both `build` and `check`** — the existing coverage of T011–T015 only invokes `build`, and
+  this task is where the `check` half of each is proven, rather than reopening those four; a
+  successful build and a successful check each exit 0. (FR-021)
 - **T018** [P] `tests/test_cli.py::TestInterrupt` — an interrupt during an ordinary build, during a
   live preview, and during a check each stop the command without a traceback and exit 130.
   (FR-022, SC-005)
@@ -147,10 +156,10 @@ a redirect separately, and never fails on a redirect alone.
 resolve and one that redirects, and read the exit code and the report.
 
 - **T031** [P] `tests/test_cli.py::TestCheck` — documentation whose external addresses all resolve:
-  `fairdm-docs check` reports success and exits 0. (FR-011, SC-006)
+  `fairdm-docs check` reports success and exits 0. (FR-011, FR-012, SC-006)
 - **T032** [P] `tests/test_cli.py::TestCheck` — documentation containing an address that does not
   resolve: the command names that address and the file it appears in, and exits non-zero. (FR-011,
-  SC-006)
+  FR-012, SC-006)
 - **T033** [P] `tests/test_cli.py::TestCheck` — documentation containing an address that redirects,
   served by the local test server from T003: the command reports the redirect under its own
   heading, separately from any failures, and exits 0 when nothing else failed. (FR-013, SC-006)
@@ -167,6 +176,14 @@ redirect never fails a build on its own.
 - **T036** [P] `README.md` and `CHANGELOG.md` — corrected wherever they repeat a claim this
   specification narrowed or struck (internal link validation, check extensibility), and updated
   for the exit-code and settings-table behaviour this run adds tests for. (Article VI)
+- **T038** `fairdm_docs/config.py` and `fairdm_docs/cli.py` — the two dead-code removals decisions.md
+  D8 commits to and that no earlier task covers (S3R ARCH-001): delete `BuildConfiguration.config_dir`
+  and its docstring line, and drop `tests/test_config.py`'s assertion on it; then make `cli.py`'s
+  hand-written port-conflict message call `ERROR_MESSAGES["port_conflict"]` instead of duplicating
+  it — the two are not identical text today (the hand-written copy uses a single `\n` before
+  `[tool.fairdm.docs]` and no trailing newline; `ERROR_MESSAGES["port_conflict"]` uses `\n\n` and a
+  trailing `\n`), so this task normalizes the whitespace before wiring the call site, checked
+  against `test_build_live_error_when_port_occupied`'s substring assertions.
 - **T037** The whole suite, lint, type-check and `deptry`, and coverage against the constitution's
   floors. (Quality bar)
 

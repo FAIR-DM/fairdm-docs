@@ -3,12 +3,13 @@
   "feature": "002-cli-tool",
   "branch": "002-cli-tool",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     { "state": "SPECIFY", "at": "2026-09-01T12:00:00Z", "note": "spec.md rewritten against goals, roadmap and decision records" },
     { "state": "GATE_SPEC", "at": "2026-09-01T12:10:00Z", "note": "self-resolved: Sam delegated the whole run to the merge gate" },
     { "state": "SETUP", "at": "2026-09-01T12:20:00Z", "note": "epic #15 + five story sub-issues filed; draft PR #21 opened" },
-    { "state": "PLAN", "at": "2026-09-01T13:00:00Z", "note": "plan.md, research.md and tasks.md written; reconciliation.md checks tasks.md against main@26ae898" }
+    { "state": "PLAN", "at": "2026-09-01T13:00:00Z", "note": "plan.md, research.md and tasks.md written; reconciliation.md checks tasks.md against main@26ae898" },
+    { "state": "DESIGN_REVIEW", "at": "2026-09-01T13:15:00Z", "note": "S3R: one reviewer, four lenses (spec-compliance, security, architecture, reconciliation). Verdict approve, risk low. Findings applied as plan/task edits (REC-001, ARCH-001 added T038, SPEC-001); no re-plan" }
   ],
   "gates": {
     "spec": {
@@ -32,6 +33,16 @@
       "approved_by": null,
       "at": null
     },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-01T13:15:00Z",
+      "self_resolved": [
+        "REC-001 (medium): T011/T013/T014/T015 evidence proves build only, not check as their text claims; T017 reworded to close the check half rather than reopening the four",
+        "ARCH-001 (medium): D8's dead-code removal had no task; added T038, and corrected plan.md's wrong premise that the two port-conflict message templates are already identical text",
+        "SPEC-001 (low): FR-001 and FR-004 had no task tag; FR-004 folded into T010's real-build assertion, FR-001 left untagged as a packaging concern already covered by pyproject.toml's console-script entry",
+        "Three wording-drift notes (utils.py:97→98 citation, FR-011/FR-012 mistag on T031/T032, an overstated check-exit-code claim in reconciliation.md) corrected"
+      ]
+    },
     "merge": {
       "approved_by": null,
       "at": null
@@ -48,7 +59,8 @@
         { "id": "T002", "status": "todo", "attempts": 0 },
         { "id": "T003", "status": "todo", "attempts": 0 },
         { "id": "T036", "status": "todo", "attempts": 0 },
-        { "id": "T037", "status": "todo", "attempts": 0 }
+        { "id": "T037", "status": "todo", "attempts": 0 },
+        { "id": "T038", "status": "todo", "attempts": 0 }
       ]
     },
     {

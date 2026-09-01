@@ -33,5 +33,26 @@ proves a real build or a real link resolution.
 Plan notification (veto window, not a gate) folded into this entry per the delegation — no
 separate wait.
 
-Next: S3R design review, four lenses including reconciliation, then S4 implementation starting
-from US0 (shared test infrastructure).
+## 2026-09-01T13:15:00Z · S3R design review
+
+One reviewer, four lenses (spec-compliance, security, architecture, reconciliation), dispatched
+via `sessions_spawn` on the Sonnet tier. All three craft skills loaded with receipts. Verdict
+**approve, risk low** — 3 findings, all medium or low, none verified critical or high, so nothing
+forced a re-plan. All 4 tasks reconciliation.md marked done were independently re-verified by the
+reviewer rather than trusted.
+
+Findings applied directly, no re-review round per protocol:
+- **REC-001** (medium) — T011/T013/T014/T015's evidence proves `build` only, though their text
+  reads "either command". `reconciliation.md` corrected; `tasks.md` T017 reworded to close the
+  `check` half rather than reopening the four.
+- **ARCH-001** (medium) — `decisions.md` D8's dead-code removal had no task, and `plan.md`
+  wrongly assumed the two port-conflict message templates are already identical text. Added T038;
+  corrected the premise in `plan.md`.
+- **SPEC-001** (low) — FR-004 had no task tag. Folded into T010's real-build assertion.
+
+Three wording-drift notes corrected (a citation off by one line, an FR mistag on T031/T032, an
+overstated exit-code claim in `reconciliation.md`'s T017 discussion).
+
+Findings file: `design-review-findings.json`.
+
+Next: S4 implementation starting from US0 (shared test infrastructure).

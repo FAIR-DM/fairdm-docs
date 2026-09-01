@@ -12,7 +12,7 @@ existing check-command tests actually exercise a real link resolution (they do n
 them mocks `sphinx.cmd.build.main` and, where a broken-link message is asserted, hand-writes
 `output.txt` rather than letting the builder produce it).
 
-**37 tasks. 4 done. 33 open.**
+**38 tasks. 4 done. 34 open.**
 
 ## Done
 
@@ -26,6 +26,13 @@ them mocks `sphinx.cmd.build.main` and, where a broken-link message is asserted,
 These four are the whole of the configuration-validation surface, and they are the reason A1 found
 the configuration half of this package genuinely covered. Nothing else is.
 
+**Correction from the design review (S3R REC-001):** each of these four is written against
+"either command", and the evidence above proves only `build`'s side of each — every cited test
+calls `runner.invoke(app, ["build"])`, and no test in the suite runs `check` against any of these
+four failure conditions. `check()` calls the identical `load_config()` at the top of its own try
+block, so this is unlikely to be a live defect, but it is unproven. Rather than reopening these
+four, `tasks.md` T017 was reworded to close the `check` half explicitly.
+
 ## Open, with what exists and what is missing
 
 **Phase 2 — US1.** Nothing here is done. Every existing build test
@@ -38,10 +45,13 @@ through T010 are all open.
 — `research.md` Q2 ran a malformed `pyproject.toml` through `fairdm-docs build` and got a
 15-frame traceback, not a message; nothing in the suite exercises this path at all. T016 (the
 single failure boundary) is open in the one respect T012 names: `load_pyproject`
-(`config.py:67-85`) catches `FileNotFoundError` and not `tomllib.TOMLDecodeError`. T017 is
-partly evidenced (`test_build_exits_zero_on_success`, `test_build_failure_returns_nonzero` prove
-build's two directions; nothing proves check's) and stays open as a whole task. T018 is open —
-`grep` for `KeyboardInterrupt` in the test tree returns nothing. T019 is open.
+(`config.py:67-85`) catches `FileNotFoundError` and not `tomllib.TOMLDecodeError`. T017 is partly
+evidenced — `test_build_exits_zero_on_success` and `test_build_failure_returns_nonzero` prove
+build's two directions, and `test_check_exits_zero_on_success` / `test_check_exits_one_on_errors`
+(`tests/test_cli.py:506-545`) already prove check's exit codes for broken-link outcomes — but
+nothing proves check's exit code for a T011-T015-style configuration failure specifically, which
+is the narrower gap it stays open for. T018 is open — `grep` for `KeyboardInterrupt` in the test
+tree returns nothing. T019 is open.
 
 **Phase 4 — US4.** `tests/test_cli.py:144-330` proves that each of `source_dir`, `build_dir`,
 `verbosity` and `django` changes the *arguments* Sphinx is called with, every one of them behind a
@@ -69,10 +79,12 @@ this code, and it found the report is silently dropped rather than shown. T031 t
 all open; T031, T032 and T034 have partial parser-level coverage worth preserving when they are
 rewritten, T033 has none.
 
-**Phase 7.** T036 and T037 are open; both depend on everything above.
+**Phase 7.** T036, T037 and T038 are open; all three depend on everything above. T038 (S3R
+ARCH-001) removes two pieces of dead configuration `decisions.md` D8 commits to and that no
+earlier task covered.
 
 ## What this changes about the roadmap tag
 
-R1 in `docs/ROADMAP.md` reads `needs verification`. 4 of 37 tasks closing does not clear that —
+R1 in `docs/ROADMAP.md` reads `needs verification`. 4 of 38 tasks closing does not clear that —
 it is dropped only if this run finishes and the open list above is empty. Recorded here so the
 decision is made from this table at S8, not asserted before the work is done.
