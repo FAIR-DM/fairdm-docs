@@ -1260,3 +1260,29 @@ class TestSettings:
 
         config = load_config()
         assert config.port == 5000
+
+    def test_partial_table_overrides_only_the_named_setting(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T026: a table naming only port leaves source_dir and build_dir at
+        their documented defaults — proven by a real build that still reads
+        docs/ and writes docs/_build/html, plus the loaded configuration."""
+        portal_dir = documented_portal(
+            "partial-override", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "partial-override"\nversion = "0.1.0"\n\n'
+            "[tool.fairdm.docs]\nport = 9000\n"
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
+
+        from fairdm_docs.config import load_config
+
+        config = load_config()
+        assert config.port == 9000
+        assert config.source_dir == Path("docs")
+        assert config.build_dir == Path("docs/_build/html")
