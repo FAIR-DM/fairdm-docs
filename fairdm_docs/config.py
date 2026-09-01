@@ -88,9 +88,7 @@ def load_pyproject() -> dict[str, Any]:
     except FileNotFoundError:
         raise ConfigError(ERROR_MESSAGES["no_pyproject"]) from None
     except tomllib.TOMLDecodeError as exc:
-        raise ConfigError(
-            ERROR_MESSAGES["invalid_toml"](pyproject_path, exc)
-        ) from None
+        raise ConfigError(ERROR_MESSAGES["invalid_toml"](pyproject_path, exc)) from None
 
 
 def load_config() -> BuildConfiguration:
