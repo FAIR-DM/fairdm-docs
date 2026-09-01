@@ -1082,3 +1082,22 @@ class TestSettings:
         assert exit_code == 0
         html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
         assert "Only the documentation directory has this line." in html
+
+    def test_build_dir_setting_changes_where_the_build_writes_to(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T021: build_dir named in the table is written to instead of the
+        default docs/_build/html, and the default path is never created."""
+        portal_dir = documented_portal(
+            "custom-build-dir", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "custom-build-dir"\nversion = "0.1.0"\n\n'
+            '[tool.fairdm.docs]\nbuild_dir = "output/site"\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert (portal_dir / "output" / "site" / "index.html").exists()
+        assert not (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
