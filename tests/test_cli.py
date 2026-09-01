@@ -1138,3 +1138,50 @@ class TestSettings:
 
         assert exit_code == 0
         assert mock_run.called
+
+    def test_quiet_verbosity_suppresses_informational_output(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T023: verbosity = quiet suppresses Sphinx's informational output
+        but keeps its warnings, checked against a real build's captured
+        stdout and stderr rather than the -q flag reaching argv."""
+        portal_dir = documented_portal(
+            "quiet-verbosity",
+            "0.1.0",
+            lambda docs_dir: (docs_dir / "index.rst").write_text(
+                "Portal\n======\n\n.. toctree::\n\n   missing-page\n"
+            ),
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "quiet-verbosity"\nversion = "0.1.0"\n\n'
+            '[tool.fairdm.docs]\nverbosity = "quiet"\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "reading sources" not in stdout
+        assert "toctree contains reference to nonexisting document" in stderr
+
+    def test_errors_only_verbosity_suppresses_everything_but_errors(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T023: verbosity = errors-only suppresses Sphinx's informational
+        output and its warnings too, keeping only real errors."""
+        portal_dir = documented_portal(
+            "errors-only-verbosity",
+            "0.1.0",
+            lambda docs_dir: (docs_dir / "index.rst").write_text(
+                "Portal\n======\n\n.. toctree::\n\n   missing-page\n"
+            ),
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "errors-only-verbosity"\nversion = "0.1.0"\n\n'
+            '[tool.fairdm.docs]\nverbosity = "errors-only"\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "reading sources" not in stdout
+        assert "toctree contains reference to nonexisting document" not in stderr
