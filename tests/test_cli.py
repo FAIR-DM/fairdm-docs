@@ -387,6 +387,24 @@ class TestBuild:
         # conf.py, configured the build.
         assert "with-own-conf" in html
 
+    def test_uses_the_packages_own_conf_py_when_none_is_provided(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T006: a documentation source with no conf.py of its own still
+        builds, using the package's own fairdm_docs/conf.py."""
+        portal_dir = documented_portal(
+            "no-own-conf", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        # The package's own conf.py selects sphinx_book_theme; a source with
+        # no conf.py of its own only gets this theme's assets if that file
+        # configured the build.
+        assert "sphinx-book-theme.css" in html
+
 
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
