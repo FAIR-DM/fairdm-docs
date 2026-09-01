@@ -5,6 +5,8 @@ Tests the build and check commands using Typer's CliRunner
 for isolated testing.
 """
 
+import os
+import shutil
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -18,6 +20,19 @@ from fairdm_docs.cli import app
 from fairdm_docs.metadata import ProjectMetadata
 
 runner = CliRunner()
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+def _populate_from_fixture(name: str):
+    """A `documented_portal` populate callback that copies a documentation
+    source from tests/fixtures/<name>/ into the portal's docs/ directory."""
+
+    def populate(docs_dir: Path) -> None:
+        for item in (FIXTURES_DIR / name).iterdir():
+            shutil.copy(item, docs_dir / item.name)
+
+    return populate
 
 
 class TestBuildCommand:
@@ -328,6 +343,31 @@ django = true
 
             # Django env var should be set to true
             assert os.environ.get("FAIRDM_DOCS_DJANGO") == "true"
+
+
+class TestBuild:
+    """Real, end-to-end `fairdm-docs build` runs, via `run_fairdm_docs` rather
+    than a mocked `sphinx.cmd.build.main` (constitution Article IV).
+    `TestBuildCommand` above proves the argv Sphinx is handed; this class
+    proves the build itself works."""
+
+    def test_renders_a_root_page_to_html(self, documented_portal, run_fairdm_docs):
+        """T004: a documentation source with a root page and zero
+        configuration renders a site whose HTML carries the page's own
+        content."""
+        portal_dir = documented_portal(
+            "zero-config-portal", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        index_html = portal_dir / "docs" / "_build" / "html" / "index.html"
+        assert index_html.exists()
+        assert (
+            "One page, no links, nothing else in this documentation source."
+            in index_html.read_text()
+        )
 
 
 class TestConfigurationValidationErrors:
