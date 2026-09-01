@@ -1101,3 +1101,40 @@ class TestSettings:
         assert exit_code == 0
         assert (portal_dir / "output" / "site" / "index.html").exists()
         assert not (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
+
+    def test_port_setting_changes_which_port_live_checks(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T022: the port named in the table, not the default 5000, is the
+        one the live preview's availability check examines — proven by
+        occupying 5000 with a real bound socket and configuring a free port
+        elsewhere. Goes beyond test_build_live_uses_custom_port_from_config
+        (TestLiveServerCommand), which mocks is_port_available entirely."""
+        portal_dir = documented_portal(
+            "custom-port", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        probe.bind(("", 0))
+        free_port = probe.getsockname()[1]
+        probe.close()
+
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "custom-port"\nversion = "0.1.0"\n\n'
+            f"[tool.fairdm.docs]\nport = {free_port}\n"
+        )
+
+        blocked = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        blocked.bind(("", 5000))
+        blocked.listen(1)
+        try:
+            with patch("subprocess.run") as mock_run:
+                mock_run.return_value.returncode = 0
+                exit_code, stdout, stderr = run_fairdm_docs(
+                    portal_dir, ["build", "--live"]
+                )
+        finally:
+            blocked.close()
+
+        assert exit_code == 0
+        assert mock_run.called
