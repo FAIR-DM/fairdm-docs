@@ -444,6 +444,21 @@ class TestBuild:
         # from Sphinx's own "The HTML pages are in docs/_build/html.").
         assert "Output: docs/_build/html" in stdout
 
+    def test_full_verbosity_passes_sphinxs_own_output_through(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T009: the default (full) verbosity does not suppress Sphinx's own
+        build output, unlike the existing mocked quiet/errors-only tests,
+        which only prove the -q/-Q flags are passed."""
+        portal_dir = documented_portal(
+            "full-verbosity", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "build succeeded" in stdout
+
 
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
