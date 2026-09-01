@@ -459,6 +459,21 @@ class TestBuild:
         assert exit_code == 0
         assert "build succeeded" in stdout
 
+    def test_sets_fairdm_docs_project_dir_to_the_portals_own_directory(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T010 (S3R SPEC-001): FAIRDM_DOCS_PROJECT_DIR, the mechanism FR-004
+        names, is set to the invoking portal's own directory during a real
+        build, not the package's, not something else."""
+        portal_dir = documented_portal(
+            "project-dir-env-var", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert os.environ["FAIRDM_DOCS_PROJECT_DIR"] == str(portal_dir.resolve())
+
 
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
