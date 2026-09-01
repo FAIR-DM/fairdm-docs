@@ -1066,7 +1066,9 @@ class TestSettings:
         """T020: source_dir named in the table is read from instead of the
         default docs/ — proven by content that exists only there, not just
         that the build succeeded."""
-        portal_dir = documented_portal("custom-source-dir", "0.1.0", lambda docs_dir: None)
+        portal_dir = documented_portal(
+            "custom-source-dir", "0.1.0", lambda docs_dir: None
+        )
         documentation_dir = portal_dir / "documentation"
         documentation_dir.mkdir()
         (documentation_dir / "index.rst").write_text(
