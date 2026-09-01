@@ -51,6 +51,23 @@ def portal(tmp_path: Path):
 
 
 @pytest.fixture
+def documented_portal(tmp_path: Path):
+    """Write a temporary portal from a declared name and version, with the docs/
+    directory left for the caller to populate."""
+
+    def write(name: str, version: str, populate) -> Path:
+        (tmp_path / "pyproject.toml").write_text(
+            f'[project]\nname = "{name}"\nversion = "{version}"\n'
+        )
+        docs = tmp_path / "docs"
+        docs.mkdir(exist_ok=True)
+        populate(docs)
+        return tmp_path
+
+    return write
+
+
+@pytest.fixture
 def built_portal(portal):
     """Build a temporary portal's documentation for real.
 
