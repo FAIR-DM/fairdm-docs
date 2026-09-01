@@ -427,6 +427,23 @@ class TestBuild:
         assert exit_code == 0
         assert (build_dir / "index.html").exists()
 
+    def test_reports_where_it_started_and_where_it_wrote_the_site(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T008: the command's own output names the build as started and, on
+        success, names where the site was written."""
+        portal_dir = documented_portal(
+            "progress-messages", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "Building documentation" in stdout
+        # "Output: docs/_build/html" is the command's own message (distinct
+        # from Sphinx's own "The HTML pages are in docs/_build/html.").
+        assert "Output: docs/_build/html" in stdout
+
 
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
