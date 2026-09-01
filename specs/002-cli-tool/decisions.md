@@ -90,18 +90,27 @@ turned out not to fit. When a second validator is scheduled, the shape both need
 **ADR:** none. Declining to build something is not a decision that constrains later work; the
 roadmap item that adds a second validator is free to introduce whatever it needs.
 
-## D5 — A redirect is not a broken link
+## D5 — A redirect is reported, and does not fail the check
 
-The check command counts a redirected address as broken (`cli.py:271-274`) and exits non-zero for
-it. Nothing in the specification asked for that.
+The parsing at `cli.py:271-274` was written to catch a redirect and count it as broken, matching
+on the substring `": [redirected]"`. Run against a real redirect, the builder's actual line reads
+`[redirected with Found]` — the word "with" sits where the closing bracket was expected, so the
+substring never matches. The probe in [research.md](research.md) confirms it: a page holding one
+redirecting address exits 0 and prints "All links are valid!". The redirect is written to
+`output.txt` and never reaches the developer.
 
-A redirect means the address resolved. Failing a documentation check because a site moved a page
-and left a forwarding address makes the check fire on other people's housekeeping, and a check
-that cries wolf gets switched off. It is still worth reporting, because a redirect today is
-sometimes a dead link next year.
+So the outcome the original specification's silence on this point would have produced — a check
+that fails a build because a site it links to moved — is not what the code does today, by
+accident rather than intent. What is missing is the other half: nothing tells the developer a
+redirect happened at all.
 
-**Settled:** redirects are reported under their own heading and do not affect the exit code. Only
-an address that does not resolve fails the check.
+A redirect means the address resolved, and failing a check over another site's housekeeping would
+make the check cry wolf until it gets ignored. It is still worth surfacing, because a redirect
+today is sometimes a dead link next year.
+
+**Settled:** the specification states the behaviour the code already has by chance — a redirect
+does not fail the check — and adds what it lacks: the redirect is reported to the developer,
+under its own heading, separate from failures.
 
 **ADR:** yes — folded into the D3 record, since both settle what `check` treats as a failure.
 

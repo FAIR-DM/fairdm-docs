@@ -1,0 +1,169 @@
+{
+  "$schema": "../../../engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "002-cli-tool",
+  "branch": "002-cli-tool",
+  "repo": "FAIR-DM/fairdm-docs",
+  "state": "PLAN",
+  "state_history": [
+    { "state": "SPECIFY", "at": "2026-09-01T12:00:00Z", "note": "spec.md rewritten against goals, roadmap and decision records" },
+    { "state": "GATE_SPEC", "at": "2026-09-01T12:10:00Z", "note": "self-resolved: Sam delegated the whole run to the merge gate" },
+    { "state": "SETUP", "at": "2026-09-01T12:20:00Z", "note": "epic #15 + five story sub-issues filed; draft PR #21 opened" },
+    { "state": "PLAN", "at": "2026-09-01T13:00:00Z", "note": "plan.md, research.md and tasks.md written; reconciliation.md checks tasks.md against main@26ae898" }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "sam (delegated to the merge gate, 2026-09-01)",
+      "at": "2026-09-01T12:10:00Z",
+      "self_resolved": [
+        "Scope is the command surface only; R3, R4, R6, R10, R11 and issue #14 keep everything beneath it (D1)",
+        "FR-004 is stale against ADR 0002 and is rewritten to the layered configuration model (D2)",
+        "FR-017 is narrowed to external addresses; the command's own docstring was overstating it (D3)",
+        "FR-020 is struck: no validator abstraction exists and the spec's own Out of Scope contradicts it (D4)",
+        "A redirect does not fail the check, by accident rather than design, and is now specified to be reported (D5)",
+        "Interrupt exit code is unified to 130 in every mode (D6)",
+        "A malformed pyproject.toml is a ConfigError per ADR 0008, not a traceback (D7)",
+        "Two dead configuration paths are removed (D8)",
+        "The django and project-directory mechanisms are documented as CLI behaviour; which settings module loads is R6's (D9)",
+        "Live-server rebuild/reload/browser behaviour is out of scope, upstream's contract (D10)",
+        "Success criteria rewritten from wall-clock thresholds to decidable states (D11)"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US0",
+      "priority": "P0",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T001", "status": "todo", "attempts": 0 },
+        { "id": "T002", "status": "todo", "attempts": 0 },
+        { "id": "T003", "status": "todo", "attempts": 0 },
+        { "id": "T036", "status": "todo", "attempts": 0 },
+        { "id": "T037", "status": "todo", "attempts": 0 }
+      ]
+    },
+    {
+      "id": "US1",
+      "priority": "P1",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T004", "status": "todo", "attempts": 0 },
+        { "id": "T005", "status": "todo", "attempts": 0 },
+        { "id": "T006", "status": "todo", "attempts": 0 },
+        { "id": "T007", "status": "todo", "attempts": 0 },
+        { "id": "T008", "status": "todo", "attempts": 0 },
+        { "id": "T009", "status": "todo", "attempts": 0 },
+        { "id": "T010", "status": "todo", "attempts": 0 }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "status": "in_progress",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/config.py:80"],
+            "tests": ["tests/test_cli.py::TestBuildCommand::test_build_error_when_no_pyproject"]
+          }
+        },
+        { "id": "T012", "status": "todo", "attempts": 0 },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/config.py:143"],
+            "tests": ["tests/test_cli.py::TestBuildCommand::test_build_error_when_source_missing"]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/config.py:147"],
+            "tests": ["tests/test_cli.py::TestConfigurationValidationErrors::test_invalid_port_shows_clear_error"]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/config.py:151"],
+            "tests": ["tests/test_cli.py::TestConfigurationValidationErrors::test_invalid_verbosity_shows_clear_error"]
+          }
+        },
+        { "id": "T016", "status": "todo", "attempts": 0 },
+        { "id": "T017", "status": "todo", "attempts": 0 },
+        { "id": "T018", "status": "todo", "attempts": 0 },
+        { "id": "T019", "status": "todo", "attempts": 0 }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P4",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T020", "status": "todo", "attempts": 0 },
+        { "id": "T021", "status": "todo", "attempts": 0 },
+        { "id": "T022", "status": "todo", "attempts": 0 },
+        { "id": "T023", "status": "todo", "attempts": 0 },
+        { "id": "T024", "status": "todo", "attempts": 0 },
+        { "id": "T025", "status": "todo", "attempts": 0 },
+        { "id": "T026", "status": "todo", "attempts": 0 },
+        { "id": "T027", "status": "todo", "attempts": 0 }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T028", "status": "todo", "attempts": 0 },
+        { "id": "T029", "status": "todo", "attempts": 0 },
+        { "id": "T030", "status": "todo", "attempts": 0 }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T031", "status": "todo", "attempts": 0 },
+        { "id": "T032", "status": "todo", "attempts": 0 },
+        { "id": "T033", "status": "todo", "attempts": 0 },
+        { "id": "T034", "status": "todo", "attempts": 0 },
+        { "id": "T035", "status": "todo", "attempts": 0 }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": { "used": 0, "max": 2 },
+    "review_cycles": { "used": 0, "max": 1 },
+    "design_review_cycles": { "used": 0, "max": 1 },
+    "tokens": { "used": 0, "max": 1500000 }
+  },
+  "pr": {
+    "number": 21,
+    "draft": true
+  }
+}

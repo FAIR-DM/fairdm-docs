@@ -1,290 +1,97 @@
-# Research: CLI Framework Selection
+# Research — 002
 
-**Feature**: FairDM-Docs CLI Tool  
-**Phase**: 0 (Outline & Research)  
-**Date**: February 10, 2026
+Four questions had to be answered before the plan could be written. Each was settled by running
+the command against a real, temporary project, not by reading the source.
 
-## Research Questions
+## Q1 — Can `fairdm-docs build` be proven end to end, or only by inspecting arguments?
 
-1. Which modern Python CLI framework is best suited for this project?
-2. How should configuration be loaded from pyproject.toml?
-3. How to invoke Sphinx build and sphinx-autobuild programmatically?
-4. How to handle port conflicts and graceful shutdown?
-5. How to implement extensible validation system for check command?
+A1 found that 23 of `tests/test_cli.py`'s 31 tests replace `sphinx.cmd.build.main` or
+`subprocess.run` with a stand-in, and that no test anywhere runs a real build through the command.
+Whether a real build is feasible inside the suite, and fast enough to run on every change, was
+unverified.
 
-## Decision 1: CLI Framework → **Typer**
+**Probe.** A temporary project declaring `name` and `version` only, with `docs/index.rst` as its
+sole page, built by calling `fairdm_docs.cli.main()` directly with `sys.argv` set to
+`["fairdm-docs", "build"]`.
 
-### Candidates Evaluated
+**Result.** `build succeeded, 1 warning.` The warning is `autodoc2_packages must not be empty`,
+which is R6's, not this specification's. `docs/_build/html/index.html` exists and contains
+`Probe`. Elapsed: well under a second.
 
-- **Typer** (^0.12.0) - Modern type-hint based CLI framework
-- **Click** (^8.1.0) - Mature decorator-based framework (Typer's foundation)
-- **argparse** (stdlib) - Standard library solution
-- **Fire** (^0.6.0) - Google's auto-generation framework
+**Settled:** feasible, fast, and the index must be `.rst` — the same constraint 001's research
+recorded, for the same reason (R3 owns the Markdown path). US1's acceptance scenarios are proven
+by reading rendered HTML off disk, not by asserting on argv.
 
-### Decision Rationale
+## Q2 — Does a malformed `pyproject.toml` actually reach the developer as a traceback?
 
-**Selected: Typer**
+A1 traced this from the exception-handling code without running it. ADR 0008 requires a single
+error type; confirming the violation needed the failure to happen.
 
-**Why:**
+**Probe.** A `pyproject.toml` containing `[project\nname = probe` — an unterminated table header —
+in a project otherwise identical to Q1's, with `fairdm-docs build` run against it.
 
-- Modern Pythonic API using type hints (aligns with Python 3.10+ target)
-- Minimal boilerplate - commands are just typed functions
-- Built on Click (inherits stability) with better DX
-- Rich console output out-of-the-box (progress, colors, formatting)
-- Auto-generates comprehensive help from type hints and docstrings
-- Excellent testing support via CliRunner
-- Growing adoption in modern Python projects (23.5k+ GitHub stars)
-- Created by Sebastián Ramírez (FastAPI author) - active maintenance
+**Result.** An uncaught `tomllib.TOMLDecodeError` propagates out of `utils.py:98`, through
+`config.py:83` (which catches only `FileNotFoundError`) and `cli.py:195` (which catches only
+`ConfigError`), to the interpreter — 15 frames of Python traceback, ending in `Expected ']' at the
+end of a table declaration (at line 1, column 9)`.
 
-**Alternatives Considered:**
+**Settled:** confirmed rather than inferred. This is a defect against ADR 0008 and is fixed in
+this run, per D7.
 
-- **Click**: More verbose, no type hint support, but more mature
-  - **Rejected because**: Typer provides all Click benefits with better DX
-- **argparse**: No external dependencies, but very verbose imperative style
-  - **Rejected because**: Too much boilerplate, poor testability
-- **Fire**: Minimal code via auto-generation, but less control over interface
-  - **Rejected because**: Magic behavior, less polished help output
+## Q3 — What actually happens when the preview port is occupied?
 
-### Code Example
+The spec requires the command to stop before starting anything, naming the port and the setting
+that changes it.
 
-```python
-import typer
-from pathlib import Path
+**Probe.** A socket bound to port 5000, then `fairdm-docs build --live` run against a project
+otherwise identical to Q1's.
 
-app = typer.Typer(name="fairdm-docs", help="FairDM documentation CLI tool")
+**Result.**
 
-@app.command()
-def build(
-    live: bool = typer.Option(False, "--live", help="Start live preview server"),
-    source_dir: Path = typer.Option(Path("docs"), help="Source directory"),
-):
-    """Build Sphinx documentation with sensible defaults."""
-    if live:
-        typer.echo("🔴 Starting live server...")
-    else:
-        typer.echo("📚 Building documentation...")
-
-@app.command()
-def check():
-    """Validate documentation for broken links."""
-    typer.echo("✓ Checking documentation...")
+```
+❌ Error: Port 5000 is already in use.
+   Configure a different port in pyproject.toml:
+   [tool.fairdm.docs]
+   port = 5001
+EXIT CODE 1
 ```
 
-## Decision 2: Configuration Loading → **tomli/tomllib**
+No server process is started; the message names the port and the fix.
 
-### Approach
+**Settled:** already correct. FR-010 is satisfied by existing code; it needs a test, not a
+change.
 
-- Python 3.11+: Use stdlib `tomllib` (read-only TOML parser)
-- Python 3.10: Use `tomli` backport (read-only)
-- Search for pyproject.toml from current directory upward
-- Parse `[tool.fairdm.docs]` section
-- Merge with defaults (user config takes precedence)
+## Q4 — Does a redirect actually fail the check today?
 
-### Implementation Strategy
+A1 read `cli.py:271-274` and concluded a redirect is treated as broken, because the code matches
+the substring `": [redirected]"` against each line of the builder's report. That conclusion was
+wrong, and only running it against a real redirect showed why.
 
-```python
-import sys
-from pathlib import Path
+**Probe.** `fairdm-docs check` against a page linking only `https://httpbin.org/redirect-to?url=…`,
+which redirects with a 302.
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
+**Result.** The builder's actual output line is:
 
-def find_pyproject() -> Path:
-    """Search for pyproject.toml in current dir and parents."""
-    current = Path.cwd()
-    for parent in [current] + list(current.parents):
-        candidate = parent / "pyproject.toml"
-        if candidate.exists():
-            return candidate
-    raise FileNotFoundError("pyproject.toml not found")
-
-def load_config() -> dict:
-    """Load configuration from [tool.fairdm.docs] section."""
-    pyproject_path = find_pyproject()
-    with open(pyproject_path, "rb") as f:
-        data = tomllib.load(f)
-    
-    defaults = {
-        "source_dir": "docs",
-        "build_dir": "docs/_build/html",
-        "port": 5000,
-        "verbosity": "full",
-    }
-    
-    user_config = data.get("tool", {}).get("fairdm", {}).get("docs", {})
-    return {**defaults, **user_config}  # User overrides defaults
+```
+index.rst:4: [redirected with Found] https://httpbin.org/redirect-to?url=https://example.com to https://example.com
 ```
 
-## Decision 3: Sphinx Integration → **Subprocess + sphinx.cmd**
+`"with Found"` sits where the matching code expects a closing bracket, so
+`": [redirected]" in line.lower()` never matches. The command exits 0 and prints "All links are
+valid!" — the redirect is recorded in `output.txt` and never reaches the developer.
 
-### Build Command (static)
+**Settled:** the code does not fail on a redirect, by accident rather than by design — the match
+was written to catch it and does not. What the specification requires and the code lacks is the
+other half: telling the developer a redirect happened. `decisions.md` D5 was corrected after this
+probe; the earlier assessment (a workspace record, not part of this repository) is corrected
+alongside it.
 
-Use `sphinx.cmd.build.main()` programmatically:
+## Structure
 
-```python
-from sphinx.cmd.build import main as sphinx_build
-import sys
-
-def run_sphinx_build(source_dir, build_dir, config_path):
-    """Run sphinx-build programmatically."""
-    args = [
-        "-c", str(config_path.parent),  # config directory (contains conf.py)
-        "-b", "html",                   # builder (HTML)
-        str(source_dir),                # source directory
-        str(build_dir),                 # output directory
-    ]
-    
-    exit_code = sphinx_build(args)
-    if exit_code != 0:
-        raise typer.Exit(exit_code)
-```
-
-### Live Server Command
-
-Use `sphinx_autobuild` subprocess (cleaner than programmatic):
-
-```python
-import subprocess
-import webbrowser
-
-def run_live_server(source_dir, build_dir, port):
-    """Run sphinx-autobuild live server."""
-    cmd = [
-        "sphinx-autobuild",
-        str(source_dir),
-        str(build_dir),
-        "--port", str(port),
-        "--open-browser",
-    ]
-    
-    try:
-        subprocess.run(cmd, check=True)
-    except KeyboardInterrupt:
-        typer.echo("\n\n👋 Shutting down live server...")
-        raise typer.Exit(0)
-```
-
-## Decision 4: Check Command → **sphinx-build -b linkcheck**
-
-### Approach
-
-Sphinx has built-in linkcheck builder:
-
-```python
-def run_link_check(source_dir, build_dir):
-    """Run Sphinx linkcheck builder."""
-    from sphinx.cmd.build import main as sphinx_build
-    
-    args = [
-        "-b", "linkcheck",              # linkcheck builder
-        "-W", "--keep-going",           # Treat warnings as errors, continue
-        str(source_dir),
-        str(build_dir / "linkcheck"),
-    ]
-    
-    exit_code = sphinx_build(args)
-    return exit_code
-```
-
-### Extensibility Design
-
-```python
-# Future: Add more validators
-class Validator:
-    def validate(self, source_dir) -> list[str]:
-        """Return list of error messages."""
-        pass
-
-class LinkValidator(Validator):
-    def validate(self, source_dir):
-        # Run linkcheck
-        pass
-
-class SpellCheckValidator(Validator):  # Future
-    def validate(self, source_dir):
-        # Run spell check
-        pass
-
-def run_all_validators(source_dir, validators: list[Validator]):
-    errors = []
-    for validator in validators:
-        errors.extend(validator.validate(source_dir))
-    return errors
-```
-
-## Decision 5: Port Conflict Handling → **Try/Except with Error Message**
-
-### Approach
-
-Check port availability before starting server:
-
-```python
-import socket
-
-def is_port_available(port: int) -> bool:
-    """Check if port is available."""
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", port))
-            return True
-    except OSError:
-        return False
-
-def start_live_server(port: int):
-    """Start live server, error if port unavailable."""
-    if not is_port_available(port):
-        typer.echo(
-            f"❌ Error: Port {port} is already in use.\n"
-            f"   Configure a different port in pyproject.toml:\n\n"
-            f"   [tool.fairdm.docs]\n"
-            f"   port = 5001\n",
-            err=True
-        )
-        raise typer.Exit(1)
-    
-    # Start server...
-```
-
-## Dependencies Summary
-
-### Required
-
-- `typer[all]` (^0.12.0) - CLI framework with rich output
-- `tomli` (^2.0.0) - TOML parser for Python 3.10 (stdlib tomllib for 3.11+)
-
-### Already Present
-
-- `sphinx` (>=8.1) - Documentation engine
-- `sphinx-autobuild` (>=2024.10) - Live reload server
-
-### Testing
-
-- `pytest` (existing) - Test framework
-- `pytest-mock` (existing) - Mocking support
-
-## Configuration Schema
-
-```toml
-[tool.fairdm.docs]
-source_dir = "docs"                    # Default: docs/
-build_dir = "docs/_build/html"         # Default: docs/_build/html
-port = 5000                            # Default: 5000 (for live server)
-verbosity = "full"                     # Options: "full", "quiet", "errors-only"
-```
-
-## Open Questions
-
-None - All research questions resolved.
-
-## Summary
-
-- **CLI Framework**: Typer (modern, type-safe, minimal boilerplate)
-- **Config Loading**: tomli/tomllib from pyproject.toml
-- **Sphinx Integration**: Programmatic API for builds, subprocess for live server
-- **Check Command**: Sphinx linkcheck builder with extensible validator pattern
-- **Port Handling**: Pre-check availability, error with config guidance
-- **Testing**: Typer's CliRunner for isolated CLI tests
-
-All decisions align with FairDM-Docs constitution principles (convention over configuration, zero-config philosophy, extensibility).
+Two findings shape the plan. First, the module under test is exercisable directly — `cli.py`'s
+commands can be invoked as ordinary functions with `sys.argv` set, with no need for a subprocess
+or a `CliRunner` layer between the test and the code, which keeps the real-build tests as fast as
+the mocked ones they replace. Second, the linkcheck output parser in `check()` needs to change
+regardless of D5's exit-code finding, because FR-013 requires a redirect to be reported and it
+currently is not — the parsing loop is rewritten to classify each line into broken, redirected, or
+neither, rather than collapsing broken and (attempted) redirected detection into one list.
