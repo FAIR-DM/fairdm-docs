@@ -1235,3 +1235,28 @@ class TestSettings:
 
         assert exit_code == 0
         assert not mock_setup.called
+
+    def test_no_table_uses_every_documented_default(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T025: a project with no [tool.fairdm.docs] table at all builds
+        successfully using every documented default: docs/, docs/_build/html
+        (proven by a real build), full verbosity (proven by real,
+        unsuppressed Sphinx output) and django=false (proven by the real env
+        var the build sets). Port 5000 is asserted directly off load_config,
+        since an ordinary `build` never exercises the port check."""
+        portal_dir = documented_portal(
+            "no-table", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
+        assert "build succeeded" in stdout
+        assert os.environ["FAIRDM_DOCS_DJANGO"] == "false"
+
+        from fairdm_docs.config import load_config
+
+        config = load_config()
+        assert config.port == 5000
