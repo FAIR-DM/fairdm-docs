@@ -27,3 +27,36 @@ class TestDocumentedPortal:
         portal_dir = documented_portal("acme-docs", "1.2.3", populate)
 
         assert (portal_dir / "docs" / "index.rst").read_text() == "Portal\n======\n"
+
+
+def _populate_minimal_docs(docs_dir: Path) -> None:
+    """A documentation source with its own conf.py, avoiding the package's
+    default Sphinx theme so a real build needs no branding assets."""
+    (docs_dir / "conf.py").write_text('project = "test"\n')
+    (docs_dir / "index.rst").write_text("Portal\n======\n")
+
+
+class TestRunFairdmDocs:
+    """`run_fairdm_docs` invokes the CLI for real: sets sys.argv, calls
+    `fairdm_docs.cli.main()`, and catches the `SystemExit` it raises."""
+
+    def test_build_runs_for_real_and_reports_success(
+        self, documented_portal, run_fairdm_docs
+    ):
+        portal_dir = documented_portal("acme-docs", "1.0.0", _populate_minimal_docs)
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "Build complete" in stdout
+        assert (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
+
+    def test_check_runs_for_real_and_reports_success(
+        self, documented_portal, run_fairdm_docs
+    ):
+        portal_dir = documented_portal("acme-docs", "1.0.0", _populate_minimal_docs)
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code == 0
+        assert "valid" in stdout.lower()
