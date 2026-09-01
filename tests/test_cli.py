@@ -741,6 +741,101 @@ class TestCheckCommand:
             assert "42" in output or broken_link_line in output
 
 
+class TestExitCodes:
+    """T017: every configuration failure (T011-T015) exits non-zero through
+    `check`, not just `build` — the existing coverage in TestBuildCommand,
+    TestConfigurationValidationErrors and TestConfigurationFailures only
+    invokes `build` (S3R REC-001). Runs through the real `run_fairdm_docs`
+    fixture rather than a mocked Sphinx, per constitution Article IV."""
+
+    def test_check_exits_nonzero_when_no_pyproject(self, tmp_path, run_fairdm_docs):
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+
+        exit_code, stdout, stderr = run_fairdm_docs(tmp_path, ["check"])
+
+        assert exit_code != 0
+        output = stdout + stderr
+        assert "Traceback" not in output
+        assert "No pyproject.toml found" in output
+
+    def test_check_exits_nonzero_when_toml_is_malformed(
+        self, tmp_path, run_fairdm_docs
+    ):
+        (tmp_path / "pyproject.toml").write_text("[project\nname = probe\n")
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+
+        exit_code, stdout, stderr = run_fairdm_docs(tmp_path, ["check"])
+
+        assert exit_code != 0
+        output = stdout + stderr
+        assert "Traceback" not in output
+        assert "not valid TOML" in output
+
+    def test_check_exits_nonzero_when_source_dir_missing(
+        self, tmp_path, run_fairdm_docs
+    ):
+        (tmp_path / "pyproject.toml").write_text('[project]\nname = "test"\n')
+
+        exit_code, stdout, stderr = run_fairdm_docs(tmp_path, ["check"])
+
+        assert exit_code != 0
+        output = stdout + stderr
+        assert "Traceback" not in output
+        assert "Source directory" in output
+
+    def test_check_exits_nonzero_when_port_out_of_range(
+        self, tmp_path, run_fairdm_docs
+    ):
+        (tmp_path / "pyproject.toml").write_text(
+            '[project]\nname = "test"\n\n[tool.fairdm.docs]\nport = 100000\n'
+        )
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+
+        exit_code, stdout, stderr = run_fairdm_docs(tmp_path, ["check"])
+
+        assert exit_code != 0
+        output = stdout + stderr
+        assert "Traceback" not in output
+        assert "port" in output.lower()
+
+    def test_check_exits_nonzero_when_verbosity_invalid(
+        self, tmp_path, run_fairdm_docs
+    ):
+        (tmp_path / "pyproject.toml").write_text(
+            '[project]\nname = "test"\n\n[tool.fairdm.docs]\nverbosity = "loud"\n'
+        )
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+
+        exit_code, stdout, stderr = run_fairdm_docs(tmp_path, ["check"])
+
+        assert exit_code != 0
+        output = stdout + stderr
+        assert "Traceback" not in output
+        assert "verbosity" in output.lower()
+
+    def test_check_exits_zero_on_success(self, documented_portal, run_fairdm_docs):
+        """A successful `build` exiting 0 is already proven exhaustively by
+        TestBuild (US1); `check` has no equivalent real-invocation coverage
+        yet, only the mocked-Sphinx one in TestCheckCommand."""
+        portal_dir = documented_portal(
+            "exit-codes-check-success", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code == 0
+        output = stdout + stderr
+        assert "Traceback" not in output
+
+
 class TestLiveServerCommand:
     """Test the build --live command functionality."""
 
