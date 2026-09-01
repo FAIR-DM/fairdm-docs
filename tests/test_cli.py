@@ -583,6 +583,28 @@ class TestConfigurationFailures:
         assert "Traceback" not in output
         assert "PEP 621" in output
 
+    def test_malformed_toml_reported_as_message_not_traceback(
+        self, tmp_path, monkeypatch
+    ):
+        """T012: a pyproject.toml that isn't valid TOML stops the command
+        with a message naming the file as unreadable, never a traceback."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[project\nname = probe\n")
+
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "index.md").write_text("# Test")
+
+        monkeypatch.chdir(tmp_path)
+
+        result = runner.invoke(app, ["build"])
+
+        assert result.exit_code != 0
+        output = result.stdout + result.stderr
+        assert "Traceback" not in output
+        assert str(pyproject) in output
+        assert "not valid TOML" in output
+
 
 class TestCheckCommand:
     """Test the check command functionality."""
