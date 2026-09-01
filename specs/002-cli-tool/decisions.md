@@ -277,3 +277,23 @@ again in the same task that was correcting it for D3/D4.
 README in that same change.
 
 **ADR:** none — implementation notes, not specification decisions.
+
+---
+
+**Decision:** T007's test (`test_creates_a_missing_parent_of_the_build_directory`) asserts the
+observable behaviour FR-007 names — the build directory's parent exists and the build succeeds —
+rather than asserting that `cli.py`'s own `config.build_dir.parent.mkdir(...)` call ran. Left
+`cli.py` untouched.
+
+**Why:** mutation-probing this line (per `craft-tdd`'s pre-report checklist) showed the test still
+passes with it removed — Sphinx's own `Sphinx.__init__` calls `ensuredir(outdir)`
+(`os.makedirs(path, exist_ok=True)`), which already creates the whole `build_dir` path, parent
+included, independent of this line. The line is not incorrect and FR-007 holds either way, so
+removing it is a simplification call outside this story's task list (T004-T010), not a defect
+T010's "whatever is unmet" scope covers.
+
+**Revisit if:** a simplification pass touches `cli.py`'s build path — worth removing then, with a
+mutation-probe re-run to confirm Sphinx's own directory creation still covers it on whatever
+Sphinx version is pinned at that point.
+
+**ADR:** none — implementation notes, not specification decisions.
