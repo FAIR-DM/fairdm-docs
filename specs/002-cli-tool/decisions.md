@@ -297,3 +297,25 @@ mutation-probe re-run to confirm Sphinx's own directory creation still covers it
 Sphinx version is pinned at that point.
 
 **ADR:** none — implementation notes, not specification decisions.
+
+---
+
+**Decision:** T024's `django = true` test supplies its own portal-local Django settings module
+(`portal_django_settings.py`, `INSTALLED_APPS = []`) via `DJANGO_SETTINGS_MODULE`, rather than
+relying on `conf.py`'s own fallback default of `config.settings`.
+
+**Why:** `conf.py` only does `os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")`
+— that module doesn't exist anywhere in this repo (it's the convention of a real Django project
+this package documents, not of `fairdm-docs` itself), so a real `django.setup()` call would raise
+`ModuleNotFoundError`, which `conf.py`'s `except ImportError` clause happens to swallow (it's an
+`ImportError` subclass) as a warning rather than a build failure. That masks the true test: with
+the fallback settings module, `django.setup()` never completes, so `django.apps.apps.ready` never
+becomes `True`, and the test could not tell "Django set up" from "Django setup silently failed."
+Pre-setting `DJANGO_SETTINGS_MODULE` to a working module (the code's `setdefault` leaves an
+already-set value alone) lets `django.setup()` actually succeed, so the test can assert the real
+effect FR-018 names instead of just the env var.
+
+**Revisit if:** a future story gives `fairdm-docs` its own bundled minimal settings module for
+this purpose — at that point this test's one-off module could be replaced by the shared one.
+
+**ADR:** none — implementation notes, not specification decisions.
