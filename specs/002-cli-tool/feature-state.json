@@ -415,48 +415,93 @@
     {
       "id": "US4",
       "priority": "P4",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestSettings::test_source_dir_setting_changes_where_the_build_reads_from"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestSettings::test_build_dir_setting_changes_where_the_build_writes_to"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestSettings::test_port_setting_changes_which_port_live_checks"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_quiet_verbosity_suppresses_informational_output",
+              "tests/test_cli.py::TestSettings::test_errors_only_verbosity_suppresses_everything_but_errors"
+            ],
+            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_django_true_sets_up_django_before_the_build",
+              "tests/test_cli.py::TestSettings::test_django_false_leaves_django_untouched"
+            ],
+            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestSettings::test_no_table_uses_every_documented_default"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestSettings::test_partial_table_overrides_only_the_named_setting"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "commands": ["poetry run pytest -q (no fairdm_docs/config.py or fairdm_docs/cli.py changes needed; every acceptance criterion was already met)"],
+            "verified_by_ci": false
+          }
         }
       ]
     },
