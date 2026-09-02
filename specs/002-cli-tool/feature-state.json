@@ -3,7 +3,7 @@
   "feature": "002-cli-tool",
   "branch": "002-cli-tool",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "IMPLEMENT",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -34,6 +34,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-01T12:44:06Z",
       "note": "S3R approved with 3 findings applied (no re-plan); starting S4 with US0 shared test infrastructure"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-02T08:17:31Z",
+      "note": "S5 converge complete: 2 decisions graduated to ADRs (0009, 0010), 14/14 decisions verdicted, cli.py stale-comment cleanup, full verify+tamper-check green against main, all 5 story issues carry their completion comment and are closed"
     }
   ],
   "gates": {
@@ -311,9 +316,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/config.py:90"],
-            "tests": ["tests/test_cli.py::TestConfigurationFailures::test_malformed_toml_reported_as_message_not_traceback"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestConfigurationFailures -q"],
+            "code": [
+              "fairdm_docs/config.py:90"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestConfigurationFailures::test_malformed_toml_reported_as_message_not_traceback"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestConfigurationFailures -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -361,9 +372,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/config.py:67"],
-            "tests": ["tests/test_cli.py::TestExitCodes"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestExitCodes -q"],
+            "code": [
+              "fairdm_docs/config.py:67"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestExitCodes"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestExitCodes -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -380,7 +397,9 @@
               "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_verbosity_invalid",
               "tests/test_cli.py::TestExitCodes::test_check_exits_zero_on_success"
             ],
-            "commands": ["poetry run pytest tests/test_cli.py::TestExitCodes -q"],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestExitCodes -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -389,13 +408,17 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/cli.py:146"],
+            "code": [
+              "fairdm_docs/cli.py:146"
+            ],
             "tests": [
               "tests/test_cli.py::TestInterrupt::test_build_interrupted_exits_130",
               "tests/test_cli.py::TestInterrupt::test_check_interrupted_exits_130",
               "tests/test_cli.py::TestInterrupt::test_live_preview_interrupted_exits_130"
             ],
-            "commands": ["poetry run pytest tests/test_cli.py::TestInterrupt -q"],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestInterrupt -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -404,9 +427,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/cli.py:146"],
-            "tests": ["tests/test_cli.py::TestInterrupt"],
-            "commands": ["poetry run pytest -q"],
+            "code": [
+              "fairdm_docs/cli.py:146"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestInterrupt"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ],
             "verified_by_ci": false
           }
         }
@@ -423,8 +452,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestSettings::test_source_dir_setting_changes_where_the_build_reads_from"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_source_dir_setting_changes_where_the_build_reads_from"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -433,8 +466,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestSettings::test_build_dir_setting_changes_where_the_build_writes_to"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_build_dir_setting_changes_where_the_build_writes_to"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -443,8 +480,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestSettings::test_port_setting_changes_which_port_live_checks"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_port_setting_changes_which_port_live_checks"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -457,7 +498,9 @@
               "tests/test_cli.py::TestSettings::test_quiet_verbosity_suppresses_informational_output",
               "tests/test_cli.py::TestSettings::test_errors_only_verbosity_suppresses_everything_but_errors"
             ],
-            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -470,7 +513,9 @@
               "tests/test_cli.py::TestSettings::test_django_true_sets_up_django_before_the_build",
               "tests/test_cli.py::TestSettings::test_django_false_leaves_django_untouched"
             ],
-            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -479,8 +524,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestSettings::test_no_table_uses_every_documented_default"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_no_table_uses_every_documented_default"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -489,8 +538,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestSettings::test_partial_table_overrides_only_the_named_setting"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestSettings -q"],
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_partial_table_overrides_only_the_named_setting"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -499,7 +552,9 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "commands": ["poetry run pytest -q (no fairdm_docs/config.py or fairdm_docs/cli.py changes needed; every acceptance criterion was already met)"],
+            "commands": [
+              "poetry run pytest -q (no fairdm_docs/config.py or fairdm_docs/cli.py changes needed; every acceptance criterion was already met)"
+            ],
             "verified_by_ci": false
           }
         }
@@ -516,8 +571,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestLivePreview::test_live_launches_against_every_configured_setting"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestLivePreview -q"],
+            "tests": [
+              "tests/test_cli.py::TestLivePreview::test_live_launches_against_every_configured_setting"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestLivePreview -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -526,8 +585,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestLivePreview::test_live_stops_before_launching_when_the_configured_port_is_taken"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestLivePreview -q"],
+            "tests": [
+              "tests/test_cli.py::TestLivePreview::test_live_stops_before_launching_when_the_configured_port_is_taken"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestLivePreview -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -536,7 +599,9 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "commands": ["poetry run pytest -q (no fairdm_docs/cli.py changes needed; both mechanisms mutation-probed and already correct)"],
+            "commands": [
+              "poetry run pytest -q (no fairdm_docs/cli.py changes needed; both mechanisms mutation-probed and already correct)"
+            ],
             "verified_by_ci": false
           }
         }
@@ -553,8 +618,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestCheck::test_reports_success_when_every_address_resolves"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestCheck -q"],
+            "tests": [
+              "tests/test_cli.py::TestCheck::test_reports_success_when_every_address_resolves"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestCheck -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -563,8 +632,12 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "tests": ["tests/test_cli.py::TestCheck::test_names_the_address_and_file_of_a_broken_link"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestCheck -q"],
+            "tests": [
+              "tests/test_cli.py::TestCheck::test_names_the_address_and_file_of_a_broken_link"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestCheck -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -573,9 +646,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/cli.py:271"],
-            "tests": ["tests/test_cli.py::TestCheck::test_reports_a_redirect_under_its_own_heading_and_exits_zero"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestCheck -q"],
+            "code": [
+              "fairdm_docs/cli.py:271"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestCheck::test_reports_a_redirect_under_its_own_heading_and_exits_zero"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestCheck -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -584,9 +663,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/cli.py:283"],
-            "tests": ["tests/test_cli.py::TestCheck::test_writes_its_report_alongside_the_html_output"],
-            "commands": ["poetry run pytest tests/test_cli.py::TestCheck -q"],
+            "code": [
+              "fairdm_docs/cli.py:283"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestCheck::test_writes_its_report_alongside_the_html_output"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestCheck -q"
+            ],
             "verified_by_ci": false
           }
         },
@@ -595,9 +680,15 @@
           "status": "done",
           "attempts": 0,
           "evidence": {
-            "code": ["fairdm_docs/cli.py:206"],
-            "tests": ["tests/test_cli.py::TestCheck"],
-            "commands": ["poetry run pytest -q"],
+            "code": [
+              "fairdm_docs/cli.py:206"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestCheck"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ],
             "verified_by_ci": false
           }
         }
@@ -610,7 +701,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
