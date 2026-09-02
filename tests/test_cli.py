@@ -9,9 +9,13 @@ import os
 import shutil
 import socket
 import sys
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
+import pytest
 from typer.testing import CliRunner
 
 # Add parent directory to path for imports
@@ -23,6 +27,43 @@ from fairdm_docs.metadata import ProjectMetadata
 runner = CliRunner()
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+class _TerminatingRedirectHandler(BaseHTTPRequestHandler):
+    """Redirects `/` to `/target` once, then answers `/target` with 200 —
+    unlike conftest.py's `redirect_server`, which redirects every path
+    (including its own target) and so never terminates. See decisions.md for
+    why TestCheck.test_reports_a_redirect_under_its_own_heading_and_exits_zero
+    uses this instead."""
+
+    def do_GET(self) -> None:
+        if self.path == "/target":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"ok")
+        else:
+            self.send_response(302)
+            self.send_header("Location", "/target")
+            self.end_headers()
+
+    def log_message(self, format: str, *args: Any) -> None:  # noqa: A002 - overrides BaseHTTPRequestHandler's signature
+        pass  # Silence the default per-request stderr logging.
+
+
+@pytest.fixture
+def terminating_redirect_server():
+    """Start a tiny local HTTP server whose one redirect resolves to a real
+    200, so a real Sphinx linkcheck run can classify it as `redirected`
+    rather than exhausting the redirect limit. Yields the server's base URL."""
+    server = HTTPServer(("127.0.0.1", 0), _TerminatingRedirectHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_address[1]}/"
+    finally:
+        server.shutdown()
+        thread.join()
 
 
 def _populate_from_fixture(name: str):
@@ -740,6 +781,93 @@ class TestCheckCommand:
             output = result.stdout + result.stderr
             assert "api.md" in output
             assert "42" in output or broken_link_line in output
+
+
+class TestCheck:
+    """Real, end-to-end `fairdm-docs check` runs, via `run_fairdm_docs` rather
+    than a mocked `sphinx.cmd.build.main` (constitution Article IV).
+    `TestCheckCommand` above proves the parsing logic against hand-written
+    output.txt files; this class proves the command's own behaviour against a
+    real Sphinx linkcheck build."""
+
+    def test_reports_success_when_every_address_resolves(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T031: a documentation source with no external addresses at all
+        reports success and exits 0. (FR-011, FR-012, SC-006)"""
+        portal_dir = documented_portal(
+            "check-all-resolve", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code == 0
+        output = stdout + stderr
+        assert "All links are valid" in output or "Link check complete" in output
+
+    def test_names_the_address_and_file_of_a_broken_link(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T032: an address that does not resolve is named together with the
+        file it appears in, and the command exits non-zero. (FR-011, FR-012,
+        SC-006)"""
+        portal_dir = documented_portal(
+            "check-broken-link", "0.1.0", _populate_from_fixture("broken_link")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code != 0
+        output = stdout + stderr
+        assert "index.rst" in output
+        assert "this-domain-does-not-exist-fairdm-docs-002.invalid" in output
+
+    def test_reports_a_redirect_under_its_own_heading_and_exits_zero(
+        self, documented_portal, run_fairdm_docs, terminating_redirect_server
+    ):
+        """T033: an address that redirects is reported separately from any
+        failures, under its own heading, and does not by itself fail the
+        check (D5, FR-013). The redirected_link fixture holds a
+        __REDIRECT_URL__ placeholder (D14) substituted here with the running
+        server's URL — terminating_redirect_server rather than conftest.py's
+        redirect_server; see decisions.md for why."""
+
+        def populate(docs_dir):
+            source = (FIXTURES_DIR / "redirected_link" / "index.rst").read_text()
+            (docs_dir / "index.rst").write_text(
+                source.replace("__REDIRECT_URL__", terminating_redirect_server)
+            )
+
+        portal_dir = documented_portal("check-redirect", "0.1.0", populate)
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code == 0
+        output = stdout + stderr
+        assert "broken link(s)" not in output.lower()
+        assert "redirect" in output.lower()
+        assert "index.rst" in output
+
+    def test_writes_its_report_alongside_the_html_output(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T034: the report lands at build_dir.parent / 'check-report.txt'
+        (plan.md), next to where linkcheck_dir already sits — not inside the
+        HTML output directory. (FR-014)"""
+        portal_dir = documented_portal(
+            "check-report-location", "0.1.0", _populate_from_fixture("broken_link")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code != 0
+        report = portal_dir / "docs" / "_build" / "check-report.txt"
+        assert report.exists()
+        assert "this-domain-does-not-exist-fairdm-docs-002.invalid" in (
+            report.read_text()
+        )
+        html_dir_report = portal_dir / "docs" / "_build" / "html" / "check-report.txt"
+        assert not html_dir_report.exists()
 
 
 class TestExitCodes:

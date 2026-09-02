@@ -203,7 +203,7 @@ def check() -> None:
     Validate documentation for quality issues.
 
     Currently checks:
-    - Broken internal and external links (linkcheck)
+    - Broken external links (linkcheck)
 
     Exits with code 0 if validation passes, code 1 if errors found.
     """
@@ -261,14 +261,41 @@ def check() -> None:
 
         if output_file.exists():
             broken_links = []
+            redirected_links = []
             with open(output_file, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
+                    if not line:
+                        continue
                     # Parse linkcheck output format: "filename.rst:line: [status] url: error"
-                    if line and (
-                        ": [broken]" in line or ": [redirected]" in line.lower()
-                    ):
+                    if ": [broken]" in line:
                         broken_links.append(line)
+                    elif ": [redirected with " in line:
+                        redirected_links.append(line)
+
+            # Write the classified report alongside the HTML output (T034,
+            # FR-014), not inside it — mirrors where linkcheck_dir sits.
+            report_file = config.build_dir.parent / "check-report.txt"
+            report_lines = []
+            if broken_links:
+                report_lines.append(f"Broken links ({len(broken_links)}):")
+                report_lines.extend(f"  {link}" for link in broken_links)
+            if redirected_links:
+                if report_lines:
+                    report_lines.append("")
+                report_lines.append(f"Redirected links ({len(redirected_links)}):")
+                report_lines.extend(f"  {link}" for link in redirected_links)
+            if not report_lines:
+                report_lines.append("All links are valid.")
+            report_file.write_text("\n".join(report_lines) + "\n", encoding="utf-8")
+
+            if redirected_links:
+                # Redirects are reported under their own heading, separately
+                # from failures (D5, FR-013) — they never affect the exit code.
+                typer.echo(f"\n⚠️  Found {len(redirected_links)} redirect(s):\n")
+                for link in redirected_links:
+                    typer.echo(f"   {link}")
+                typer.echo("")
 
             if broken_links:
                 # Display broken links (T056, T058)

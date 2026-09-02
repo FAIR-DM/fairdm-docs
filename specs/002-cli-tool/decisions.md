@@ -341,3 +341,32 @@ input this task's tests don't cover — that would be new evidence, not a reopen
 
 **ADR:** none — a coverage-completion task that found nothing to fix, not a specification
 decision.
+
+---
+
+**Decision:** T033's real end-to-end redirect test uses a locally-defined, self-terminating HTTP
+server (`_TerminatingRedirectHandler` / `terminating_redirect_server`, added in
+`tests/test_cli.py`), not `tests/conftest.py`'s existing `redirect_server` fixture (T003, US0),
+even though the brief named `redirect_server` specifically.
+
+**Why:** `redirect_server`'s handler (`tests/conftest.py:145-152`) answers every path, including
+its own redirect target `/redirected`, with another `302 Location: /redirected`. Followed through
+`requests`' automatic redirect-following — which Sphinx's linkcheck relies on for both its HEAD and
+GET retrieval attempts (`sphinx/builders/linkcheck.py:464-465`, confirmed by reading the installed
+package source) — that is a self-referential loop with no terminal response. Reproduced directly:
+`requests.get(url, allow_redirects=True)` against a bare-bones copy of the same handler raises
+`TooManyRedirects: Exceeded 30 redirects.` after 30 hops; a real `fairdm-docs check` against it via
+`run_fairdm_docs` confirms the same end-to-end — Sphinx's linkcheck reports the line
+`[broken] ... Exceeded 30 redirects`, never `[redirected with ...]`. `research.md` Q4's probe used
+an external service (`httpbin.org/redirect-to`) precisely because it terminates in one hop;
+`redirect_server` was never exercised against a real Sphinx build before this story. This is a
+defect in the T003 fixture, not in this story's `cli.py` change, and `tests/conftest.py` is outside
+this story's two-file scope (`fairdm_docs/cli.py`, `tests/test_cli.py`), so it is recorded here
+rather than fixed in place.
+
+**Revisit if:** a later story fixes `redirect_server` to terminate (e.g., a second path answering
+200) — at that point T033 can switch to it and `_TerminatingRedirectHandler` /
+`terminating_redirect_server` can be removed from `tests/test_cli.py`.
+
+**ADR:** none — implementation note (test-infrastructure defect and workaround), not a
+specification decision.
