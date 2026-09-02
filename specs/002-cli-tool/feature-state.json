@@ -508,23 +508,37 @@
     {
       "id": "US2",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestLivePreview::test_live_launches_against_every_configured_setting"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestLivePreview -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestLivePreview::test_live_stops_before_launching_when_the_configured_port_is_taken"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestLivePreview -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "commands": ["poetry run pytest -q (no fairdm_docs/cli.py changes needed; both mechanisms mutation-probed and already correct)"],
+            "verified_by_ci": false
+          }
         }
       ]
     },
