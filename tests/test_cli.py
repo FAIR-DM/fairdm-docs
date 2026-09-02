@@ -970,11 +970,13 @@ class TestLiveServerCommand:
 
 
 class TestLivePreview:
-    """T028: closes a coverage gap S3R found in TestLiveServerCommand above —
-    every configured setting must reach the live server's argv, not just
-    port and --open-browser. Mocking subprocess.run is the legitimate
-    boundary per D10 — the server's own rebuild, reload and browser
-    behaviour belongs to sphinx-autobuild, not this package."""
+    """T028-T029: closes two coverage gaps S3R found in TestLiveServerCommand
+    above. T028 proves every configured setting reaches the live server's
+    argv, not just port and --open-browser. T029 proves is_port_available's
+    own socket-based detection against a real bound socket, rather than the
+    code path that reads its mocked return value. Mocking subprocess.run is
+    the legitimate boundary per D10 — the server's own rebuild, reload and
+    browser behaviour belongs to sphinx-autobuild, not this package."""
 
     def test_live_launches_against_every_configured_setting(
         self, documented_portal, run_fairdm_docs
@@ -1014,6 +1016,43 @@ class TestLivePreview:
         assert "--port" in args
         assert args[args.index("--port") + 1] == "8123"
         assert "--open-browser" in args
+
+    def test_live_stops_before_launching_when_the_configured_port_is_taken(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T029: a real socket is bound and listening on the configured port
+        before the command runs, exercising is_port_available's actual
+        socket.bind() detection rather than a mock of its return value —
+        every port-conflict test in TestLiveServerCommand mocks
+        is_port_available itself, proving the code path but not that the
+        detection works. subprocess.run must never be called."""
+        portal_dir = documented_portal(
+            "live-port-taken", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        blocker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        blocker.bind(("", 0))
+        blocker.listen(1)
+        taken_port = blocker.getsockname()[1]
+
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "live-port-taken"\nversion = "0.1.0"\n\n'
+            f"[tool.fairdm.docs]\nport = {taken_port}\n"
+        )
+
+        try:
+            with patch("subprocess.run") as mock_run:
+                exit_code, stdout, stderr = run_fairdm_docs(
+                    portal_dir, ["build", "--live"]
+                )
+        finally:
+            blocker.close()
+
+        assert exit_code == 1
+        mock_run.assert_not_called()
+        output = stdout + stderr
+        assert str(taken_port) in output
+        assert "[tool.fairdm.docs]" in output
 
 
 class TestInterrupt:
