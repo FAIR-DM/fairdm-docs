@@ -2,7 +2,7 @@
   "feature": "001-pyproject-auto-config",
   "branch": "001-pyproject-auto-config",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "GATE_MERGE",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -43,6 +43,11 @@
       "state": "GATE_MERGE",
       "at": "2026-08-31T16:40:07Z",
       "note": "PR #12 out of draft. Body carries the audit's scope, the 35-of-35-open reconciliation, ADR 0007 and 0008, and the two items filed out as #13 and #14. Full check green against origin/main; both whole-branch flags adjudicated in D24."
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-31T16:57:42Z",
+      "note": "PR #12 merged; no approving review found"
     }
   ],
   "gates": {
@@ -64,7 +69,7 @@
     },
     "merge": {
       "approved_by": null,
-      "at": null
+      "at": "2026-08-31T16:57:42Z"
     }
   },
   "stories": [

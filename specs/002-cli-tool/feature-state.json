@@ -73,6 +73,16 @@
         "Three wording-drift notes (utils.py:97\u219298 citation, FR-011/FR-012 mistag on T031/T032, an overstated check-exit-code claim in reconciliation.md) corrected"
       ]
     },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-09-02T09:43:01Z",
+      "self_resolved": [
+        "CORR-001 (high, verified): the redirect classifier matched only the builder's 302/303/unknown text, so a 301, 307 or 308 vanished from both the console and the report while the check still exited 0 — remedied by matching the common prefix, with a 301 server fixture and test confirmed to fail against the old match first",
+        "DOCS-001 (medium, verified): README's exit-code section still said the live preview exits 0 on interrupt, which this same branch changed to 130 — remedied",
+        "Note: a stale test docstring describing the D6 fix as still pending — remedied",
+        "Note: the ADR-verdict edits to decisions.md were made but left uncommitted — remedied"
+      ]
+    },
     "merge": {
       "approved_by": null,
       "at": null
