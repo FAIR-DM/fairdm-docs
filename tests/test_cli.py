@@ -848,6 +848,27 @@ class TestCheck:
         assert "redirect" in output.lower()
         assert "index.rst" in output
 
+    def test_writes_its_report_alongside_the_html_output(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T034: the report lands at build_dir.parent / 'check-report.txt'
+        (plan.md), next to where linkcheck_dir already sits — not inside the
+        HTML output directory. (FR-014)"""
+        portal_dir = documented_portal(
+            "check-report-location", "0.1.0", _populate_from_fixture("broken_link")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code != 0
+        report = portal_dir / "docs" / "_build" / "check-report.txt"
+        assert report.exists()
+        assert "this-domain-does-not-exist-fairdm-docs-002.invalid" in (
+            report.read_text()
+        )
+        html_dir_report = portal_dir / "docs" / "_build" / "html" / "check-report.txt"
+        assert not html_dir_report.exists()
+
 
 class TestExitCodes:
     """T017: every configuration failure (T011-T015) exits non-zero through
