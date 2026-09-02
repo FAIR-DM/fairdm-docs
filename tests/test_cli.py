@@ -764,6 +764,23 @@ class TestCheck:
         output = stdout + stderr
         assert "All links are valid" in output or "Link check complete" in output
 
+    def test_names_the_address_and_file_of_a_broken_link(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T032: an address that does not resolve is named together with the
+        file it appears in, and the command exits non-zero. (FR-011, FR-012,
+        SC-006)"""
+        portal_dir = documented_portal(
+            "check-broken-link", "0.1.0", _populate_from_fixture("broken_link")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code != 0
+        output = stdout + stderr
+        assert "index.rst" in output
+        assert "this-domain-does-not-exist-fairdm-docs-002.invalid" in output
+
 
 class TestExitCodes:
     """T017: every configuration failure (T011-T015) exits non-zero through
