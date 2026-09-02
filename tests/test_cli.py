@@ -742,6 +742,29 @@ class TestCheckCommand:
             assert "42" in output or broken_link_line in output
 
 
+class TestCheck:
+    """Real, end-to-end `fairdm-docs check` runs, via `run_fairdm_docs` rather
+    than a mocked `sphinx.cmd.build.main` (constitution Article IV).
+    `TestCheckCommand` above proves the parsing logic against hand-written
+    output.txt files; this class proves the command's own behaviour against a
+    real Sphinx linkcheck build."""
+
+    def test_reports_success_when_every_address_resolves(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T031: a documentation source with no external addresses at all
+        reports success and exits 0. (FR-011, FR-012, SC-006)"""
+        portal_dir = documented_portal(
+            "check-all-resolve", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code == 0
+        output = stdout + stderr
+        assert "All links are valid" in output or "Link check complete" in output
+
+
 class TestExitCodes:
     """T017: every configuration failure (T011-T015) exits non-zero through
     `check`, not just `build` — the existing coverage in TestBuildCommand,
