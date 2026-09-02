@@ -184,3 +184,50 @@ clean.
 
 Next: US3 (`check` / broken addresses) per `tasks.md` Phase 6, or convergence if this was the last
 open story.
+
+## 2026-09-02T10:30:00+02:00 · Implementer US3 · T031–T035
+
+Did: added `TestCheck` to `tests/test_cli.py` (real end-to-end `check` runs via `run_fairdm_docs`,
+alongside the existing mocked `TestCheckCommand`, per constitution Article IV). T031 (all
+addresses resolve) and T032 (a broken address is named with its file) both passed without a
+`cli.py` change — the existing parsing already handled the plain-broken case correctly; each was
+mutation-probed per `craft-tdd`'s pre-report checklist (T031: forced the success branch to exit 1;
+T032: disabled the `": [broken]"` match) and both failed for the right reason, then `cli.py` was
+restored byte-identical (`git checkout HEAD --`) before committing either test.
+
+T033 (a redirect is reported under its own heading and exits 0) and T034 (the report is written
+alongside the HTML output) both failed for the right reason and needed the `cli.py` fix. T033
+uncovered a second, unrelated defect: `tests/conftest.py`'s `redirect_server` fixture (T003, US0)
+redirects every path — including its own `/redirected` target — to itself, so a real fetch through
+it never terminates and Sphinx classifies it `[broken] ... Exceeded 30 redirects`, not
+`[redirected with ...]`. Reproduced directly with `requests.get(url, allow_redirects=True)`
+(`TooManyRedirects: Exceeded 30 redirects.`) before concluding it wasn't a `cli.py` issue.
+`tests/conftest.py` is outside this story's two-file scope, so a second, terminating redirect
+server (`_TerminatingRedirectHandler` / `terminating_redirect_server`) was added locally in
+`tests/test_cli.py` instead. See `decisions.md`.
+
+T035: rewrote `check()`'s parsing loop (`fairdm_docs/cli.py`) to classify each `output.txt` line
+into `broken` (`": [broken]"`), `redirected` (`": [redirected with "`, the real Sphinx marker per
+`research.md` Q4 — the old code matched `": [redirected]"`, which never appears), or neither.
+Redirected lines are echoed under their own heading and excluded from the exit-code decision;
+broken lines behave as before. Both classifications are written to
+`config.build_dir.parent / "check-report.txt"` (FR-014), in this command's own developer-readable
+form, not Sphinx's raw `output.txt`. Corrected the `check()` docstring (`cli.py:205-211`) to say
+"Broken external links", matching D3 — US0's T036 already corrected README/CHANGELOG; this is the
+code's own docstring, which US0 did not touch.
+
+Not touched: `docs/examples/cli_usage.md`'s "Validate Documentation Links" section documents
+`check`'s exit codes (0/1) but says nothing about redirects or the new `check-report.txt` file.
+Both are now true of the command and neither is wrong there, only incomplete. Left alone —
+`docs/` is outside this story's file scope (`fairdm_docs/cli.py`, `tests/test_cli.py` only) — and
+flagged in the completion report's `concerns`.
+
+Verified: `poetry run pytest -q tests/test_cli.py::TestCheck tests/test_cli.py::TestCheckCommand
+tests/test_cli.py::TestExitCodes` 15 passed at the T035 commit. `poetry run pre-commit run --files
+fairdm_docs/cli.py tests/test_cli.py` — ruff-format reformatted `cli.py` once (committed as part of
+T035); rerun clean (trim-trailing-whitespace, end-of-file-fixer, ruff lint, ruff format, mypy,
+deptry all passed). `poetry run pytest -q` 137 passed (was 133 at baseline; +4 in
+`tests/test_cli.py`). `poetry run ruff check .`, `poetry run ruff format --check .`, `poetry run
+mypy`, and `poetry run deptry .` all clean.
+
+Next: convergence — this was the last open story (Phase 6, `tasks.md`).
