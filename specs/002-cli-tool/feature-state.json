@@ -545,33 +545,61 @@
     {
       "id": "US3",
       "priority": "P3",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestCheck::test_reports_success_when_every_address_resolves"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestCheck -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": ["tests/test_cli.py::TestCheck::test_names_the_address_and_file_of_a_broken_link"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestCheck -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/cli.py:271"],
+            "tests": ["tests/test_cli.py::TestCheck::test_reports_a_redirect_under_its_own_heading_and_exits_zero"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestCheck -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/cli.py:283"],
+            "tests": ["tests/test_cli.py::TestCheck::test_writes_its_report_alongside_the_html_output"],
+            "commands": ["poetry run pytest tests/test_cli.py::TestCheck -q"],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": ["fairdm_docs/cli.py:206"],
+            "tests": ["tests/test_cli.py::TestCheck"],
+            "commands": ["poetry run pytest -q"],
+            "verified_by_ci": false
+          }
         }
       ]
     }
