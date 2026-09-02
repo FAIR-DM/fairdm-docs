@@ -7,6 +7,7 @@ for isolated testing.
 
 import os
 import shutil
+import socket
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -1050,3 +1051,240 @@ class TestCLIHelp:
 
         assert result.exit_code == 0
         assert "Validate documentation" in result.stdout
+
+
+class TestSettings:
+    """Real, end-to-end proof that each `[tool.fairdm.docs]` setting changes
+    build behaviour, and that a setting a portal does not name keeps its
+    documented default (FR-015 through FR-019, SC-003). `TestBuildCommand`
+    above proves the argv Sphinx is handed for these settings; this class
+    proves the settings actually change what the build does."""
+
+    def test_source_dir_setting_changes_where_the_build_reads_from(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T020: source_dir named in the table is read from instead of the
+        default docs/ — proven by content that exists only there, not just
+        that the build succeeded."""
+        portal_dir = documented_portal(
+            "custom-source-dir", "0.1.0", lambda docs_dir: None
+        )
+        documentation_dir = portal_dir / "documentation"
+        documentation_dir.mkdir()
+        (documentation_dir / "index.rst").write_text(
+            "Portal\n======\n\nOnly the documentation directory has this line.\n"
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "custom-source-dir"\nversion = "0.1.0"\n\n'
+            '[tool.fairdm.docs]\nsource_dir = "documentation"\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        assert "Only the documentation directory has this line." in html
+
+    def test_build_dir_setting_changes_where_the_build_writes_to(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T021: build_dir named in the table is written to instead of the
+        default docs/_build/html, and the default path is never created."""
+        portal_dir = documented_portal(
+            "custom-build-dir", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "custom-build-dir"\nversion = "0.1.0"\n\n'
+            '[tool.fairdm.docs]\nbuild_dir = "output/site"\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert (portal_dir / "output" / "site" / "index.html").exists()
+        assert not (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
+
+    def test_port_setting_changes_which_port_live_checks(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T022: the port named in the table, not the default 5000, is the
+        one the live preview's availability check examines — proven by
+        occupying 5000 with a real bound socket and configuring a free port
+        elsewhere. Goes beyond test_build_live_uses_custom_port_from_config
+        (TestLiveServerCommand), which mocks is_port_available entirely."""
+        portal_dir = documented_portal(
+            "custom-port", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        probe.bind(("", 0))
+        free_port = probe.getsockname()[1]
+        probe.close()
+
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "custom-port"\nversion = "0.1.0"\n\n'
+            f"[tool.fairdm.docs]\nport = {free_port}\n"
+        )
+
+        blocked = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        blocked.bind(("", 5000))
+        blocked.listen(1)
+        try:
+            with patch("subprocess.run") as mock_run:
+                mock_run.return_value.returncode = 0
+                exit_code, stdout, stderr = run_fairdm_docs(
+                    portal_dir, ["build", "--live"]
+                )
+        finally:
+            blocked.close()
+
+        assert exit_code == 0
+        assert mock_run.called
+
+    def test_quiet_verbosity_suppresses_informational_output(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T023: verbosity = quiet suppresses Sphinx's informational output
+        but keeps its warnings, checked against a real build's captured
+        stdout and stderr rather than the -q flag reaching argv."""
+        portal_dir = documented_portal(
+            "quiet-verbosity",
+            "0.1.0",
+            lambda docs_dir: (docs_dir / "index.rst").write_text(
+                "Portal\n======\n\n.. toctree::\n\n   missing-page\n"
+            ),
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "quiet-verbosity"\nversion = "0.1.0"\n\n'
+            '[tool.fairdm.docs]\nverbosity = "quiet"\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "reading sources" not in stdout
+        assert "toctree contains reference to nonexisting document" in stderr
+
+    def test_errors_only_verbosity_suppresses_everything_but_errors(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T023: verbosity = errors-only suppresses Sphinx's informational
+        output and its warnings too, keeping only real errors."""
+        portal_dir = documented_portal(
+            "errors-only-verbosity",
+            "0.1.0",
+            lambda docs_dir: (docs_dir / "index.rst").write_text(
+                "Portal\n======\n\n.. toctree::\n\n   missing-page\n"
+            ),
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "errors-only-verbosity"\nversion = "0.1.0"\n\n'
+            '[tool.fairdm.docs]\nverbosity = "errors-only"\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert "reading sources" not in stdout
+        assert "toctree contains reference to nonexisting document" not in stderr
+
+    def test_django_true_sets_up_django_before_the_build(
+        self, documented_portal, monkeypatch, run_fairdm_docs
+    ):
+        """T024: django = true results in django.setup() genuinely running
+        before the build, not just the FAIRDM_DOCS_DJANGO env var being set —
+        checked by spying on the real fairdm_docs/conf.py mechanism (a
+        wrapped django.setup) and by the resulting app registry state."""
+        portal_dir = documented_portal(
+            "django-setting", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "django-setting"\nversion = "0.1.0"\n\n'
+            "[tool.fairdm.docs]\ndjango = true\n"
+        )
+        (portal_dir / "portal_django_settings.py").write_text(
+            "SECRET_KEY = 'not-a-secret'\nINSTALLED_APPS = []\n"
+        )
+        monkeypatch.syspath_prepend(str(portal_dir))
+        monkeypatch.setenv("DJANGO_SETTINGS_MODULE", "portal_django_settings")
+
+        import django
+        from django.apps import apps as django_apps
+
+        with patch("django.setup", wraps=django.setup) as mock_setup:
+            exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert mock_setup.called
+        assert django_apps.ready
+
+    def test_django_false_leaves_django_untouched(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T024: django = false never invokes django.setup(). The absent
+        case (the key missing entirely) is covered by
+        test_no_table_uses_every_documented_default below."""
+        portal_dir = documented_portal(
+            "django-untouched", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "django-untouched"\nversion = "0.1.0"\n\n'
+            "[tool.fairdm.docs]\ndjango = false\n"
+        )
+
+        with patch("django.setup") as mock_setup:
+            exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert not mock_setup.called
+
+    def test_no_table_uses_every_documented_default(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T025: a project with no [tool.fairdm.docs] table at all builds
+        successfully using every documented default: docs/, docs/_build/html
+        (proven by a real build), full verbosity (proven by real,
+        unsuppressed Sphinx output) and django=false (proven by the real env
+        var the build sets). Port 5000 is asserted directly off load_config,
+        since an ordinary `build` never exercises the port check."""
+        portal_dir = documented_portal(
+            "no-table", "0.1.0", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
+        assert "build succeeded" in stdout
+        assert os.environ["FAIRDM_DOCS_DJANGO"] == "false"
+
+        from fairdm_docs.config import load_config
+
+        config = load_config()
+        assert config.port == 5000
+
+    def test_partial_table_overrides_only_the_named_setting(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T026: a table naming only port leaves source_dir and build_dir at
+        their documented defaults — proven by a real build that still reads
+        docs/ and writes docs/_build/html, plus the loaded configuration."""
+        portal_dir = documented_portal(
+            "partial-override", "0.1.0", _populate_from_fixture("single_page")
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "partial-override"\nversion = "0.1.0"\n\n'
+            "[tool.fairdm.docs]\nport = 9000\n"
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
+
+        from fairdm_docs.config import load_config
+
+        config = load_config()
+        assert config.port == 9000
+        assert config.source_dir == Path("docs")
+        assert config.build_dir == Path("docs/_build/html")

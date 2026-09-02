@@ -129,3 +129,31 @@ ledger update were written by Forge from the diff and the completion report rath
 Implementer. Nothing in the diff itself was affected.
 
 Next: US4 (the settings table).
+
+## 2026-09-01T20:52:44+02:00 · Implementer US4 · T020–T027
+
+Did: added `TestSettings` to `tests/test_cli.py`, one real, end-to-end test per setting
+(`source_dir`, `build_dir`, `port`, `verbosity` × 2, `django` × 2, no-table defaults, partial
+override) — nine tests total (T020-T026), all via `run_fairdm_docs` against real portals, none
+against a stand-in for Sphinx. T022 occupies the real default port 5000 with a bound socket and
+configures a free port, going beyond the existing argv-mocked
+`test_build_live_uses_custom_port_from_config`. T023 distinguishes `quiet` from `errors-only` by a
+real Sphinx warning (a toctree entry pointing at a nonexisting document) appearing on stderr for
+`quiet` and being suppressed for `errors-only`. T024 spies on the real `django.setup` (wrapped, so
+it still runs) to prove `django = true` actually invokes it, and that `django = false` never does
+— a portal-local minimal settings module was needed because the package's own fallback
+`config.settings` doesn't exist in this repo.
+
+T027: no `fairdm_docs/config.py` or `fairdm_docs/cli.py` change was needed. Every one of the seven
+mechanisms (T020-T026) already worked; each new test was mutation-probed per `craft-tdd`'s
+pre-report checklist (broke the corresponding merge branch or verbosity/Django mechanism in
+`config.py`/`cli.py`/`conf.py`, watched the test fail for the right reason, reverted) before being
+accepted as a real assertion.
+
+Verified: `poetry run pytest -q tests/test_cli.py::TestSettings` 9 passed at each commit. `poetry
+run ruff format --check .` initially flagged one line in the new tests (T020's first commit);
+reformatted and committed separately. `poetry run pytest -q` 131 passed (was 122 at baseline; +9
+in `tests/test_cli.py`). `poetry run ruff check .`, `poetry run ruff format --check .`, `poetry
+run mypy`, and `poetry run deptry .` all clean.
+
+Next: US2 (live preview) per `tasks.md` Phase 5, or convergence if this was the last open story.
