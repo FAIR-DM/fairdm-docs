@@ -3,7 +3,7 @@
   "feature": "002-cli-tool",
   "branch": "002-cli-tool",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -39,6 +39,11 @@
       "state": "REVIEW",
       "at": "2026-09-02T08:17:31Z",
       "note": "S5 converge complete: 2 decisions graduated to ADRs (0009, 0010), 14/14 decisions verdicted, cli.py stale-comment cleanup, full verify+tamper-check green against main, all 5 story issues carry their completion comment and are closed"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-02T08:52:47Z",
+      "note": "S6 review fixes landed and verified; PR body rewritten; R1 verified; 001 record closed"
     }
   ],
   "gates": {
@@ -77,10 +82,10 @@
       "approved_by": "code-review",
       "at": "2026-09-02T09:43:01Z",
       "self_resolved": [
-        "CORR-001 (high, verified): the redirect classifier matched only the builder's 302/303/unknown text, so a 301, 307 or 308 vanished from both the console and the report while the check still exited 0 — remedied by matching the common prefix, with a 301 server fixture and test confirmed to fail against the old match first",
-        "DOCS-001 (medium, verified): README's exit-code section still said the live preview exits 0 on interrupt, which this same branch changed to 130 — remedied",
-        "Note: a stale test docstring describing the D6 fix as still pending — remedied",
-        "Note: the ADR-verdict edits to decisions.md were made but left uncommitted — remedied"
+        "CORR-001 (high, verified): the redirect classifier matched only the builder's 302/303/unknown text, so a 301, 307 or 308 vanished from both the console and the report while the check still exited 0 \u2014 remedied by matching the common prefix, with a 301 server fixture and test confirmed to fail against the old match first",
+        "DOCS-001 (medium, verified): README's exit-code section still said the live preview exits 0 on interrupt, which this same branch changed to 130 \u2014 remedied",
+        "Note: a stale test docstring describing the D6 fix as still pending \u2014 remedied",
+        "Note: the ADR-verdict edits to decisions.md were made but left uncommitted \u2014 remedied"
       ]
     },
     "merge": {
