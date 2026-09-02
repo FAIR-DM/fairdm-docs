@@ -969,6 +969,53 @@ class TestLiveServerCommand:
                 assert "sphinx-autobuild not found" in output
 
 
+class TestLivePreview:
+    """T028: closes a coverage gap S3R found in TestLiveServerCommand above —
+    every configured setting must reach the live server's argv, not just
+    port and --open-browser. Mocking subprocess.run is the legitimate
+    boundary per D10 — the server's own rebuild, reload and browser
+    behaviour belongs to sphinx-autobuild, not this package."""
+
+    def test_live_launches_against_every_configured_setting(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """T028: source_dir, build_dir and port are all set to non-default
+        values in [tool.fairdm.docs]; every one of them, plus --open-browser,
+        must reach subprocess.run's argv. test_build_live_starts_server
+        (TestLiveServerCommand) only asserts port and --open-browser, leaving
+        source_dir and build_dir unproven."""
+        portal_dir = documented_portal(
+            "live-all-settings", "0.1.0", lambda docs_dir: None
+        )
+        documentation_dir = portal_dir / "documentation"
+        documentation_dir.mkdir()
+        (documentation_dir / "index.rst").write_text("Portal\n======\n")
+
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "live-all-settings"\nversion = "0.1.0"\n\n'
+            "[tool.fairdm.docs]\n"
+            'source_dir = "documentation"\n'
+            'build_dir = "output/site"\n'
+            "port = 8123\n"
+        )
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value.returncode = 0
+            with patch("fairdm_docs.cli.is_port_available", return_value=True):
+                exit_code, stdout, stderr = run_fairdm_docs(
+                    portal_dir, ["build", "--live"]
+                )
+
+        assert exit_code == 0
+        assert mock_run.called
+        args = mock_run.call_args[0][0]
+        assert "documentation" in args
+        assert str(Path("output/site")) in args
+        assert "--port" in args
+        assert args[args.index("--port") + 1] == "8123"
+        assert "--open-browser" in args
+
+
 class TestInterrupt:
     """T018: an interrupt during an ordinary build, a live preview, or a
     check stops the command without a traceback and exits 130 in every
