@@ -157,3 +157,30 @@ in `tests/test_cli.py`). `poetry run ruff check .`, `poetry run ruff format --ch
 run mypy`, and `poetry run deptry .` all clean.
 
 Next: US2 (live preview) per `tasks.md` Phase 5, or convergence if this was the last open story.
+
+## 2026-09-02T09:24:34+02:00 · Implementer US2 · T028–T030
+
+Did: added `TestLivePreview` to `tests/test_cli.py`, closing the two gaps `reconciliation.md`
+flagged in `TestLiveServerCommand`. T028 configures non-default `source_dir`, `build_dir` and
+`port` together and asserts all four (plus `--open-browser`) reach `subprocess.run`'s argv — the
+existing `test_build_live_starts_server` only checked port and `--open-browser`. T029 binds a real
+socket on the configured port before invoking `--live`, exercising `is_port_available`'s actual
+`socket.bind()` detection rather than a mock of its return value, and asserts `subprocess.run` is
+never called.
+
+T030: no `fairdm_docs/cli.py` change was needed. Both mechanisms already worked — `cli.py:121-122`
+already places `str(config.source_dir)` and `str(config.build_dir)` in the live-server argv, and
+`is_port_available` (`cli.py:26-41`) already does a real `socket.bind()` check, not a stand-in.
+Per `craft-tdd`'s pre-report checklist, each new test was mutation-probed before being accepted:
+T028 was run against a `cli.py` with the `source_dir`/`build_dir` argv lines removed (failed on
+the right assertion), T029 was run against `is_port_available` hard-coded to `return True` (failed
+on `exit_code == 1`) — both reverted to the unmodified baseline (`diff` confirmed byte-identical)
+before committing. See `decisions.md` for the mini-ADR.
+
+Verified: `poetry run pytest -q tests/test_cli.py::TestLivePreview` 2 passed at each commit.
+`poetry run pytest -q` 133 passed (was 131 at baseline; +2 in `tests/test_cli.py`). `poetry run
+ruff check .`, `poetry run ruff format --check .`, `poetry run mypy`, and `poetry run deptry .` all
+clean.
+
+Next: US3 (`check` / broken addresses) per `tasks.md` Phase 6, or convergence if this was the last
+open story.

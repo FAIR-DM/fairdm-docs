@@ -319,3 +319,25 @@ effect FR-018 names instead of just the env var.
 this purpose — at that point this test's one-off module could be replaced by the shared one.
 
 **ADR:** none — implementation notes, not specification decisions.
+
+---
+
+**Decision:** T030 made no change to `fairdm_docs/cli.py`. Both gaps T028 and T029 were written to
+close (source_dir/build_dir missing from the live-server argv assertion; no test proving
+`is_port_available`'s real socket detection rather than its mocked return value) turned out to be
+gaps in test coverage only — the implementation at `cli.py:121-122` and `cli.py:26-41` already did
+the right thing.
+
+**Why:** `reconciliation.md`'s Phase 5 note reads as coverage-gap language ("does not assert",
+"nothing in the suite ever binds a real socket") rather than a claim the behaviour was broken, and
+that reading held up under a mutation probe: T028 failed for the right reason with the argv lines
+removed, T029 failed for the right reason with `is_port_available` hard-coded `True`, and `cli.py`
+was restored byte-identical (`diff` confirmed) after each probe before committing either test.
+Writing a no-op "fix" against working code would be busywork at best and a guardrail trip at worst
+(tamper-check runs against the story's base, not a mid-story detour).
+
+**Revisit if:** a later story finds `cli.py:121-122` or `is_port_available` actually wrong for some
+input this task's tests don't cover — that would be new evidence, not a reopening of T028/T029.
+
+**ADR:** none — a coverage-completion task that found nothing to fix, not a specification
+decision.
