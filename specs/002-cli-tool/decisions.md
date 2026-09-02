@@ -70,8 +70,7 @@ cross-reference validation is not scheduled anywhere and is not added here — t
 reports an unresolvable cross-reference as a warning during the build, and turning warnings into
 failures is R7's, where it belongs with publication.
 
-**ADR:** yes — what `check` promises constrains every validator added later. Drafted at
-convergence.
+**ADR:** [0009](../../docs/adr/0009-check-resolves-external-addresses-and-says-so.md).
 
 ## D4 — The extensibility requirement is struck
 
@@ -112,7 +111,8 @@ today is sometimes a dead link next year.
 does not fail the check — and adds what it lacks: the redirect is reported to the developer,
 under its own heading, separate from failures.
 
-**ADR:** yes — folded into the D3 record, since both settle what `check` treats as a failure.
+**ADR:** [0009](../../docs/adr/0009-check-resolves-external-addresses-and-says-so.md) — folded into
+D3's record, since both settle what `check` treats as a failure.
 
 ## D6 — Interrupting the command exits 130, in every mode
 
@@ -125,8 +125,7 @@ something untrue, and the only reason it does is that a live server has no natur
 
 **Settled:** 130 everywhere.
 
-**ADR:** yes — an exit-code convention constrains every command added later. Drafted at
-convergence.
+**ADR:** [0010](../../docs/adr/0010-an-interrupt-exits-130-in-every-mode.md).
 
 ## D7 — A malformed declaration is a configuration failure, not a traceback
 

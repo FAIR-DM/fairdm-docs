@@ -94,7 +94,6 @@ def build(
         os.environ["FAIRDM_DOCS_PROJECT_DIR"] = str(Path.cwd().resolve())
 
         if live:
-            # Check port availability (T042)
             if not is_port_available(config.port):
                 typer.echo(
                     ERROR_MESSAGES["port_conflict"](config.port),
@@ -102,7 +101,6 @@ def build(
                 )
                 raise typer.Exit(code=1)
 
-            # Start live preview server (T043, T044, T046)
             typer.echo(
                 f"🔄 Starting live preview server on http://localhost:{config.port}"
             )
@@ -128,7 +126,6 @@ def build(
                 sphinx_autobuild_args.extend(verbosity_flags)
 
             try:
-                # Run sphinx-autobuild (blocks until Ctrl+C) (T045)
                 # Don't capture output so user can see what's happening
                 process = subprocess.run(sphinx_autobuild_args, check=False)  # noqa: S603 - argv is built from sys.executable and validated build settings
 
@@ -208,7 +205,6 @@ def check() -> None:
     Exits with code 0 if validation passes, code 1 if errors found.
     """
     try:
-        # Load and validate configuration (T053)
         config = load_config()
 
         # Determine which conf.py to use:
@@ -236,7 +232,6 @@ def check() -> None:
             )
             raise typer.Exit(code=1) from None
 
-        # Prepare linkcheck output directory (T054)
         linkcheck_dir = config.build_dir.parent / "linkcheck"
         linkcheck_dir.mkdir(parents=True, exist_ok=True)
 
@@ -256,7 +251,6 @@ def check() -> None:
         # Run Sphinx linkcheck
         exit_code = sphinx_build(sphinx_args)
 
-        # Parse linkcheck output (T055)
         output_file = linkcheck_dir / "output.txt"
 
         if output_file.exists():
@@ -273,8 +267,8 @@ def check() -> None:
                     elif ": [redirected with " in line:
                         redirected_links.append(line)
 
-            # Write the classified report alongside the HTML output (T034,
-            # FR-014), not inside it — mirrors where linkcheck_dir sits.
+            # Write the classified report alongside the HTML output, not
+            # inside it — mirrors where linkcheck_dir sits.
             report_file = config.build_dir.parent / "check-report.txt"
             report_lines = []
             if broken_links:
@@ -298,18 +292,16 @@ def check() -> None:
                 typer.echo("")
 
             if broken_links:
-                # Display broken links (T056, T058)
                 typer.echo(
                     f"\n❌ Found {len(broken_links)} broken link(s):\n", err=True
                 )
                 for link in broken_links:
                     typer.echo(f"   {link}", err=True)
                 typer.echo("", err=True)
-                raise typer.Exit(code=1)  # T059
+                raise typer.Exit(code=1)
             else:
-                # Success message (T057)
                 typer.echo("✅ All links are valid!")
-                raise typer.Exit(code=0)  # T059
+                raise typer.Exit(code=0)
         else:
             # If no output file, check exit code
             if exit_code == 0:
