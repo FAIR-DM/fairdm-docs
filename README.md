@@ -465,8 +465,8 @@ Both `build` and `check` exit `0` on success and non-zero on failure:
 
 - `0` - Success
 - `1` - A configuration problem, build failure, or (for `check`) a broken link
-- `130` - Interrupted with `Ctrl+C`, for a plain `build` or a `check`. The live preview server's
-  `Ctrl+C` currently exits `0` instead.
+- `130` - Interrupted with `Ctrl+C`, in every mode: a plain `build`, a `check`, and the live
+  preview server.
 
 ### Configuration Options
 

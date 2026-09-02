@@ -70,7 +70,7 @@ cross-reference validation is not scheduled anywhere and is not added here — t
 reports an unresolvable cross-reference as a warning during the build, and turning warnings into
 failures is R7's, where it belongs with publication.
 
-**ADR:** [0009](../../docs/adr/0009-check-resolves-external-addresses-and-says-so.md).
+**ADR:** docs/adr/0009-check-resolves-external-addresses-and-says-so.md
 
 ## D4 — The extensibility requirement is struck
 
@@ -111,8 +111,8 @@ today is sometimes a dead link next year.
 does not fail the check — and adds what it lacks: the redirect is reported to the developer,
 under its own heading, separate from failures.
 
-**ADR:** [0009](../../docs/adr/0009-check-resolves-external-addresses-and-says-so.md) — folded into
-D3's record, since both settle what `check` treats as a failure.
+**ADR:** docs/adr/0009-check-resolves-external-addresses-and-says-so.md — folded into D3's record,
+since both settle what `check` treats as a failure.
 
 ## D6 — Interrupting the command exits 130, in every mode
 
@@ -125,7 +125,7 @@ something untrue, and the only reason it does is that a live server has no natur
 
 **Settled:** 130 everywhere.
 
-**ADR:** [0010](../../docs/adr/0010-an-interrupt-exits-130-in-every-mode.md).
+**ADR:** docs/adr/0010-an-interrupt-exits-130-in-every-mode.md
 
 ## D7 — A malformed declaration is a configuration failure, not a traceback
 
@@ -156,7 +156,8 @@ never executed drifts silently.
 **Settled:** the unused field is removed and the port-conflict message is used from the one place
 it is defined.
 
-**ADR:** none.
+**ADR:** none — dead code and a duplicated string, not a design choice. Nothing downstream reads
+either, so removing them constrains no future work.
 
 ## D9 — The settings nobody wrote down are written down
 
@@ -175,7 +176,9 @@ Three mechanisms are load-bearing for this feature and absent from its specifica
 
 **Settled:** the first two become requirements. The third is named as belonging elsewhere.
 
-**ADR:** none.
+**ADR:** none — documenting an existing mechanism, not deciding one. The `django` setting's
+architectural shape (which settings module loads) is R6's decision to make, under ADR 0003; the
+project-directory variable has no design choice left in it, only a description.
 
 ## D10 — The live server's own behaviour is not re-tested here
 
@@ -205,7 +208,8 @@ scenarios"). None of them can pass or fail; a criterion that cannot fail is not 
 
 **Settled:** rewritten so each one names a state a test can be in.
 
-**ADR:** none.
+**ADR:** none — a specification-writing convention (measurable outcomes are decidable states, not
+wall-clock thresholds), not an architectural constraint on the code.
 
 ## D12 — Requirements are renumbered
 
@@ -235,6 +239,9 @@ rewritten specification numbers straight through. The mapping:
 | FR-022 | FR-010 | |
 | — | FR-004, FR-007, FR-013, FR-014, FR-018 | new; behaviour the code has and the specification never described |
 
+**ADR:** none — a bookkeeping table mapping old requirement numbers to new ones. It records how
+this document changed, not a decision about the code.
+
 ## D13 — These directions were settled without a sign-off round
 
 The questions above were the maintainer's to answer, and on 2026-09-01 he handed them back to be
@@ -242,7 +249,8 @@ settled here and reviewed with the finished work rather than agreed in advance. 
 call in this file is therefore the author's, recorded so it can be reversed on reading rather than
 discovered later. Merging remains the maintainer's.
 
-**ADR:** none.
+**ADR:** none — a record of how this run was authorized, not a decision about the code or the
+specification's content.
 
 ## D14 — US0 implementation notes (S4)
 

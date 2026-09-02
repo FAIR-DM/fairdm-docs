@@ -261,10 +261,14 @@ def check() -> None:
                     line = line.strip()
                     if not line:
                         continue
-                    # Parse linkcheck output format: "filename.rst:line: [status] url: error"
+                    # Parse linkcheck output format: "filename.rst:line: [status] url: error".
+                    # The builder's redirect text varies by status code — "redirected
+                    # permanently" (301, 308), "redirected temporarily" (307), "redirected
+                    # with Found" (302), "with See Other" (303), "with unknown code" — so
+                    # match the common prefix rather than any one variant.
                     if ": [broken]" in line:
                         broken_links.append(line)
-                    elif ": [redirected with " in line:
+                    elif ": [redirected " in line:
                         redirected_links.append(line)
 
             # Write the classified report alongside the HTML output, not

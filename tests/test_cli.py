@@ -66,6 +66,41 @@ def terminating_redirect_server():
         thread.join()
 
 
+class _PermanentRedirectHandler(_TerminatingRedirectHandler):
+    """As `_TerminatingRedirectHandler`, but answers 301 rather than 302.
+
+    The builder writes a different bracket text per status code: `redirected
+    permanently` for 301 and 308, `redirected temporarily` for 307, and
+    `redirected with <reason>` for 302, 303 and unknown codes. A classifier
+    matching only one of those shapes drops the rest silently, which is the
+    defect this fixture exists to catch."""
+
+    def do_GET(self) -> None:
+        if self.path == "/target":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"ok")
+        else:
+            self.send_response(301)
+            self.send_header("Location", "/target")
+            self.end_headers()
+
+
+@pytest.fixture
+def permanent_redirect_server():
+    """A local server whose redirect is a 301, so the builder writes
+    `[redirected permanently]` rather than `[redirected with Found]`."""
+    server = HTTPServer(("127.0.0.1", 0), _PermanentRedirectHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_address[1]}/"
+    finally:
+        server.shutdown()
+        thread.join()
+
+
 def _populate_from_fixture(name: str):
     """A `documented_portal` populate callback that copies a documentation
     source from tests/fixtures/<name>/ into the portal's docs/ directory."""
@@ -848,6 +883,34 @@ class TestCheck:
         assert "redirect" in output.lower()
         assert "index.rst" in output
 
+    def test_reports_a_permanent_redirect_the_same_as_a_temporary_one(
+        self, documented_portal, run_fairdm_docs, permanent_redirect_server
+    ):
+        """A 301 is reported exactly as a 302 is. The builder writes
+        `[redirected permanently]` for it rather than `[redirected with
+        Found]`, and a classifier keyed to one variant drops the other from
+        both the console and the report while still exiting 0 — the address
+        is then neither confirmed working nor flagged, it just disappears."""
+
+        def populate(docs_dir):
+            source = (FIXTURES_DIR / "redirected_link" / "index.rst").read_text()
+            (docs_dir / "index.rst").write_text(
+                source.replace("__REDIRECT_URL__", permanent_redirect_server)
+            )
+
+        portal_dir = documented_portal("check-permanent-redirect", "0.1.0", populate)
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code == 0
+        output = stdout + stderr
+        assert "broken link(s)" not in output.lower()
+        assert "redirect" in output.lower()
+        assert "index.rst" in output
+
+        report = (portal_dir / "docs" / "_build" / "check-report.txt").read_text()
+        assert "Redirected links (1):" in report
+
     def test_writes_its_report_alongside_the_html_output(
         self, documented_portal, run_fairdm_docs
     ):
@@ -1221,8 +1284,8 @@ class TestInterrupt:
         assert "Traceback" not in output
 
     def test_live_preview_interrupted_exits_130(self, tmp_path, monkeypatch):
-        """Currently fails: the live-mode handler at cli.py's ~line 147
-        exits 0 today, which is the D6 defect T019 fixes."""
+        """The live-mode interrupt handler exits 130, like the other two.
+        It exited 0 before this feature; see decisions.md D6."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
         docs_dir = tmp_path / "docs"
