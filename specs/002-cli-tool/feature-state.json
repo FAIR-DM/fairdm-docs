@@ -1,0 +1,735 @@
+{
+  "$schema": "../../../engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "002-cli-tool",
+  "branch": "002-cli-tool",
+  "repo": "FAIR-DM/fairdm-docs",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-01T10:06:51Z",
+      "note": "spec.md rewritten against goals, roadmap and decision records"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-01T10:07:00Z",
+      "note": "self-resolved: Sam delegated the whole run to the merge gate"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-09-01T10:20:00Z",
+      "note": "epic #15 + five story sub-issues filed; draft PR #21 opened"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-01T11:19:05Z",
+      "note": "plan.md, research.md and tasks.md written; reconciliation.md checks tasks.md against main@26ae898"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-01T12:42:00Z",
+      "note": "S3R: one reviewer, four lenses (spec-compliance, security, architecture, reconciliation). Verdict approve, risk low. Findings applied as plan/task edits (REC-001, ARCH-001 added T038, SPEC-001); no re-plan"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-01T12:44:06Z",
+      "note": "S3R approved with 3 findings applied (no re-plan); starting S4 with US0 shared test infrastructure"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-02T08:17:31Z",
+      "note": "S5 converge complete: 2 decisions graduated to ADRs (0009, 0010), 14/14 decisions verdicted, cli.py stale-comment cleanup, full verify+tamper-check green against main, all 5 story issues carry their completion comment and are closed"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-02T08:52:47Z",
+      "note": "S6 review fixes landed and verified; PR body rewritten; R1 verified; 001 record closed"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "sam (delegated to the merge gate, 2026-09-01)",
+      "at": "2026-09-01T10:07:00Z",
+      "self_resolved": [
+        "Scope is the command surface only; R3, R4, R6, R10, R11 and issue #14 keep everything beneath it (D1)",
+        "FR-004 is stale against ADR 0002 and is rewritten to the layered configuration model (D2)",
+        "FR-017 is narrowed to external addresses; the command's own docstring was overstating it (D3)",
+        "FR-020 is struck: no validator abstraction exists and the spec's own Out of Scope contradicts it (D4)",
+        "A redirect does not fail the check, by accident rather than design, and is now specified to be reported (D5)",
+        "Interrupt exit code is unified to 130 in every mode (D6)",
+        "A malformed pyproject.toml is a ConfigError per ADR 0008, not a traceback (D7)",
+        "Two dead configuration paths are removed (D8)",
+        "The django and project-directory mechanisms are documented as CLI behaviour; which settings module loads is R6's (D9)",
+        "Live-server rebuild/reload/browser behaviour is out of scope, upstream's contract (D10)",
+        "Success criteria rewritten from wall-clock thresholds to decidable states (D11)"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-01T12:42:00Z",
+      "self_resolved": [
+        "REC-001 (medium): T011/T013/T014/T015 evidence proves build only, not check as their text claims; T017 reworded to close the check half rather than reopening the four",
+        "ARCH-001 (medium): D8's dead-code removal had no task; added T038, and corrected plan.md's wrong premise that the two port-conflict message templates are already identical text",
+        "SPEC-001 (low): FR-001 and FR-004 had no task tag; FR-004 folded into T010's real-build assertion, FR-001 left untagged as a packaging concern already covered by pyproject.toml's console-script entry",
+        "Three wording-drift notes (utils.py:97\u219298 citation, FR-011/FR-012 mistag on T031/T032, an overstated check-exit-code claim in reconciliation.md) corrected"
+      ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-09-02T09:43:01Z",
+      "self_resolved": [
+        "CORR-001 (high, verified): the redirect classifier matched only the builder's 302/303/unknown text, so a 301, 307 or 308 vanished from both the console and the report while the check still exited 0 \u2014 remedied by matching the common prefix, with a 301 server fixture and test confirmed to fail against the old match first",
+        "DOCS-001 (medium, verified): README's exit-code section still said the live preview exits 0 on interrupt, which this same branch changed to 130 \u2014 remedied",
+        "Note: a stale test docstring describing the D6 fix as still pending \u2014 remedied",
+        "Note: the ADR-verdict edits to decisions.md were made but left uncommitted \u2014 remedied"
+      ]
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US0",
+      "priority": "P0",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:58"
+            ],
+            "tests": [
+              "tests/test_conftest.py::TestDocumentedPortal"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conftest.py -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:73"
+            ],
+            "tests": [
+              "tests/test_conftest.py::TestRunFairdmDocs"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conftest.py -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/conftest.py:150"
+            ],
+            "tests": [
+              "tests/test_conftest.py::TestDocumentationSourceFixtures"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conftest.py -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T036",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "commands": [
+              "git diff 7f855c4..d882a1b -- README.md CHANGELOG.md"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T037",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "commands": [
+              "forge verify --repo fairdm-docs --base 002-cli-tool (re-run independently by the orchestrator after a conformance fix)",
+              "poetry run pytest -q (105 passed)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T038",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/config.py:35",
+              "fairdm_docs/cli.py:99"
+            ],
+            "tests": [
+              "tests/test_config.py::TestConfigurationLoading::test_build_configuration_defaults",
+              "tests/test_cli.py::TestLiveServerCommand::test_build_live_error_when_port_occupied"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_config.py tests/test_cli.py -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US1",
+      "priority": "P1",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_renders_a_root_page_to_html"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_uses_the_portals_own_conf_py_when_present"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_uses_the_packages_own_conf_py_when_none_is_provided"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_creates_a_missing_parent_of_the_build_directory"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:158"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_reports_where_it_started_and_where_it_wrote_the_site"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_full_verbosity_passes_sphinxs_own_output_through"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestBuild -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:94"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestBuild::test_sets_fairdm_docs_project_dir_to_the_portals_own_directory"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/config.py:80"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestBuildCommand::test_build_error_when_no_pyproject"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/config.py:90"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestConfigurationFailures::test_malformed_toml_reported_as_message_not_traceback"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestConfigurationFailures -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/config.py:143"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestBuildCommand::test_build_error_when_source_missing"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/config.py:147"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestConfigurationValidationErrors::test_invalid_port_shows_clear_error"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/config.py:151"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestConfigurationValidationErrors::test_invalid_verbosity_shows_clear_error"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/config.py:67"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestExitCodes"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestExitCodes -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_no_pyproject",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_toml_is_malformed",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_source_dir_missing",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_port_out_of_range",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_nonzero_when_verbosity_invalid",
+              "tests/test_cli.py::TestExitCodes::test_check_exits_zero_on_success"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestExitCodes -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:146"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestInterrupt::test_build_interrupted_exits_130",
+              "tests/test_cli.py::TestInterrupt::test_check_interrupted_exits_130",
+              "tests/test_cli.py::TestInterrupt::test_live_preview_interrupted_exits_130"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestInterrupt -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:146"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestInterrupt"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P4",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_source_dir_setting_changes_where_the_build_reads_from"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_build_dir_setting_changes_where_the_build_writes_to"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_port_setting_changes_which_port_live_checks"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_quiet_verbosity_suppresses_informational_output",
+              "tests/test_cli.py::TestSettings::test_errors_only_verbosity_suppresses_everything_but_errors"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_django_true_sets_up_django_before_the_build",
+              "tests/test_cli.py::TestSettings::test_django_false_leaves_django_untouched"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_no_table_uses_every_documented_default"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestSettings::test_partial_table_overrides_only_the_named_setting"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestSettings -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "commands": [
+              "poetry run pytest -q (no fairdm_docs/config.py or fairdm_docs/cli.py changes needed; every acceptance criterion was already met)"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T028",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestLivePreview::test_live_launches_against_every_configured_setting"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestLivePreview -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T029",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestLivePreview::test_live_stops_before_launching_when_the_configured_port_is_taken"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestLivePreview -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "commands": [
+              "poetry run pytest -q (no fairdm_docs/cli.py changes needed; both mechanisms mutation-probed and already correct)"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestCheck::test_reports_success_when_every_address_resolves"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestCheck -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_cli.py::TestCheck::test_names_the_address_and_file_of_a_broken_link"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestCheck -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:271"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestCheck::test_reports_a_redirect_under_its_own_heading_and_exits_zero"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestCheck -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:283"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestCheck::test_writes_its_report_alongside_the_html_output"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_cli.py::TestCheck -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm_docs/cli.py:206"
+            ],
+            "tests": [
+              "tests/test_cli.py::TestCheck"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 1500000
+    }
+  },
+  "pr": {
+    "number": 21,
+    "draft": true
+  }
+}

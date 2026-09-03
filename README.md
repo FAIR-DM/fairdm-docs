@@ -436,7 +436,7 @@ fairdm-docs check
 
 This command:
 
-- Checks all internal and external links in your documentation
+- Checks external links in your documentation (internal cross-references are not validated)
 - Reports broken links with file locations and line numbers
 - Exits with code 0 if all links are valid
 - Exits with code 1 if broken links are found (useful for CI/CD)
@@ -458,6 +458,15 @@ This command:
 - name: Check documentation links
   run: poetry run fairdm-docs check
 ```
+
+### Exit Codes
+
+Both `build` and `check` exit `0` on success and non-zero on failure:
+
+- `0` - Success
+- `1` - A configuration problem, build failure, or (for `check`) a broken link
+- `130` - Interrupted with `Ctrl+C`, in every mode: a plain `build`, a `check`, and the live
+  preview server.
 
 ### Configuration Options
 

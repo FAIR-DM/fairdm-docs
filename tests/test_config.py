@@ -35,7 +35,6 @@ class TestConfigurationLoading:
         assert config.build_dir == Path("docs/_build/html")
         assert config.port == 5000
         assert config.verbosity == "full"
-        assert config.config_dir is None
         assert config.django is False  # Django should be disabled by default
 
     def test_find_pyproject_in_current_dir(self, tmp_path, monkeypatch):

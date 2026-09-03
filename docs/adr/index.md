@@ -14,3 +14,5 @@ one's status changes to point at its replacement and both stay in place.
 | [0006](0006-model-documentation-stays-in-scope.md) | Model documentation stays in scope | accepted, not yet implemented |
 | [0007](0007-a-declaration-is-used-exactly-as-written.md) | A declaration is used exactly as written | accepted |
 | [0008](0008-configuration-failures-are-one-error-type.md) | Configuration failures are one error type, surfaced where the developer is reading | accepted |
+| [0009](0009-check-resolves-external-addresses-and-says-so.md) | `check` resolves external addresses, and reports a redirect separately from a failure | accepted |
+| [0010](0010-an-interrupt-exits-130-in-every-mode.md) | An interrupt exits 130, in every mode | accepted |

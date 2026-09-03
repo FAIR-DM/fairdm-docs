@@ -14,7 +14,7 @@ from typing import Annotated
 
 import typer
 
-from fairdm_docs.config import ConfigError, load_config
+from fairdm_docs.config import ERROR_MESSAGES, ConfigError, load_config
 
 app = typer.Typer(
     name="fairdm-docs",
@@ -94,18 +94,13 @@ def build(
         os.environ["FAIRDM_DOCS_PROJECT_DIR"] = str(Path.cwd().resolve())
 
         if live:
-            # Check port availability (T042)
             if not is_port_available(config.port):
                 typer.echo(
-                    f"❌ Error: Port {config.port} is already in use.\n"
-                    f"   Configure a different port in pyproject.toml:\n"
-                    f"   [tool.fairdm.docs]\n"
-                    f"   port = {config.port + 1}",
+                    ERROR_MESSAGES["port_conflict"](config.port),
                     err=True,
                 )
                 raise typer.Exit(code=1)
 
-            # Start live preview server (T043, T044, T046)
             typer.echo(
                 f"🔄 Starting live preview server on http://localhost:{config.port}"
             )
@@ -131,7 +126,6 @@ def build(
                 sphinx_autobuild_args.extend(verbosity_flags)
 
             try:
-                # Run sphinx-autobuild (blocks until Ctrl+C) (T045)
                 # Don't capture output so user can see what's happening
                 process = subprocess.run(sphinx_autobuild_args, check=False)  # noqa: S603 - argv is built from sys.executable and validated build settings
 
@@ -146,7 +140,7 @@ def build(
                 raise typer.Exit(code=process.returncode)
             except KeyboardInterrupt:
                 typer.echo("\n⚠️  Server stopped by user")
-                raise typer.Exit(code=0) from None
+                raise typer.Exit(code=130) from None
             except FileNotFoundError:
                 typer.echo(
                     "❌ Error: sphinx-autobuild not found.\n   Install with: pip install sphinx-autobuild",
@@ -206,12 +200,11 @@ def check() -> None:
     Validate documentation for quality issues.
 
     Currently checks:
-    - Broken internal and external links (linkcheck)
+    - Broken external links (linkcheck)
 
     Exits with code 0 if validation passes, code 1 if errors found.
     """
     try:
-        # Load and validate configuration (T053)
         config = load_config()
 
         # Determine which conf.py to use:
@@ -239,7 +232,6 @@ def check() -> None:
             )
             raise typer.Exit(code=1) from None
 
-        # Prepare linkcheck output directory (T054)
         linkcheck_dir = config.build_dir.parent / "linkcheck"
         linkcheck_dir.mkdir(parents=True, exist_ok=True)
 
@@ -259,33 +251,61 @@ def check() -> None:
         # Run Sphinx linkcheck
         exit_code = sphinx_build(sphinx_args)
 
-        # Parse linkcheck output (T055)
         output_file = linkcheck_dir / "output.txt"
 
         if output_file.exists():
             broken_links = []
+            redirected_links = []
             with open(output_file, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
-                    # Parse linkcheck output format: "filename.rst:line: [status] url: error"
-                    if line and (
-                        ": [broken]" in line or ": [redirected]" in line.lower()
-                    ):
+                    if not line:
+                        continue
+                    # Parse linkcheck output format: "filename.rst:line: [status] url: error".
+                    # The builder's redirect text varies by status code — "redirected
+                    # permanently" (301, 308), "redirected temporarily" (307), "redirected
+                    # with Found" (302), "with See Other" (303), "with unknown code" — so
+                    # match the common prefix rather than any one variant.
+                    if ": [broken]" in line:
                         broken_links.append(line)
+                    elif ": [redirected " in line:
+                        redirected_links.append(line)
+
+            # Write the classified report alongside the HTML output, not
+            # inside it — mirrors where linkcheck_dir sits.
+            report_file = config.build_dir.parent / "check-report.txt"
+            report_lines = []
+            if broken_links:
+                report_lines.append(f"Broken links ({len(broken_links)}):")
+                report_lines.extend(f"  {link}" for link in broken_links)
+            if redirected_links:
+                if report_lines:
+                    report_lines.append("")
+                report_lines.append(f"Redirected links ({len(redirected_links)}):")
+                report_lines.extend(f"  {link}" for link in redirected_links)
+            if not report_lines:
+                report_lines.append("All links are valid.")
+            report_file.write_text("\n".join(report_lines) + "\n", encoding="utf-8")
+
+            if redirected_links:
+                # Redirects are reported under their own heading, separately
+                # from failures (D5, FR-013) — they never affect the exit code.
+                typer.echo(f"\n⚠️  Found {len(redirected_links)} redirect(s):\n")
+                for link in redirected_links:
+                    typer.echo(f"   {link}")
+                typer.echo("")
 
             if broken_links:
-                # Display broken links (T056, T058)
                 typer.echo(
                     f"\n❌ Found {len(broken_links)} broken link(s):\n", err=True
                 )
                 for link in broken_links:
                     typer.echo(f"   {link}", err=True)
                 typer.echo("", err=True)
-                raise typer.Exit(code=1)  # T059
+                raise typer.Exit(code=1)
             else:
-                # Success message (T057)
                 typer.echo("✅ All links are valid!")
-                raise typer.Exit(code=0)  # T059
+                raise typer.Exit(code=0)
         else:
             # If no output file, check exit code
             if exit_code == 0:
