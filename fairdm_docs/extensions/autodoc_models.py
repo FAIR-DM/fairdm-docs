@@ -147,18 +147,18 @@ def generate_model_docs(app: Sphinx) -> None:
     samples_path = out_dir / "samples.md"
     with open(samples_path, "w", encoding="utf-8") as f:
         f.write("# Sample Types\n\n")
-        for config in registry.samples:
-            model_path = config["full_name"]
-            f.write(f"## {config['verbose_name']}\n\n")
+        for model in registry.samples:
+            model_path = f"{model._meta.app_label}.{model.__name__}"
+            f.write(f"## {model._meta.verbose_name}\n\n")
             f.write(f"```{{autodoc-model}} {model_path}\n```\n\n")
 
     # Create measurements index
     measurements_path = out_dir / "measurements.md"
     with open(measurements_path, "w", encoding="utf-8") as f:
         f.write("# Measurement Types\n\n")
-        for config in registry.measurements:
-            model_path = config["full_name"]
-            f.write(f"## {config['verbose_name']}\n\n")
+        for model in registry.measurements:
+            model_path = f"{model._meta.app_label}.{model.__name__}"
+            f.write(f"## {model._meta.verbose_name}\n\n")
             f.write(f"```{{autodoc-model}} {model_path}\n```\n\n")
 
 
