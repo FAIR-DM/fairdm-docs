@@ -563,6 +563,12 @@ source_dir = "documentation"
 
 **Breaking change:** Version 0.2.0+ requires PEP 621 `[project]` section in your `pyproject.toml`.
 
+1. **Add [project] section** to `pyproject.toml` with required `name` field
+2. **Copy metadata** from `[tool.poetry]` to `[project]` (use PEP 621 format for authors)
+3. **Move URLs** to `[project.urls]` table (keys are case-insensitive)
+4. **Keep [tool.poetry]** if you're still using Poetry for dependency management (both sections can coexist)
+5. **Test build**: Run `fairdm-docs build` to verify
+
 ### Before (Legacy - NOT SUPPORTED)
 
 ```toml
@@ -588,6 +594,15 @@ authors = [
 Homepage = "https://my-portal.org"
 Repository = "https://github.com/myorg/my-portal"
 ```
+
+### Why This Change?
+
+PEP 621 is the Python packaging standard for project metadata. This migration:
+
+- Aligns with community standards
+- Supports build backends beyond Poetry
+- Enables case-insensitive URL key handling
+- Simplifies metadata extraction logic
 
 ## Troubleshooting
 
@@ -690,23 +705,6 @@ If you encounter issues not covered here:
 1. Check the [GitHub Issues](https://github.com/FAIR-DM/fairdm-docs/issues)
 2. Review the [docs/examples/](docs/examples/) directory for working configurations
 3. Open a new issue with details about your setup and error message
-
-## Migration from [tool.poetry]
-
-1. **Add [project] section** to `pyproject.toml` with required `name` field
-2. **Copy metadata** from `[tool.poetry]` to `[project]` (use PEP 621 format for authors)
-3. **Move URLs** to `[project.urls]` table (keys are case-insensitive)
-4. **Keep [tool.poetry]** if you're still using Poetry for dependency management (both sections can coexist)
-5. **Test build**: Run `fairdm-docs build` to verify
-
-### Why This Change?
-
-PEP 621 is the Python packaging standard for project metadata. This migration:
-
-- Aligns with community standards
-- Supports build backends beyond Poetry
-- Enables case-insensitive URL key handling
-- Simplifies metadata extraction logic
 
 ## Contributing
 
