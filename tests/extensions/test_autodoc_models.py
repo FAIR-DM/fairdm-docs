@@ -20,9 +20,9 @@ if not settings.configured:
     )
     django.setup()
 
-from django.db import models  # noqa: E402
+from django.db import models
 
-from fairdm_docs.extensions import autodoc_models  # noqa: E402
+from fairdm_docs.extensions import autodoc_models
 
 
 class HeatFlowSite(models.Model):
@@ -48,7 +48,9 @@ class TestGenerateModelDocs:
         self, tmp_path, monkeypatch
     ):
         """The registry yields model classes; the extension must read them as such."""
-        fake_registry = SimpleNamespace(samples=[HeatFlowSite], measurements=[Conductivity])
+        fake_registry = SimpleNamespace(
+            samples=[HeatFlowSite], measurements=[Conductivity]
+        )
         monkeypatch.setattr(autodoc_models, "registry", fake_registry)
 
         app = SimpleNamespace(srcdir=str(tmp_path))
