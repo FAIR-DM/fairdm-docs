@@ -31,6 +31,8 @@ runner = CliRunner(env={"FORCE_COLOR": None, "NO_COLOR": "1", "TERM": "dumb"})
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
+BUILD_SETTINGS = ("FAIRDM_DOCS_DJANGO", "FAIRDM_DOCS_PROJECT_DIR")
+
 
 class _TerminatingRedirectHandler(BaseHTTPRequestHandler):
     """Redirects `/` to `/target` once, then answers `/target` with 200 —
@@ -113,6 +115,32 @@ def _populate_from_fixture(name: str):
             shutil.copy(item, docs_dir / item.name)
 
     return populate
+
+
+def write_minimal_project(tmp_path):
+    """Write the smallest project layout either command will accept."""
+    (tmp_path / "pyproject.toml").write_text("[project]\nname = 'test'")
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    (docs_dir / "index.md").write_text("# Test")
+    return tmp_path
+
+
+class SphinxRecorder:
+    """Stands in for Sphinx's entry point and records the environment it ran under.
+
+    The settings the CLI passes to conf.py are environment variables, so the only
+    place their values can be read is from inside the build itself. Pass `delegate`
+    to record the environment and then run the real build anyway.
+    """
+
+    def __init__(self, delegate=None):
+        self.delegate = delegate
+        self.seen: dict[str, str | None] = {}
+
+    def __call__(self, *args, **kwargs):
+        self.seen.update({name: os.environ.get(name) for name in BUILD_SETTINGS})
+        return 0 if self.delegate is None else self.delegate(*args, **kwargs)
 
 
 class TestBuildCommand:
@@ -382,8 +410,6 @@ verbosity = "errors-only"
 
     def test_build_sets_django_env_var_false_by_default(self, tmp_path, monkeypatch):
         """Test that Django environment variable is set to false by default."""
-        import os
-
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
 
@@ -393,16 +419,15 @@ verbosity = "errors-only"
 
         monkeypatch.chdir(tmp_path)
 
-        with patch("sphinx.cmd.build.main", return_value=0):
+        sphinx = SphinxRecorder()
+        with patch("sphinx.cmd.build.main", side_effect=sphinx):
             runner.invoke(app, ["build"])
 
-            # Django env var should be set to false
-            assert os.environ.get("FAIRDM_DOCS_DJANGO") == "false"
+            # Django env var should be false while Sphinx runs
+            assert sphinx.seen["FAIRDM_DOCS_DJANGO"] == "false"
 
     def test_build_sets_django_env_var_true_when_enabled(self, tmp_path, monkeypatch):
         """Test that Django environment variable is set to true when enabled in config."""
-        import os
-
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -418,11 +443,63 @@ django = true
 
         monkeypatch.chdir(tmp_path)
 
+        sphinx = SphinxRecorder()
+        with patch("sphinx.cmd.build.main", side_effect=sphinx):
+            runner.invoke(app, ["build"])
+
+            # Django env var should be true while Sphinx runs
+            assert sphinx.seen["FAIRDM_DOCS_DJANGO"] == "true"
+
+
+class TestBuildSettingsLifetime:
+    """The settings a command puts in the environment last as long as the build, no longer."""
+
+    def test_build_leaves_the_environment_as_it_found_it(self, tmp_path, monkeypatch):
+        for name in BUILD_SETTINGS:
+            monkeypatch.delenv(name, raising=False)
+        write_minimal_project(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
         with patch("sphinx.cmd.build.main", return_value=0):
             runner.invoke(app, ["build"])
 
-            # Django env var should be set to true
-            assert os.environ.get("FAIRDM_DOCS_DJANGO") == "true"
+        assert [os.environ.get(name) for name in BUILD_SETTINGS] == [None, None]
+
+    def test_check_leaves_the_environment_as_it_found_it(self, tmp_path, monkeypatch):
+        for name in BUILD_SETTINGS:
+            monkeypatch.delenv(name, raising=False)
+        write_minimal_project(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        with patch("sphinx.cmd.build.main", return_value=0):
+            runner.invoke(app, ["check"])
+
+        assert [os.environ.get(name) for name in BUILD_SETTINGS] == [None, None]
+
+    def test_a_value_set_by_the_caller_survives_the_build(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("FAIRDM_DOCS_PROJECT_DIR", "/somewhere/the/caller/chose")
+        monkeypatch.setenv("FAIRDM_DOCS_DJANGO", "true")
+        write_minimal_project(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        with patch("sphinx.cmd.build.main", return_value=0):
+            runner.invoke(app, ["build"])
+
+        assert os.environ["FAIRDM_DOCS_PROJECT_DIR"] == "/somewhere/the/caller/chose"
+        assert os.environ["FAIRDM_DOCS_DJANGO"] == "true"
+
+    def test_the_build_reads_the_directory_the_command_was_run_from(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("FAIRDM_DOCS_PROJECT_DIR", "/a/stale/directory")
+        write_minimal_project(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        sphinx = SphinxRecorder()
+        with patch("sphinx.cmd.build.main", side_effect=sphinx):
+            runner.invoke(app, ["build"])
+
+        assert sphinx.seen["FAIRDM_DOCS_PROJECT_DIR"] == str(tmp_path.resolve())
 
 
 class TestBuild:
@@ -544,15 +621,20 @@ class TestBuild:
     ):
         """T010 (S3R SPEC-001): FAIRDM_DOCS_PROJECT_DIR, the mechanism FR-004
         names, is set to the invoking portal's own directory during a real
-        build, not the package's, not something else."""
+        build, not the package's, not something else. The value is read from
+        inside the build, which is the only point at which it is defined."""
         portal_dir = documented_portal(
             "project-dir-env-var", "0.1.0", _populate_from_fixture("single_page")
         )
 
-        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+        from sphinx.cmd.build import main as real_sphinx_build
+
+        recorder = SphinxRecorder(delegate=real_sphinx_build)
+        with patch("sphinx.cmd.build.main", side_effect=recorder):
+            exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
 
         assert exit_code == 0
-        assert os.environ["FAIRDM_DOCS_PROJECT_DIR"] == str(portal_dir.resolve())
+        assert recorder.seen["FAIRDM_DOCS_PROJECT_DIR"] == str(portal_dir.resolve())
 
 
 class TestConfigurationValidationErrors:
@@ -1525,18 +1607,23 @@ class TestSettings:
         successfully using every documented default: docs/, docs/_build/html
         (proven by a real build), full verbosity (proven by real,
         unsuppressed Sphinx output) and django=false (proven by the real env
-        var the build sets). Port 5000 is asserted directly off load_config,
-        since an ordinary `build` never exercises the port check."""
+        var the build runs under). Port 5000 is asserted directly off
+        load_config, since an ordinary `build` never exercises the port
+        check."""
         portal_dir = documented_portal(
             "no-table", "0.1.0", _populate_from_fixture("single_page")
         )
 
-        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+        from sphinx.cmd.build import main as real_sphinx_build
+
+        recorder = SphinxRecorder(delegate=real_sphinx_build)
+        with patch("sphinx.cmd.build.main", side_effect=recorder):
+            exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
 
         assert exit_code == 0
         assert (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
         assert "build succeeded" in stdout
-        assert os.environ["FAIRDM_DOCS_DJANGO"] == "false"
+        assert recorder.seen["FAIRDM_DOCS_DJANGO"] == "false"
 
         from fairdm_docs.config import load_config
 

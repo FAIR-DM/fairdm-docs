@@ -9,12 +9,19 @@ import os
 import socket
 import subprocess
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
-from fairdm_docs.config import ERROR_MESSAGES, ConfigError, load_config
+from fairdm_docs.config import (
+    ERROR_MESSAGES,
+    BuildConfiguration,
+    ConfigError,
+    load_config,
+)
 
 app = typer.Typer(
     name="fairdm-docs",
@@ -39,6 +46,35 @@ def is_port_available(port: int) -> bool:
             return True
     except OSError:
         return False
+
+
+@contextmanager
+def _build_settings(config: BuildConfiguration) -> Iterator[None]:
+    """Expose the settings conf.py reads, for the duration of the build.
+
+    conf.py cannot be passed arguments — Sphinx imports it — so the two settings it
+    needs travel as environment variables. The project directory is the one the
+    command was run from, which conf.py cannot work out for itself once Sphinx has
+    changed directory to the location of conf.py.
+
+    Both values are restored when the build finishes. A command that left them behind
+    would go on deciding the project directory for every later build in the same
+    process, from a directory those builds have nothing to do with.
+    """
+    settings = {
+        "FAIRDM_DOCS_DJANGO": "true" if config.django else "false",
+        "FAIRDM_DOCS_PROJECT_DIR": str(Path.cwd().resolve()),
+    }
+    previous = {name: os.environ.get(name) for name in settings}
+    os.environ.update(settings)
+    try:
+        yield
+    finally:
+        for name, was_set_to in previous.items():
+            if was_set_to is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = was_set_to
 
 
 def get_verbosity_flags(verbosity: str) -> list[str]:
@@ -87,12 +123,6 @@ def build(
             config.source_dir if local_conf_py.exists() else Path(__file__).parent
         )
 
-        # Set environment variables for conf.py to use
-        os.environ["FAIRDM_DOCS_DJANGO"] = "true" if config.django else "false"
-        # Pass the project directory (where CLI was invoked) to conf.py
-        # This is needed because Sphinx changes cwd to the conf.py location
-        os.environ["FAIRDM_DOCS_PROJECT_DIR"] = str(Path.cwd().resolve())
-
         if live:
             if not is_port_available(config.port):
                 typer.echo(
@@ -127,7 +157,8 @@ def build(
 
             try:
                 # Don't capture output so user can see what's happening
-                process = subprocess.run(sphinx_autobuild_args, check=False)  # noqa: S603 - argv is built from sys.executable and validated build settings
+                with _build_settings(config):
+                    process = subprocess.run(sphinx_autobuild_args, check=False)  # noqa: S603 - argv is built from sys.executable and validated build settings
 
                 # If process exited with error, show helpful message
                 if process.returncode != 0:
@@ -177,7 +208,8 @@ def build(
         ]
 
         # Run Sphinx build
-        exit_code = sphinx_build(sphinx_args)
+        with _build_settings(config):
+            exit_code = sphinx_build(sphinx_args)
 
         if exit_code == 0:
             typer.echo(f"✅ Build complete! Output: {config.build_dir}")
@@ -215,12 +247,6 @@ def check() -> None:
             config.source_dir if local_conf_py.exists() else Path(__file__).parent
         )
 
-        # Set environment variables for conf.py to use
-        os.environ["FAIRDM_DOCS_DJANGO"] = "true" if config.django else "false"
-        # Pass the project directory (where CLI was invoked) to conf.py
-        # This is needed because Sphinx changes cwd to the conf.py location
-        os.environ["FAIRDM_DOCS_PROJECT_DIR"] = str(Path.cwd().resolve())
-
         typer.echo("🔍 Checking documentation for broken links...")
 
         # Import sphinx.cmd.build here to avoid import errors if not installed
@@ -249,7 +275,8 @@ def check() -> None:
         ]
 
         # Run Sphinx linkcheck
-        exit_code = sphinx_build(sphinx_args)
+        with _build_settings(config):
+            exit_code = sphinx_build(sphinx_args)
 
         output_file = linkcheck_dir / "output.txt"
 
