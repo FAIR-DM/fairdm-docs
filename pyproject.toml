@@ -207,3 +207,9 @@ DEP004 = ["django"]
 # FairDM is the framework the portal already runs. The import is guarded and
 # only reached inside a portal build, for the same reason Django is (ADR 0003).
 DEP001 = ["fairdm"]
+
+[tool.forge.conformance]
+# tests/conftest.py is test-only infrastructure with no fairdm_docs source
+# counterpart to mirror, the same reasoning that exempts tests/factories.py
+# and its own test module by default.
+non-mirror-paths = ["tests/test_conftest.py"]

@@ -29,11 +29,11 @@ Each of these describes a capability the code already attempts. Whether it does 
 
 ### R1 — A command that builds a portal's documentation
 
-*needs verification · advances G1*
+*verified against [specs/002-cli-tool](../specs/002-cli-tool/spec.md) · advances G1*
 
-A single command turns a directory of Markdown into a rendered HTML site, with a live-reloading variant for writing and a second command that checks the site's links. A small set of settings in the portal's `pyproject.toml` moves the source directory, the output directory, the preview port and how much the build says as it runs.
+A single command turns a directory of documentation into a rendered HTML site, with a live-reloading variant for writing and a second command that checks the addresses the site links to. A small set of settings in the portal's `pyproject.toml` moves the source directory, the output directory, the preview port and how much the build says as it runs.
 
-Serves G1.
+Serves G1. The command surface is what this item covers and what has been verified. Whether a source written in Markdown builds at all is R3's, and does not hold today — the verification here was carried out against a reStructuredText source for that reason.
 
 ### R2 — The portal's own metadata becomes the site's identity
 

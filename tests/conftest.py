@@ -2,11 +2,16 @@
 
 import io
 import sys
+import threading
+from contextlib import redirect_stderr, redirect_stdout
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 
 import pytest
 from sphinx.application import Sphinx
+
+import fairdm_docs.cli
 
 
 def toml_value(value: Any) -> str:
@@ -48,6 +53,48 @@ def portal(tmp_path: Path):
         return tmp_path
 
     return write
+
+
+@pytest.fixture
+def documented_portal(tmp_path: Path):
+    """Write a temporary portal from a declared name and version, with the docs/
+    directory left for the caller to populate."""
+
+    def write(name: str, version: str, populate) -> Path:
+        (tmp_path / "pyproject.toml").write_text(
+            f'[project]\nname = "{name}"\nversion = "{version}"\n'
+        )
+        docs = tmp_path / "docs"
+        docs.mkdir(exist_ok=True)
+        populate(docs)
+        return tmp_path
+
+    return write
+
+
+@pytest.fixture
+def run_fairdm_docs(monkeypatch):
+    """Invoke a `fairdm-docs` command for real against a portal directory.
+
+    Sets sys.argv and calls the CLI's entry point directly, catching the
+    SystemExit Typer raises to exit. Nothing here mocks sphinx.cmd.build.main
+    or any other part of the build — this runs a real Sphinx build or check.
+    """
+
+    def run(portal_dir: Path, args: list[str]) -> tuple[int, str, str]:
+        monkeypatch.chdir(portal_dir)
+        monkeypatch.setattr(sys, "argv", ["fairdm-docs", *args])
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            try:
+                fairdm_docs.cli.main()
+                exit_code = 0
+            except SystemExit as exc:
+                exit_code = exc.code if isinstance(exc.code, int) else 0
+        return exit_code, stdout.getvalue(), stderr.getvalue()
+
+    return run
 
 
 @pytest.fixture
@@ -93,3 +140,33 @@ def built_portal(portal):
         return html, status.getvalue() + warning.getvalue()
 
     return build
+
+
+class _RedirectHandler(BaseHTTPRequestHandler):
+    """Answers every request with a 302 redirect, so a check against it needs
+    no network access."""
+
+    def do_GET(self) -> None:
+        self.send_response(302)
+        self.send_header("Location", "/redirected")
+        self.end_headers()
+
+    def log_message(self, format: str, *args: Any) -> None:  # noqa: A002 - overrides BaseHTTPRequestHandler's signature
+        pass  # Silence the default per-request stderr logging.
+
+
+@pytest.fixture
+def redirect_server():
+    """Start a tiny local HTTP server that responds to every GET with a 302
+    redirect, for the `redirected_link` documentation source.
+
+    Yields the server's base URL. No new dependency: `http.server` is stdlib.
+    """
+    server = HTTPServer(("127.0.0.1", 0), _RedirectHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_address[1]}/"
+    finally:
+        server.shutdown()
+        thread.join()

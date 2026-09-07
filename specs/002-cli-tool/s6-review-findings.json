@@ -1,0 +1,43 @@
+{
+  "stage": "code",
+  "lens": "correctness",
+  "scope": "git diff main..002-cli-tool: fairdm_docs/cli.py, fairdm_docs/config.py, tests/conftest.py, tests/test_cli.py, tests/test_config.py, tests/fixtures/**, docs/adr/0009 + 0010, docs/adr/index.md, README.md, CHANGELOG.md, pyproject.toml, and specs/002-cli-tool/{spec.md,decisions.md} against ADR 0009/0010 and the code's actual behaviour.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-08-24/fac7e5ad",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "verdict": "request_changes",
+  "risk": "medium",
+  "findings": [
+    {
+      "id": "CORR-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "The redirect classifier in `check()` only recognises a 302 redirect. A 301, 307 or 308 redirect matches neither the broken branch nor the redirected branch, so it silently vanishes from both the console output and check-report.txt — never reported as broken, never reported as redirected, contradicting FR-013 and ADR 0009's stated fix for exactly this failure mode.",
+      "evidence": "fairdm_docs/cli.py:265-268 classifies with `if \": [broken]\" in line: ... elif \": [redirected with \" in line:`. Sphinx's own linkcheck (sphinx/builders/linkcheck.py:174-199, write_entry at :213-216) writes the bracket text as `redirected permanently` for 301/308, `redirected with Found` for 302, `redirected with See Other` for 303, `redirected temporarily` for 307, and `redirected with unknown code` otherwise — i.e. `f'[{what}]'` where `what` is `f'redirected {text}'`. Only the two `with `-prefixed variants (302, 303, and the fallback) contain the substring `: [redirected with `; `redirected permanently` and `redirected temporarily` do not. Verified directly: `\": [redirected with \" in \"index.rst:5: [redirected permanently] http://example.com to http://example.com/\"` evaluates to `False`. Every fixture and test in this diff (tests/conftest.py's `_RedirectHandler`, tests/test_cli.py's `_TerminatingRedirectHandler`) sends `self.send_response(302)`, so the gap has no test coverage and was not caught. decisions.md's D5 record describes the original bug as a literal-string mismatch (`\": [redirected]\"` vs `\"[redirected with Found]\"`) and presents the fix as complete; it does not mention that Sphinx's bracket text varies by HTTP status code, so the fix only covers the 302/303 cases the record's own reproduction used.",
+      "reproduction": "Point a documentation source at an address that returns a 301 (or 307/308) redirect and run `fairdm-docs check`. The address is absent from both the console's redirect list and check-report.txt, and the command still exits 0 — the address is neither confirmed working nor flagged, it simply disappears from the report.",
+      "suggested_fix": "Drop the `with ` from the match so it covers all four bracket texts Sphinx emits, e.g. `elif \": [redirected \" in line:` (every variant begins `redirected ` followed by descriptive text, so this still excludes `: [broken]` and any other status)."
+    },
+    {
+      "id": "DOCS-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "README.md's new \"Exit Codes\" section still states the live preview server's Ctrl+C exits 0, but the code in this same diff fixes that to exit 130 (D6/ADR 0010). The caveat is now false and contradicts the command's actual, tested behaviour.",
+      "evidence": "README.md's Exit Codes section (added this diff) reads: \"130 - Interrupted with Ctrl+C, for a plain build or a check. The live preview server's Ctrl+C currently exits 0 instead.\" fairdm_docs/cli.py:141-143 raises `typer.Exit(code=130)` on `KeyboardInterrupt` in the live-preview branch, and tests/test_cli.py:1223-1238 (`test_live_preview_interrupted_exits_130`) asserts `result.exit_code == 130` and passes. decisions.md D14's own implementation note anticipated this exact drift: \"Revisit if: the story that implements D6 lands — the caveat sentence should come out of the README in that same change\" — D6 has landed in this diff (D6's own decisions.md entry says \"Settled: 130 everywhere\"), but the README sentence was not removed.",
+      "reproduction": "Read README.md's Exit Codes section as shipped in this diff, then run `fairdm-docs build --live` and press Ctrl+C: the command exits 130, not 0 as the README states.",
+      "suggested_fix": "Delete the trailing sentence \"The live preview server's Ctrl+C currently exits 0 instead.\" and fold live preview into the general 130 claim, per D14's own revisit note."
+    }
+  ],
+  "notes": [
+    "tests/test_cli.py:1223-1225's docstring on test_live_preview_interrupted_exits_130 still reads \"Currently fails: the live-mode handler ... exits 0 today, which is the D6 defect T019 fixes\" — the fix has landed in this same diff (cli.py:143), so the test now passes; the comment is stale and reads as if the fix is still pending.",
+      "The checkout has an uncommitted working-tree change to specs/002-cli-tool/decisions.md (markdown-link-to-plain-path edits and added ADR rationale for D8/D9/D11/D12/D13) that is not part of the main..002-cli-tool diff — flagging in case it is stray, unstaged work rather than something already reflected in the branch."
+  ]
+}

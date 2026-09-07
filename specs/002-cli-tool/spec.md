@@ -1,168 +1,326 @@
-# Feature Specification: FairDM-Docs CLI Tool
+# Feature Specification: One command builds a portal's documentation
 
-**Feature Branch**: `002-cli-tool`  
-**Created**: February 10, 2026  
-**Status**: Draft  
-**Input**: User description: "I would like to create and ship a simple cli with the package. The cli should be called fairdm-docs. It should have 1 main function that wraps sphinx-build. The difference? We will provide default args to the sphinx-build directive directly (taking away complexity from end users). For advanced users, we will accept some configuration via [tools.fairdm.docs]. e.g. build directory, etc. ADDITIONALLY, we will allow a single argument to the `fairdm-docs build` command -- `--live`. If this argument is provided, we will deploy docs to a live server using 'sphinx-autobuild'."
+**Feature Branch**: `002-cli-tool`
+**Created**: 2026-02-10
+**Rewritten**: 2026-09-01
+**Status**: Specified
+**Roadmap item**: R1 — *A command that builds a portal's documentation*
+**Goals served**: G1 — *A portal builds a complete documentation site with no configuration file
+of its own in its documentation source*
+
+A developer with a directory of documentation and a portal to describe should not have to learn
+Sphinx's command line to see a rendered page. This feature is the command they type instead:
+`fairdm-docs build` renders the site, `fairdm-docs build --live` serves it and rebuilds while they
+write, and `fairdm-docs check` resolves the addresses the documentation links to before anyone
+publishes it. A handful of settings in the portal's `pyproject.toml` move the source directory,
+the output directory, the preview port and how much the build says as it runs.
+
+This specification covers the commands and stops where the builder starts. What the builder is
+configured to do, where it finds a portal's inputs and what the rendered page looks like belong to
+other roadmap items, listed in [decisions.md](decisions.md).
+
+**Prior version:** this specification was rewritten on 2026-09-01. What changed, and why, is in
+[decisions.md](decisions.md).
 
 ## Clarifications
 
 ### Session 2026-02-10
 
-- Q: When the CLI runs outside a Python project (no `pyproject.toml`), what should happen? → A: Error immediately and refuse to run, requiring pyproject.toml
-- Q: When the live server port (default 8000) is already in use, what should happen? → A: Default port is 5000 (Django uses 8000). Error when port occupied, inform user to adjust via [tool.fairdm.docs]
-- Q: When the Sphinx source directory is not in the expected location (`docs/`), what should happen? → A: Require users to specify source directory in [tool.fairdm.docs] configuration if not using docs/
-- Q: How should build errors from Sphinx be communicated to the user? → A: Show full Sphinx error output including all warnings and errors, with option to configure verbosity in pyproject.toml
-- Q: When configuration in `pyproject.toml` conflicts with package defaults, how should conflicts be resolved? → A: User configuration in pyproject.toml always overrides package defaults
+- Q: What happens when the command runs outside a Python project? → A: It stops immediately and
+  says a `pyproject.toml` is required.
+- Q: What happens when the preview port is already in use? → A: The default is 5000, because
+  Django already uses 8000. A taken port stops the command with a message saying how to change it.
+- Q: What happens when the documentation source is not at `docs/`? → A: The developer names its
+  location in the settings table.
+- Q: How do build errors reach the developer? → A: In full, exactly as the builder emitted them,
+  with verbosity adjustable in the settings table.
+- Q: When the settings table and the package's defaults disagree, which wins? → A: The settings
+  table.
+
+### Session 2026-09-01
+
+- Q: Must the build always use the package's own Sphinx configuration? → A: No. A portal that has
+  written its own `docs/conf.py` gets that file used instead, whole. This is ADR 0002's third
+  layer and it postdates the original answer.
+- Q: Does `check` validate internal cross-references? → A: No. It resolves external addresses.
+  Unresolvable cross-references are already reported by the build as warnings, and deciding
+  whether warnings fail a build is R7's.
+- Q: Should `check` be built so further validators can be added to it? → A: No. There is one
+  validator, and structure invented for a second one that nobody has specified would be designed
+  again the moment that second one arrived.
+- Q: Is an address that redirects a broken link? → A: No. It is reported as a redirect and does
+  not fail the check.
+- Q: What does the command exit with when the developer interrupts it? → A: 130, in every mode.
+- Q: What happens when a portal's `pyproject.toml` is not valid TOML? → A: The same as every other
+  way a declaration can fail to be read: one readable message, per ADR 0008.
+- Q: Does this feature prove the live server rebuilds and reloads? → A: No. Those are the
+  upstream server's behaviours. What is proven is that the server is launched correctly and that a
+  taken port stops the command first.
+- Q: Does this feature decide which Django settings module a build loads? → A: No. It records that
+  a setting switches Django on. Nominating the module is R6's, under ADR 0003.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Basic Documentation Build (Priority: P1)
+### User Story 1 — A portal's documentation renders from one command (Priority: P1)
 
-A documentation contributor wants to build their Sphinx documentation with zero configuration. They simply run a single command and get their documentation built in a standard output directory.
+A developer has a portal with a documentation source and no Sphinx knowledge. They run
+`fairdm-docs build` and get a rendered HTML site, in a directory they can open, with no arguments
+and no configuration file of their own.
 
-**Why this priority**: This is the core MVP - users need a simple way to build docs without complex Sphinx command-line arguments. This eliminates the primary barrier to entry for new users.
+**Why this priority**: this is the command the package exists to provide, and every other story
+here is a variation on it.
 
-**Independent Test**: Can be fully tested by running the CLI command in a project with Sphinx docs and verifying HTML output is generated in the expected directory.
+**Independent Test**: run `fairdm-docs build` against a project with a documentation source
+containing a root page, and read the rendered HTML back off disk.
 
 **Acceptance Scenarios**:
 
-1. **Given** a FairDM project with documentation source files, **When** user runs `fairdm-docs build`, **Then** documentation is built to the default output directory with HTML format
-2. **Given** a project without any prior Sphinx configuration, **When** user runs `fairdm-docs build`, **Then** the command uses sensible defaults from the package's base configuration
-3. **Given** an empty or invalid documentation source, **When** user runs `fairdm-docs build`, **Then** the command displays clear error messages indicating what's missing
+1. **Given** a project with a documentation source containing a root page, **When** the developer
+   runs `fairdm-docs build`, **Then** rendered HTML appears in the output directory and the
+   command exits 0.
+2. **Given** a project whose documentation source contains its own `conf.py`, **When** the
+   developer runs `fairdm-docs build`, **Then** that file configures the build and the package's
+   own configuration is not consulted.
+3. **Given** a project whose documentation source contains no `conf.py`, **When** the developer
+   runs `fairdm-docs build`, **Then** the package's configuration is used.
+4. **Given** an output directory whose parent does not exist, **When** the developer runs
+   `fairdm-docs build`, **Then** the directory is created and the build succeeds.
 
 ---
 
-### User Story 2 - Live Preview Server (Priority: P2)
+### User Story 2 — Writing with a live preview (Priority: P2)
 
-A documentation author wants to preview their changes in real-time without manually rebuilding. They add a single flag to the build command and get a live-reloading preview server.
+A developer editing documentation runs `fairdm-docs build --live`, gets the site in their browser,
+and keeps writing while the page keeps up.
 
-**Why this priority**: Live preview dramatically improves documentation authoring workflow by providing immediate feedback. This is a key differentiator from standard Sphinx builds but is secondary to basic build capability.
+**Why this priority**: the difference between reading documentation you have written and reading
+documentation you are writing. Valuable, and useless without the build itself.
 
-**Independent Test**: Can be fully tested by running the CLI with the live flag, making a documentation change, and verifying the browser auto-refreshes with the updated content.
+**Independent Test**: run the command with the flag and assert the preview server is started
+against the configured source, output directory, port and configuration; separately, occupy the
+port and assert the command stops before starting anything.
 
 **Acceptance Scenarios**:
 
-1. **Given** a FairDM project with documentation, **When** user runs `fairdm-docs build --live`, **Then** a local web server starts and opens the documentation in a browser
-2. **Given** the live server is running, **When** user modifies a documentation source file, **Then** the documentation rebuilds automatically and the browser refreshes to show changes
-3. **Given** the live server is running, **When** user stops the server (Ctrl+C), **Then** the server shuts down gracefully and releases the port
+1. **Given** a project with a documentation source, **When** the developer runs `fairdm-docs build
+   --live`, **Then** a preview server is started against that source and the configured output
+   directory, on the configured port, and is asked to open a browser.
+2. **Given** a configured port that another process is already listening on, **When** the
+   developer runs `fairdm-docs build --live`, **Then** the command stops with a message naming the
+   port and the setting that changes it, and no server is started.
+3. **Given** a running preview, **When** the developer interrupts it, **Then** the command stops
+   without a traceback and exits 130.
 
 ---
 
-### User Story 3 - Documentation Validation (Priority: P3)
+### User Story 3 — Broken addresses are found before publication (Priority: P3)
 
-A documentation maintainer wants to validate their documentation for broken links and other quality issues before publishing. They run a single check command that reports any problems found.
+A maintainer about to publish runs `fairdm-docs check` and learns which of the addresses their
+documentation links to no longer resolve, and where each one is written.
 
-**Why this priority**: Documentation quality is important for user experience, but validation is typically done before publishing rather than during active authoring. This is valuable but not required for basic documentation building workflows.
+**Why this priority**: documentation rots outward — the pages stay put and the world they link to
+moves. Worth catching, and only worth catching once there is a site to publish.
 
-**Independent Test**: Can be fully tested by running the check command on documentation with known broken links and verifying the issues are reported correctly.
+**Independent Test**: run the command against a documentation source containing one address that
+does not resolve and one that redirects, and read the exit code and the report.
 
 **Acceptance Scenarios**:
 
-1. **Given** a FairDM project with documentation, **When** user runs `fairdm-docs check`, **Then** the system validates all links in the documentation and reports any broken links
-2. **Given** documentation with broken external links, **When** user runs `fairdm-docs check`, **Then** the command displays clear error messages identifying each broken link with its location
-3. **Given** documentation with all valid links, **When** user runs `fairdm-docs check`, **Then** the command reports success with a summary of checks performed
-4. **Given** a user needs to add more validation checks in the future, **When** the check command is extended, **Then** new validators can be added without breaking existing functionality
+1. **Given** documentation whose external addresses all resolve, **When** the developer runs
+   `fairdm-docs check`, **Then** the command reports success and exits 0.
+2. **Given** documentation containing an address that does not resolve, **When** the developer
+   runs `fairdm-docs check`, **Then** the command names that address and the file it appears in,
+   and exits non-zero.
+3. **Given** documentation containing an address that redirects, **When** the developer runs
+   `fairdm-docs check`, **Then** the command reports the redirect separately from any failure and
+   exits 0 if nothing else failed.
+4. **Given** any run of the command, **When** it finishes, **Then** its report has been written
+   alongside the HTML output rather than inside it.
 
 ---
 
-### User Story 4 - Advanced Configuration (Priority: P4)
+### User Story 4 — The command bends to the portal that runs it (Priority: P4)
 
-An advanced user needs to customize build behavior (e.g., different output directory, custom build options). They configure these settings in their project's `pyproject.toml` file under a dedicated section.
+A developer whose documentation does not live in `docs/`, or who wants the site built elsewhere,
+or who runs something else on port 5000, writes a line in their `pyproject.toml` and the command
+obeys it.
 
-**Why this priority**: This enables power users to customize behavior without blocking basic functionality. Most users will be satisfied with defaults, making this a lower priority enhancement.
+**Why this priority**: most portals need none of this, which is the point. It exists so that the
+ones that do are not forced off the command entirely.
 
-**Independent Test**: Can be fully tested by adding configuration to `pyproject.toml`, running the build command, and verifying the custom settings are applied (e.g., output appears in custom directory).
+**Independent Test**: set each setting in turn, run the command, and assert the build changed in
+the way the setting describes.
 
 **Acceptance Scenarios**:
 
-1. **Given** a project with `[tool.fairdm.docs]` configuration specifying a custom build directory, **When** user runs `fairdm-docs build`, **Then** documentation is built to the specified custom directory
-2. **Given** a project with multiple configuration options in `pyproject.toml`, **When** user runs the CLI, **Then** all specified options are applied correctly
-3. **Given** invalid configuration in `pyproject.toml`, **When** user runs the CLI, **Then** a clear validation error is displayed with guidance on correct format
+1. **Given** a `[tool.fairdm.docs]` table naming a source directory, an output directory, a port
+   and a verbosity, **When** the developer runs the command, **Then** each of those values is used
+   in place of the corresponding default.
+2. **Given** a project with no `[tool.fairdm.docs]` table at all, **When** the developer runs the
+   command, **Then** every default applies and the build succeeds.
+3. **Given** a table setting `django` to true, **When** the developer runs the command, **Then**
+   Django is set up before the build runs.
+4. **Given** a table setting only one key, **When** the developer runs the command, **Then** that
+   key is used and every other setting keeps its default.
+
+---
+
+### User Story 5 — Every failure arrives as a message a developer can act on (Priority: P2)
+
+A developer who has mistyped a bracket, pointed at a directory that does not exist, or asked for a
+port outside the usable range gets one line telling them what is wrong and what to write instead.
+They never get a stack trace.
+
+**Why this priority**: the package's promise is that a developer does not have to understand
+Sphinx. A traceback out of a TOML parser breaks that promise at the exact moment they are least
+equipped to read it, and this is the story that carries the standing decision the code currently
+violates.
+
+**Independent Test**: produce each failure in turn and assert both the message and the absence of
+a traceback.
+
+**Acceptance Scenarios**:
+
+1. **Given** a directory with no `pyproject.toml` anywhere above it, **When** the developer runs
+   either command, **Then** it stops with a message saying a Python project is required, and exits
+   non-zero.
+2. **Given** a `pyproject.toml` that is not valid TOML, **When** the developer runs either
+   command, **Then** it stops with a message naming the file as unreadable, with no traceback.
+3. **Given** a configured source directory that does not exist, **When** the developer runs either
+   command, **Then** it stops with a message naming the directory and the setting that changes it.
+4. **Given** a configured port outside 1024–65535, or a verbosity that is not one of the three
+   accepted values, **When** the developer runs either command, **Then** it stops with a message
+   naming the value and what is accepted.
+5. **Given** any of the above, **When** the command stops, **Then** the exit code is non-zero.
 
 ---
 
 ### Edge Cases
 
-- CLI MUST error immediately when run outside a Python project (no `pyproject.toml` found), displaying a clear message that a Python project with pyproject.toml is required
-- When the live server port (default 5000) is already in use, CLI MUST error with a clear message informing the user they can adjust the port via `[tool.fairdm.docs]` configuration
-- If Sphinx source directory is not found at default location `docs/`, CLI MUST error with a clear message that the source directory must be specified in `[tool.fairdm.docs]` configuration
-- Build errors from Sphinx MUST be displayed in full (including all warnings and errors) by default, with option to configure verbosity level in `[tool.fairdm.docs]`
-- User configuration in `[tool.fairdm.docs]` always takes precedence over package defaults when conflicts occur
-- How does the check command handle timeouts when checking external links?
-- What happens when check is run but documentation hasn't been built yet?
+- A documentation source that exists but contains no root page is the builder's error to report,
+  and reaches the developer through the builder's own output.
+- Two preview servers on one port cannot both run; the second stops at the port check.
+- Running `check` before anything has been built is supported — the check builds what it needs.
+- An external address that times out counts as one that does not resolve, and the builder's own
+  timeout governs.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: CLI MUST provide a command named `fairdm-docs` accessible after package installation
-- **FR-002**: CLI MUST provide a `build` subcommand that builds Sphinx documentation
-- **FR-003**: `fairdm-docs build` MUST invoke the documentation build process with default arguments that work for standard FairDM projects
-- **FR-004**: CLI MUST use the package's existing `fairdm_docs.conf` as the base configuration for builds
-- **FR-005**: `fairdm-docs build` MUST accept a `--live` flag that starts a live-reloading preview server
-- **FR-006**: When `--live` flag is provided, CLI MUST use auto-rebuild functionality to detect file changes
-- **FR-007**: When `--live` flag is provided, CLI MUST open the documentation in the user's default web browser
-- **FR-008**: CLI MUST read configuration from `[tool.fairdm.docs]` section in `pyproject.toml` when present
-- **FR-009**: Configuration MUST support customizing the build output directory
-- **FR-010**: Configuration MUST support customizing the source directory location; if source directory is not at default `docs/` location, users MUST specify it in configuration
-- **FR-010a**: Configuration MUST support customizing the live server port number
-- **FR-010b**: Configuration MUST support customizing the build output verbosity level
-- **FR-011**: CLI MUST display full Sphinx error output by default, including all warnings and errors; verbosity level MUST be configurable via `[tool.fairdm.docs]`
-- **FR-012**: CLI MUST display build progress information to the user (e.g., "Building documentation...", "Build complete")
-- **FR-013**: CLI MUST exit with appropriate status codes (0 for success, non-zero for failures)
-- **FR-014**: When live server is running, CLI MUST handle shutdown gracefully on interrupt signals (Ctrl+C)
-- **FR-015**: CLI MUST validate configuration values from `pyproject.toml` and report errors for invalid settings
-- **FR-015a**: User configuration specified in `[tool.fairdm.docs]` MUST always take precedence over package defaults
-- **FR-016**: CLI MUST provide a `check` subcommand that validates documentation quality
-- **FR-017**: `fairdm-docs check` MUST run link validation to detect broken internal and external links
-- **FR-018**: Check command MUST report validation results with clear identification of issues found (file location, link URL, error type)
-- **FR-019**: Check command MUST exit with non-zero status code when validation issues are found
-- **FR-020**: Check command implementation MUST be extensible to support additional validators in the future beyond link checking
-- **FR-021**: CLI MUST require a `pyproject.toml` file to be present and error immediately with a clear message if not found
-- **FR-022**: When live server port is already in use, CLI MUST error with a clear message indicating the port conflict and instructing the user how to configure a custom port via `[tool.fairdm.docs]`
-- **FR-023**: CLI MUST default to `docs/` as the source directory; if not found, CLI MUST error with a clear message instructing the user to specify the source directory in `[tool.fairdm.docs]` configuration
+**The command itself**
+
+- **FR-001**: Installing the package MUST make a `fairdm-docs` command available.
+- **FR-002**: `fairdm-docs build` MUST render the portal's documentation source to HTML with no
+  argument beyond the command, using defaults that suit a portal that has configured nothing.
+- **FR-003**: The build MUST use the portal's own `docs/conf.py` when the documentation source
+  contains one, and the package's own configuration when it does not. The two are never combined.
+- **FR-004**: The build MUST make the directory the command was run from available to the
+  configuration it runs, so that configuration can still find the portal after the builder changes
+  directory.
+- **FR-005**: The command MUST tell the developer that a build has started and, on success, where
+  the site was written.
+- **FR-006**: The command MUST pass the builder's own output to the developer unaltered unless a
+  verbosity setting says otherwise.
+- **FR-007**: The command MUST create the output directory's parent when it does not exist.
+
+**Live preview**
+
+- **FR-008**: `fairdm-docs build --live` MUST start a preview server against the configured source
+  directory, output directory, port and configuration, which rebuilds the site when a source file
+  changes.
+- **FR-009**: `--live` MUST ask the preview server to open the site in the developer's browser.
+- **FR-010**: `--live` MUST establish that the configured port is free before starting anything,
+  and when it is not, MUST stop with a message naming the port and the setting that changes it.
+
+**Checking**
+
+- **FR-011**: `fairdm-docs check` MUST attempt to resolve every external address the documentation
+  links to, and MUST report each one that does not resolve together with the file it is written
+  in.
+- **FR-012**: `check` MUST exit non-zero when at least one address does not resolve, and 0
+  otherwise.
+- **FR-013**: An address that resolves by redirection MUST be reported as a redirect, separately
+  from addresses that failed, and MUST NOT by itself cause a non-zero exit.
+- **FR-014**: `check` MUST write its report alongside the HTML output rather than inside it.
+
+**Settings**
+
+- **FR-015**: Both commands MUST read the `[tool.fairdm.docs]` table from the portal's
+  `pyproject.toml`, and MUST apply their own default for every setting the table does not name.
+- **FR-016**: The table MUST accept these settings, with these defaults:
+
+  | Setting | Default | Effect |
+  |---|---|---|
+  | `source_dir` | `docs` | Where the documentation source is read from |
+  | `build_dir` | `docs/_build/html` | Where the rendered site is written |
+  | `port` | `5000` | The port the preview server listens on |
+  | `verbosity` | `full` | How much of the builder's output reaches the developer |
+  | `django` | `false` | Whether Django is set up before the build runs |
+
+- **FR-017**: `verbosity` MUST accept `full`, which passes the builder's output through; `quiet`,
+  which suppresses informational output; and `errors-only`, which suppresses everything the
+  builder does not report as an error.
+- **FR-018**: When `django` is true, the command MUST arrange for Django to be set up before the
+  build runs. Which settings module is loaded is not decided here.
+- **FR-019**: A value in the table MUST override the corresponding default.
+
+**Failing**
+
+- **FR-020**: Every way the portal's declaration can fail to be read MUST reach the developer as a
+  single message naming what is wrong and what to write instead, never as a traceback. This covers
+  at least: no `pyproject.toml` found, a `pyproject.toml` that is not valid TOML, a source
+  directory that does not exist, a port outside 1024–65535, and a verbosity that is not one of the
+  three accepted values.
+- **FR-021**: Both commands MUST exit 0 on success and non-zero on any failure.
+- **FR-022**: An interrupt MUST stop either command without a traceback and MUST exit 130, in
+  every mode including live preview.
 
 ### Key Entities
 
-- **CLI Command**: The entry point `fairdm-docs` that users invoke from the terminal
-- **Build Configuration**: Settings that control how documentation is built, sourced from package defaults and user overrides
-- **Build Process**: The operation that transforms source files into HTML documentation
-- **Live Server**: A local web server that serves documentation and auto-reloads on changes
-- **Validation Process**: The operation that checks documentation for quality issues (broken links, etc.)
+- **The command**: `fairdm-docs`, with the subcommands `build` and `check`.
+- **The settings**: the `[tool.fairdm.docs]` table, merged over the package's defaults.
+- **The builder**: Sphinx, invoked by the command and responsible for everything downstream of it.
+- **The preview server**: the upstream auto-rebuilding server the `--live` flag launches.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can build documentation with a single command (`fairdm-docs build`) in under 30 seconds for a typical small project (< 50 pages)
-- **SC-002**: Live preview server starts and displays documentation in browser within 5 seconds of running `fairdm-docs build --live`
-- **SC-003**: File changes are detected and rebuilt within 2 seconds of saving when using live preview
-- **SC-004**: 100% of required configuration is handled automatically through defaults - no mandatory user configuration needed
-- **SC-005**: Custom configuration options work correctly in 100% of test cases when specified in `pyproject.toml`
-- **SC-006**: Error messages clearly identify the problem in 100% of common failure scenarios (missing source, invalid config, build errors)
-- **SC-007**: Check command validates all links in documentation and reports results within 60 seconds for typical projects (< 100 pages)
-- **SC-008**: Check command correctly identifies 100% of broken links in test scenarios
-- **SC-009**: Validation errors include precise location information (file path and line number when available) in 100% of cases
+- **SC-001**: A project declaring a name and holding a documentation source with a root page
+  builds through `fairdm-docs build` to rendered HTML on disk, and the criterion is decided by
+  reading that HTML rather than by inspecting the arguments the builder was handed.
+- **SC-002**: Both branches of FR-003 are decided by a build whose output differs according to
+  which configuration was used.
+- **SC-003**: Each of the five settings in FR-016 is set on its own and changes the build in the
+  way the table describes.
+- **SC-004**: Each failure enumerated in FR-020 produces a message naming the problem, and no
+  output from any of them contains a traceback.
+- **SC-005**: An interrupt in each of the three modes — build, live preview, check — exits 130.
+- **SC-006**: A documentation source containing one address that does not resolve exits non-zero
+  and names that address; the same source with that address replaced by one that redirects exits
+  0 and reports the redirect.
+- **SC-007**: No requirement above is decided solely by asserting on arguments handed to a stand-in
+  for Sphinx, with the single exception of FR-008 and FR-009, whose behaviour belongs to the
+  upstream server.
 
 ## Assumptions
 
-- Users have Python and Poetry installed (or pip for non-Poetry users)
-- Users have basic familiarity with command-line tools
-- The package is installed in the user's Python environment
-- Documentation source files follow standard Sphinx conventions
-- Default build output directory will be `docs/_build/html` (standard Sphinx convention)
-- Default source directory will be `docs/` (standard location)
-- Live preview server will use default port 5000 (avoiding conflict with Django's default port 8000) unless configured otherwise
-- Configuration validation will check for common errors (invalid paths, wrong types) but won't exhaustively validate all possible Sphinx options
+- The package is installed in the environment the command runs in.
+- The documentation source follows Sphinx's conventions, because Sphinx builds it.
+- A portal being documented is a Python project, so it has a `pyproject.toml`.
+- The developer runs the command from the portal's root directory.
+- Whether a build succeeds once the builder has started is the builder's business and the business
+  of the roadmap items that configure it.
 
 ## Out of Scope
 
-- Support for other documentation formats (PDF, ePub) - users can still use Sphinx directly for these
-- Integration with external deployment services (ReadTheDocs, GitHub Pages) - this is a local build tool
-- GUI interface - CLI only
-- Configuration through environment variables or command-line flags beyond `--live` - configuration should be in `pyproject.toml`
-- Support for multiple simultaneous live servers
-- Custom Sphinx extension management through CLI - users should configure extensions in their project's `conf.py` or `pyproject.toml`
-- Advanced validation checks beyond link checking in initial version (spell checking, accessibility audits, etc.) - these may be added in future iterations
-- Custom validation rules or plugins - initial version provides built-in checks only
+- Output formats other than HTML. Sphinx builds them and a developer who needs one can call it.
+- Publishing anywhere, which is R7.
+- Making the zero-configuration Markdown path succeed, which is R3.
+- Where a portal's branding, static files and bibliography are found, which are R4 and R8.
+- Which Django settings module a build loads, which is R6.
+- A single definition of the settings table shared by everything that reads it, which is R10.
+- Validators beyond the resolution of external addresses.
+- Configuration through environment variables or command-line flags beyond `--live`.
+- More than one preview server at a time.
