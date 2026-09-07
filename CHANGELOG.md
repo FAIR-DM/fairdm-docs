@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The vendored Spec Kit tooling: `.specify/`, `.github/agents/`, `.github/prompts/` and
   `.github/instructions/`. The feature records it produced stay in `specs/`.
+- `BuildConfiguration.config_dir`, which nothing read.
 
 ### Fixed
 
@@ -43,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   package directory and silently excluded the entire codebase from type checking.
 - The documented lower bound for `port` was 1, while the code rejects anything below 1024.
 - The README named the model documentation directive `autodoc-models`. It is `autodoc-model`.
+- The port-conflict error message was written out by hand at the CLI's call site, drifting from
+  the equivalent message the configuration module defines. The CLI now calls the one definition.
 - **pyproject.toml Search** - Fixed `conf.py` to search for `pyproject.toml` in the user's project directory instead of the installed package location
   - Now searches upward from the documentation source directory (typically `docs/`)
   - Correctly handles installation via Poetry/pip where package is in site-packages
@@ -68,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configurable port with availability checking
   - Graceful shutdown handling (Ctrl+C)
 - **Link Validation** - Comprehensive link checking with:
-  - Broken link detection (internal and external)
+  - Broken link detection (external addresses; internal cross-references are not validated)
   - File and line number reporting
   - CI/CD friendly exit codes (0=success, 1=errors)
 - **Comprehensive Testing** - 52 automated tests covering:

@@ -5,6 +5,7 @@ Reads configuration from [tool.fairdm.docs] section in pyproject.toml,
 merges with sensible defaults, and validates all settings.
 """
 
+import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -28,7 +29,6 @@ class BuildConfiguration:
         build_dir: Build output directory
         port: Port for live preview server
         verbosity: Sphinx output verbosity level
-        config_dir: Directory containing conf.py (defaults to package location)
         django: Whether to import and setup Django (default: False)
     """
 
@@ -36,7 +36,6 @@ class BuildConfiguration:
     build_dir: Path = field(default_factory=lambda: Path("docs/_build/html"))
     port: int = 5000
     verbosity: str = "full"
-    config_dir: Path | None = None
     django: bool = False
 
 
@@ -61,6 +60,11 @@ ERROR_MESSAGES: dict[str, Any] = {
         f"   [tool.fairdm.docs]\n"
         f"   port = {port + 1}\n"
     ),
+    "invalid_toml": lambda path, exc: (
+        f"❌ Error: {path} is not valid TOML.\n"
+        f"   fairdm-docs could not parse this file: {exc}\n"
+        f"   Fix the syntax and try again."
+    ),
 }
 
 
@@ -72,7 +76,7 @@ def load_pyproject() -> dict[str, Any]:
         Parsed TOML data as dictionary
 
     Raises:
-        ConfigError: If pyproject.toml not found
+        ConfigError: If pyproject.toml not found or not valid TOML
     """
     pyproject_path = find_pyproject_toml()
 
@@ -83,6 +87,8 @@ def load_pyproject() -> dict[str, Any]:
         return load_pyproject_toml(pyproject_path)
     except FileNotFoundError:
         raise ConfigError(ERROR_MESSAGES["no_pyproject"]) from None
+    except tomllib.TOMLDecodeError as exc:
+        raise ConfigError(ERROR_MESSAGES["invalid_toml"](pyproject_path, exc)) from None
 
 
 def load_config() -> BuildConfiguration:
