@@ -1,0 +1,37 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'fairdm_docs/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '.github/workflows/tests.yml'
+  # No paths filter on pull_request: these checks are ruleset-required, and a
+  # path-filtered required check never reports on out-of-scope PRs, blocking merge.
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  call-tests:
+    uses: django-mvp/shared/.github/workflows/tests.yml@v0.4.0
+    permissions:
+      contents: read
+    with:
+      coverage-package: fairdm_docs
+      # One Django version, not the family's two. Django is a peer this package
+      # touches through a narrow, long-stable surface — django.setup() and
+      # apps.get_model — so a second version buys no coverage. The axis that
+      # does matter here is Python, which the default matrix covers.
+      django-versions: '["5.2"]'
+      # Test tooling lives in the single (non-optional) dev group via the
+      # mvp-shared[dev,test] bundle, so the default `--with test` would fail.
+      # The theme extra installs the default html_theme, without which a real
+      # Sphinx build in the suite falls back and stops exercising the shipped
+      # configuration.
+      poetry-install-args: '--extras sphinx-book-theme'
+    secrets: inherit
