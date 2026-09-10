@@ -24,7 +24,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from fairdm_docs.cli import app
 from fairdm_docs.metadata import ProjectMetadata
 
-runner = CliRunner()
+# Colour codes land inside option names in rich-formatted help ("--live" becomes
+# "-\x1b[0m\x1b[1;36m-live"), so a substring assertion fails wherever the
+# environment asks for colour, as CI does. Ask for plain output instead.
+runner = CliRunner(env={"FORCE_COLOR": None, "NO_COLOR": "1", "TERM": "dumb"})
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
