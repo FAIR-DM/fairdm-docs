@@ -90,9 +90,9 @@ theme = "sphinx_book_theme"  # or omit this line entirely
 
 Auto-configured options:
 - `repository_url` from `[project.urls]`
-- `use_repository_button = true`
-- `use_issues_button = true`
-- `use_edit_page_button = true`
+- `use_repository_button`, `use_issues_button` and `use_edit_page_button` are `true` when a
+  repository address is declared, and `false` when it is not — a portal with no address gets
+  none of this furniture, rather than buttons with nowhere to point
 - Utterances comments enabled (if public GitHub repo)
 
 ### pydata_sphinx_theme
