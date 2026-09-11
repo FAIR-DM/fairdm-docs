@@ -130,9 +130,7 @@ name = "sample-portal"
         # warning about a setting the developer has no way to fill in.
         assert "autodoc2" not in output
 
-    def test_no_repository_address_renders_no_repository_furniture(
-        self, built_portal
-    ):
+    def test_no_repository_address_renders_no_repository_furniture(self, built_portal):
         html, output = built_portal(
             """
 [project]
@@ -154,9 +152,7 @@ name = "sample-portal"
                     "version": "1.0.0",
                     "description": "",
                     "authors": ["Jane Doe"],
-                    "urls": {
-                        "Repository": "https://github.com/example/sample-portal"
-                    },
+                    "urls": {"Repository": "https://github.com/example/sample-portal"},
                 }
             }
         )
