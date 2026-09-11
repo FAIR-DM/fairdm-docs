@@ -125,6 +125,43 @@ name = "sample-portal"
         assert "version" in output
         assert "authors" in output
         assert "description" in output
+        # The API-documentation extension has nothing to document until R4
+        # wires package discovery, so it stays out of the build rather than
+        # warning about a setting the developer has no way to fill in.
+        assert "autodoc2" not in output
+
+    def test_no_repository_address_renders_no_repository_furniture(
+        self, built_portal
+    ):
+        html, output = built_portal(
+            """
+[project]
+name = "sample-portal"
+"""
+        )
+
+        assert "repository" not in html.lower()
+        assert "issue" not in html.lower()
+        assert "Extension error" not in output
+
+    def test_a_declared_repository_address_renders_repository_furniture(
+        self, built_portal
+    ):
+        html, _ = built_portal(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "version": "1.0.0",
+                    "description": "",
+                    "authors": ["Jane Doe"],
+                    "urls": {
+                        "Repository": "https://github.com/example/sample-portal"
+                    },
+                }
+            }
+        )
+
+        assert "repository" in html.lower()
 
 
 def start_building(docs_dir, outdir):

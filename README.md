@@ -253,7 +253,6 @@ The package automatically extracts the following from your `pyproject.toml`:
 The following Sphinx extensions are enabled by default:
 
 - **sphinx.ext.autodoc** - API documentation from docstrings
-- **autodoc2** - Modern API documentation with MyST rendering
 - **myst-parser** - Markdown support with rich features
 - **sphinx-copybutton** - Copy buttons on code blocks
 - **sphinx-design** - UI components (cards, tabs, grids)
@@ -566,7 +565,6 @@ source_dir = "documentation"
 | `language` | "en" |
 | `html_theme` | "sphinx_book_theme" |
 | `master_doc` | "index" |
-| `autodoc2_render_plugin` | "myst" |
 
 ## Migration from [tool.poetry]
 

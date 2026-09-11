@@ -130,7 +130,6 @@ All these extensions come pre-configured:
 - `myst_parser` - Markdown support
 - `sphinx_design` - Cards, tabs, grids
 - `sphinx_copybutton` - Copy code blocks
-- `autodoc2` - API documentation from your source
 - `sphinxext.opengraph` - Social media cards
 - `sphinx_comments` - Utterances comments
 - `sphinx.ext.napoleon` - Google and NumPy docstring styles
