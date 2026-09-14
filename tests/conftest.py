@@ -124,15 +124,6 @@ def built_portal(portal):
             buildername="html",
             status=status,
             warning=warning,
-            # sphinx_book_theme's source buttons crash on a build with no
-            # repository address (tracked separately, docs/ROADMAP.md R3).
-            # This story does not read addresses, so every build hits it;
-            # the override keeps this test about identity, not that defect.
-            confoverrides={
-                "html_theme_options.use_repository_button": False,
-                "html_theme_options.use_issues_button": False,
-                "html_theme_options.use_edit_page_button": False,
-            },
         )
         app.build()
 

@@ -49,17 +49,9 @@ Everything needed to reach a minimum usable release.
 
 ### R3 — A build with nothing configured completes
 
-*resolve · advances G1*
+*delivered in [#28](https://github.com/FAIR-DM/fairdm-docs/issues/28) · advances G1*
 
-The path the README puts first — a project name, a page of Markdown, one command — does not currently produce a site. It stops with an error from the theme, because a portal that has declared no repository address is still given repository, issue and edit buttons to render. Every build also warns about an API-documentation setting that is switched on and left empty, and one of the exclusion rules is written in a syntax the builder does not read, so it excludes nothing. Nothing further on this roadmap is worth building on top of an advertised path that fails, so this comes first.
-
-**Deliverables:**
-
-- The documented minimum, a project name plus one page, builds to a rendered site and exits successfully.
-- Optional page furniture appears only when the portal has supplied what it needs, and is absent otherwise.
-- A build against a correct portal emits no warnings the developer cannot act on.
-- Settings that do nothing in their current form are either made to work or removed.
-- A test that builds a minimum project end to end, so this failure cannot return unnoticed.
+The path the README puts first — a project name, a page of Markdown, one command — now produces a rendered site and exits successfully. Repository, issue and edit buttons render only for a portal that has declared a repository address. The API-documentation setting no longer loads with nothing to document, the exclusion rule written in a syntax the builder never read is gone, and Markdown is declared as a source format rather than working by accident. A test builds a minimum project from end to end, so the failure cannot come back unnoticed.
 
 Serves G1. Out of scope: where the build looks for the portal's files, which is R4.
 
