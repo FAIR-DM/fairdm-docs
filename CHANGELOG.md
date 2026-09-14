@@ -40,6 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A build with nothing configured now completes.** `sphinx_book_theme`'s repository, issue and
+  edit buttons crashed the build when a project declared no repository address; they are now
+  shown only when one is declared. The `autodoc2` extension, which has nothing to document until
+  a future release reads the portal's own package list, no longer loads by default, so it no
+  longer warns about an empty setting the developer had no way to fill in. A source-exclusion
+  rule that had no effect, because it was written in a syntax the builder does not read, is
+  removed. Markdown source files are now declared explicitly alongside reStructuredText.
 - `mypy` was configured with an unanchored `docs/` exclusion, which also matched the `fairdm_docs/`
   package directory and silently excluded the entire codebase from type checking.
 - The documented lower bound for `port` was 1, while the code rejects anything below 1024.

@@ -554,6 +554,28 @@ class TestBuild:
         assert exit_code == 0
         assert os.environ["FAIRDM_DOCS_PROJECT_DIR"] == str(portal_dir.resolve())
 
+    def test_the_documented_minimum_builds_and_exits_zero(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """A project name plus one Markdown page — the README's Quick Start
+        minimum — renders a site and exits zero, with no warning the
+        developer has no way to act on (docs/ROADMAP.md R3)."""
+        portal_dir = documented_portal(
+            "markdown-minimum", "0.1.0", _populate_from_fixture("markdown_single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        assert (
+            "One Markdown page, no links, nothing else in this documentation source."
+            in html
+        )
+        output = stdout + stderr
+        assert "autodoc2" not in output
+        assert "Extension error" not in output
+
 
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
