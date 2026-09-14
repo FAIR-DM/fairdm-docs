@@ -40,6 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A `build` or `check` command no longer changes the environment of whatever ran it.** Both
+  commands pass two settings to `conf.py` as environment variables, and both used to leave them
+  behind. In a process that runs more than one command — a test suite, or a tool that calls the
+  commands directly rather than as a subprocess — the project directory left behind by the first
+  build decided where every later build looked for its `pyproject.toml`. The settings now last
+  exactly as long as the build they belong to, and a value the caller had set is put back
+  afterwards.
 - **A build with nothing configured now completes.** `sphinx_book_theme`'s repository, issue and
   edit buttons crashed the build when a project declared no repository address; they are now
   shown only when one is declared. The `autodoc2` extension, which has nothing to document until

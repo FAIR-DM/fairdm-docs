@@ -377,3 +377,28 @@ rather than fixed in place.
 
 **ADR:** none — implementation note (test-infrastructure defect and workaround), not a
 specification decision.
+
+---
+
+**Decision:** T010 and T025 read `FAIRDM_DOCS_PROJECT_DIR` and `FAIRDM_DOCS_DJANGO` from inside the
+build rather than from `os.environ` after the command has returned. Their subjects, and everything
+else they assert, are unchanged.
+
+**Why:** issue #14 reported that `build` and `check` set both variables on `os.environ` and never
+cleared them, so the last command's project directory went on answering for every build that
+followed in the same process. The repair gives each setting the lifetime of the build it belongs to,
+which leaves nothing in `os.environ` to read once the command has returned. Both tests were written
+against that residue, so both would have failed against a corrected program while proving nothing
+about a broken one. Reading the value at the moment Sphinx runs is also closer to what each
+docstring already claims — T010 says "during a real build", T025 says "the real env var the build
+sets" — and the build stays real: `SphinxRecorder` records the environment and then calls the
+genuine `sphinx.cmd.build.main`. Both are still red-capable, confirmed by mutation: with the
+settings never applied, T010, T025 and the two mocked Django tests all fail for the right reason.
+The same move was applied to `tests/test_conf.py`, where a `monkeypatch.delenv` guard existed only
+to defend one test against the leak and is now unnecessary.
+
+**Revisit if:** the settings stop travelling through the environment. A change that hands them to
+`conf.py` some other way would move the observation point again.
+
+**ADR:** none — where a test reads a value, not a specification decision. FR-004 and the defaults
+T025 lists are untouched.
