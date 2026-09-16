@@ -61,7 +61,7 @@ requires-poetry = '>=2.0,<3.0'
 # Family toolchain bundle; the pin tag is the family-standard version. The
 # marker carries the bundle's own upper bound, which the package deliberately
 # does not adopt — dev tooling never ships to consumers.
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.4.0", python = ">=3.12,<4", extras = [
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.4.1", python = ">=3.12,<4", extras = [
     "dev",
     "test",
 ] }
