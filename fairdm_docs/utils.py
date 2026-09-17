@@ -37,7 +37,7 @@ def find_pyproject_toml(
         PosixPath('/home/user/project/pyproject.toml')
 
         >>> # Find from specific directory
-        >>> find_pyproject_toml(Path('/home/user/project/docs'))
+        >>> find_pyproject_toml(Path("/home/user/project/docs"))
         PosixPath('/home/user/project/pyproject.toml')
     """
     # Use project dir from environment variable if requested (set by CLI for Sphinx)
@@ -79,11 +79,11 @@ def load_pyproject_toml(
     Examples:
         >>> # Load from found location
         >>> data = load_pyproject_toml()
-        >>> data['project']['name']
+        >>> data["project"]["name"]
         'fairdm-docs'
 
         >>> # Load from specific path
-        >>> data = load_pyproject_toml(Path('/path/to/pyproject.toml'))
+        >>> data = load_pyproject_toml(Path("/path/to/pyproject.toml"))
     """
     if pyproject_path is None:
         pyproject_path = find_pyproject_toml(start_dir)
