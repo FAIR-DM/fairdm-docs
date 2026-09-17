@@ -101,67 +101,16 @@ branch = true
 source = ["fairdm_docs"]
 
 [tool.ruff]
-target-version = "py312"
-fix = true
-exclude = ['docs/', 'specs/']
-
-[tool.ruff.lint]
-# Family-standard rule set (mirrors django-literature / django-easy-icons).
-select = [
-    # flake8-2020
-    "YTT",
-    # flake8-bandit
-    "S",
-    # flake8-bugbear
-    "B",
-    # flake8-builtins
-    "A",
-    # flake8-comprehensions
-    "C4",
-    # flake8-debugger
-    "T10",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
-    # mccabe
-    "C90",
-    # pycodestyle
-    "E", "W",
-    # pyflakes
-    "F",
-    # pygrep-hooks
-    "PGH",
-    # pyupgrade
-    "UP",
-    # ruff
-    "RUF",
-    # tryceratops
-    "TRY",
-]
-ignore = [
-    # LineTooLong
-    "E501",
-    # DoNotAssignLambda
-    "E731",
-    # Mutable class attributes
-    "RUF012",
-    # Avoid long messages outside the exception class
-    "TRY003",
-    # Function too complex
-    "C901",
-]
+extend = "ruff-base.toml"
 
 [tool.ruff.lint.per-file-ignores]
-# Tests: asserts, hardcoded test passwords, blind-exception asserts, builtin
-# shadowing, unused variables, nested-with and raise-in-try — style rules that
-# don't pay for themselves in tests.
-"tests/*" = ["S101", "S105", "S106", "B017", "A001", "RUF059", "F841", "SIM117", "TRY301"]
-# conf.py is a Sphinx configuration module: Sphinx reads it by executing it and
-# collecting module-level names, so the star-import surface and the mutation of
-# sys.path are the interface, not an oversight. `copyright` is one of those
-# names — Sphinx looks for exactly that spelling, builtin or not.
-"fairdm_docs/conf.py" = ["E402", "F403", "F405", "A001"]
+# Tests: asserts, unused unpacked variables, unused locals and nested `with`
+# statements — style rules that don't pay for themselves in tests.
+"tests/*" = ["S101", "RUF059", "F841", "SIM117"]
+# conf.py is a Sphinx configuration module. Sphinx reads it by executing it and
+# collecting module-level names; `copyright` is one of those names, and Sphinx
+# looks for exactly that spelling, builtin or not.
+"fairdm_docs/conf.py" = ["A001"]
 
 [tool.mypy]
 files = ["fairdm_docs"]
