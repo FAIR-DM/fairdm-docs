@@ -52,18 +52,21 @@ def is_port_available(port: int) -> bool:
 def _build_settings(config: BuildConfiguration) -> Iterator[None]:
     """Expose the settings conf.py reads, for the duration of the build.
 
-    conf.py cannot be passed arguments — Sphinx imports it — so the two settings it
+    conf.py cannot be passed arguments — Sphinx imports it — so the settings it
     needs travel as environment variables. The project directory is the one the
-    command was run from, which conf.py cannot work out for itself once Sphinx has
-    changed directory to the location of conf.py.
+    command was run from, and the source directory is where its documentation
+    lives; conf.py cannot work either out for itself once Sphinx has changed
+    directory to the location of conf.py, which happens whenever the project
+    supplies no conf.py of its own and the build falls back to the package's.
 
-    Both values are restored when the build finishes. A command that left them behind
+    All values are restored when the build finishes. A command that left them behind
     would go on deciding the project directory for every later build in the same
     process, from a directory those builds have nothing to do with.
     """
     settings = {
         "FAIRDM_DOCS_DJANGO": "true" if config.django else "false",
         "FAIRDM_DOCS_PROJECT_DIR": str(Path.cwd().resolve()),
+        "FAIRDM_DOCS_SOURCE_DIR": str((Path.cwd() / config.source_dir).resolve()),
     }
     previous = {name: os.environ.get(name) for name in settings}
     os.environ.update(settings)

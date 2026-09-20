@@ -32,7 +32,22 @@ if os.environ.get("FAIRDM_DOCS_DJANGO", "false").lower() == "true":
         )
 
 
-def _resolve_branding_assets() -> dict[str, str]:
+def _resolve_docs_source_dir() -> Path:
+    """
+    The documentation source directory, correct even when Sphinx has changed
+    the working directory to the package's own location to evaluate this
+    file as the project's fallback conf.py.
+
+    The CLI sets FAIRDM_DOCS_SOURCE_DIR before invoking Sphinx, the same way
+    it sets FAIRDM_DOCS_PROJECT_DIR (D21). When it is absent — a test or a
+    Sphinx build driven directly rather than through the CLI — the working
+    directory is already the source directory, since nothing has moved it.
+    """
+    source_dir = os.environ.get("FAIRDM_DOCS_SOURCE_DIR")
+    return Path(source_dir) if source_dir else Path.cwd()
+
+
+def _resolve_branding_assets(docs_source_dir: Path) -> dict[str, str]:
     """
     Resolve branding asset paths with fallback chain.
 
@@ -45,8 +60,8 @@ def _resolve_branding_assets() -> dict[str, str]:
     current_file_path = Path(__file__).parent.absolute()
     fairdm_docs_static = current_file_path / "_static"
 
-    # Project branding location (within docs directory)
-    project_brand = Path("_static/brand/")
+    # Project branding location (within the docs source directory)
+    project_brand = docs_source_dir / "_static" / "brand"
 
     # Check for project logo
     project_logo = project_brand / "logo.svg"
@@ -171,17 +186,21 @@ def _read_declaration() -> tuple[ProjectMetadata, dict[str, Any]]:
     """
     Read the portal's declaration once, for both the identity and the options.
 
-    Search from cwd first; only consult FAIRDM_DOCS_PROJECT_DIR (set by the CLI)
-    when that fails, e.g. because Sphinx changed cwd to the conf.py location (D21).
+    Prefer FAIRDM_DOCS_PROJECT_DIR (set by the CLI) when it is present: it names
+    the project directory exactly, whereas a plain upward search from cwd can
+    silently find the wrong pyproject.toml once Sphinx has changed cwd to the
+    conf.py location (D21) — e.g. the installed package's own, in an editable
+    install. Fall back to searching from cwd only when the CLI did not set it,
+    e.g. a Sphinx build driven directly rather than through the CLI.
     Both return values come from the same file, so the optional configuration
     cannot be read from one pyproject.toml while the identity comes from another.
 
     Returns:
         The portal's declared identity, and its [tool.fairdm.docs] configuration
     """
-    path = find_pyproject_toml(start_dir=None)
+    path = find_pyproject_toml(use_env_var=True)
     if path is None:
-        path = find_pyproject_toml(use_env_var=True)
+        path = find_pyproject_toml(start_dir=None)
 
     try:
         metadata = ProjectMetadata.from_file(path.parent if path is not None else None)
@@ -206,14 +225,29 @@ language = "en"
 
 # General configuration -------------------------------------
 
+# The documentation source directory, correct even when Sphinx has changed
+# cwd to evaluate this file as the project's fallback conf.py.
+_docs_source_dir = _resolve_docs_source_dir()
+
 # Resolve branding assets
-branding = _resolve_branding_assets()
+branding = _resolve_branding_assets(_docs_source_dir)
 
 # Apply theme from [tool.fairdm.docs] if specified, otherwise use default
 # Note: User can still override html_theme after importing this conf.py
 html_theme = fairdm_config.get("theme") or "sphinx_book_theme"
 
+# "_static" is this file's own directory's static files: the package's
+# defaults when this is the fallback conf.py, or the project's own when the
+# project owns conf.py, since cwd is then already the source directory.
+# When this is the fallback conf.py, the project's own docs/_static/ is a
+# different, real directory that must be added explicitly, or its
+# stylesheets and images never reach the build.
 html_static_path = ["_static"]
+if _docs_source_dir.resolve() != Path.cwd().resolve():
+    _project_static_dir = _docs_source_dir / "_static"
+    if _project_static_dir.exists():
+        html_static_path.append(str(_project_static_dir))
+
 html_logo = branding["logo_path"]
 html_favicon = branding["favicon_path"]
 html_short_title = ""
