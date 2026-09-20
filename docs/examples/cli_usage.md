@@ -15,7 +15,8 @@ fairdm-docs build
 
 **Requirements:**
 - `pyproject.toml` in project root (can be empty)
-- `docs/` directory with at least `index.md`
+- `docs/` directory with at least one page (a front page is generated automatically if the
+  directory has no `index.md` or `index.rst` of its own)
 
 **Output:** `docs/_build/html/`
 

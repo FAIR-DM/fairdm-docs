@@ -72,16 +72,9 @@ Serves G1, G4 and G5. Out of scope: bibliography and other inputs beyond brandin
 
 ### R5 — The site has a front page and a structure without one being written by hand
 
-*feature · advances G1*
+*delivered in [#30](https://github.com/FAIR-DM/fairdm-docs/issues/30) · advances G1*
 
-A documentation source holding only the pages a developer wrote does not build: the builder asks for a root page by a filename in a markup language this package does not otherwise use. So the promise of a complete site with nothing configured stops one step short: the developer must still hand-write a landing page and a table of contents before anything renders. The portal has already said what it is called and what it is for, and the build already knows which pages exist, so the front page and the navigation are facts it can assemble rather than chores to hand back. This also gives the generated model pages somewhere to be reached from, which is why it comes before R6.
-
-**Deliverables:**
-
-- A build succeeds against a documentation source containing only the developer's own pages, with no root page or contents listing written by hand.
-- The generated front page carries the portal's name and description and links every page in the source.
-- A developer who writes their own root page keeps it, and nothing is generated over the top.
-- Tests covering both cases: a source with a root page, and one without.
+A documentation source holding only the pages a developer wrote used not to build: the builder asked for a root page by a filename in a markup language this package does not otherwise use, so the promise of a complete site with nothing configured stopped one step short. A front page carrying the portal's name and description, and a contents listing of every other page in the source, is now generated for the duration of the build whenever the source has none of its own. A developer who writes their own root page keeps it untouched. This also gives the generated model pages somewhere to be reached from, which is why it comes before R6.
 
 Serves G1. Out of scope: what a portal's pages say, which stays the portal's business.
 

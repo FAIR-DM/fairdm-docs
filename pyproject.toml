@@ -162,3 +162,9 @@ DEP001 = ["fairdm"]
 # counterpart to mirror, the same reasoning that exempts tests/factories.py
 # and its own test module by default.
 non-mirror-paths = ["tests/test_conftest.py"]
+
+[tool.forge.docs]
+# fairdm_docs/frontpage.py is CLI-internal plumbing that build() and check()
+# call directly; no portal ever imports it, so its own names are not part of
+# the surface README.md and docs/ describe.
+exempt-paths = ["fairdm_docs/frontpage.py"]

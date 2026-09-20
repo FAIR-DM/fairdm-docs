@@ -22,6 +22,8 @@ from fairdm_docs.config import (
     ConfigError,
     load_config,
 )
+from fairdm_docs.frontpage import GeneratedFrontPage
+from fairdm_docs.metadata import ProjectMetadata
 
 app = typer.Typer(
     name="fairdm-docs",
@@ -114,6 +116,7 @@ def build(
     try:
         # Load and validate configuration
         config = load_config()
+        metadata = ProjectMetadata.from_file()
 
         # Determine which conf.py to use:
         # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
@@ -123,100 +126,105 @@ def build(
             config.source_dir if local_conf_py.exists() else Path(__file__).parent
         )
 
-        if live:
-            if not is_port_available(config.port):
-                typer.echo(
-                    ERROR_MESSAGES["port_conflict"](config.port),
-                    err=True,
-                )
-                raise typer.Exit(code=1)
-
-            typer.echo(
-                f"🔄 Starting live preview server on http://localhost:{config.port}"
-            )
-            typer.echo("   Press Ctrl+C to stop the server\n")
-
-            # Prepare sphinx-autobuild command
-            sphinx_autobuild_args = [
-                sys.executable,
-                "-m",
-                "sphinx_autobuild",
-                "--port",
-                str(config.port),
-                "--open-browser",
-                "-c",
-                str(conf_dir),
-                str(config.source_dir),
-                str(config.build_dir),
-            ]
-
-            # Add verbosity flags
-            verbosity_flags = get_verbosity_flags(config.verbosity)
-            if verbosity_flags:
-                sphinx_autobuild_args.extend(verbosity_flags)
-
-            try:
-                # Don't capture output so user can see what's happening
-                with _build_settings(config):
-                    process = subprocess.run(sphinx_autobuild_args, check=False)  # noqa: S603 - argv is built from sys.executable and validated build settings
-
-                # If process exited with error, show helpful message
-                if process.returncode != 0:
+        # A source with no root document of its own gets one generated for
+        # the duration of this build, so a portal with only its own pages
+        # still builds (docs/ROADMAP.md R5).
+        with GeneratedFrontPage(config.source_dir, metadata):
+            if live:
+                if not is_port_available(config.port):
                     typer.echo(
-                        f"\n❌ Live server exited with code {process.returncode}\n"
-                        f"   Check the output above for error details.",
+                        ERROR_MESSAGES["port_conflict"](config.port),
                         err=True,
                     )
+                    raise typer.Exit(code=1)
 
-                raise typer.Exit(code=process.returncode)
-            except KeyboardInterrupt:
-                typer.echo("\n⚠️  Server stopped by user")
-                raise typer.Exit(code=130) from None
-            except FileNotFoundError:
                 typer.echo(
-                    "❌ Error: sphinx-autobuild not found.\n   Install with: pip install sphinx-autobuild",
+                    f"🔄 Starting live preview server on http://localhost:{config.port}"
+                )
+                typer.echo("   Press Ctrl+C to stop the server\n")
+
+                # Prepare sphinx-autobuild command
+                sphinx_autobuild_args = [
+                    sys.executable,
+                    "-m",
+                    "sphinx_autobuild",
+                    "--port",
+                    str(config.port),
+                    "--open-browser",
+                    "-c",
+                    str(conf_dir),
+                    str(config.source_dir),
+                    str(config.build_dir),
+                ]
+
+                # Add verbosity flags
+                verbosity_flags = get_verbosity_flags(config.verbosity)
+                if verbosity_flags:
+                    sphinx_autobuild_args.extend(verbosity_flags)
+
+                try:
+                    # Don't capture output so user can see what's happening
+                    with _build_settings(config):
+                        process = subprocess.run(sphinx_autobuild_args, check=False)  # noqa: S603 - argv is built from sys.executable and validated build settings
+
+                    # If process exited with error, show helpful message
+                    if process.returncode != 0:
+                        typer.echo(
+                            f"\n❌ Live server exited with code {process.returncode}\n"
+                            f"   Check the output above for error details.",
+                            err=True,
+                        )
+
+                    raise typer.Exit(code=process.returncode)
+                except KeyboardInterrupt:
+                    typer.echo("\n⚠️  Server stopped by user")
+                    raise typer.Exit(code=130) from None
+                except FileNotFoundError:
+                    typer.echo(
+                        "❌ Error: sphinx-autobuild not found.\n   Install with: pip install sphinx-autobuild",
+                        err=True,
+                    )
+                    raise typer.Exit(code=1) from None
+
+            # Build with Sphinx
+            typer.echo("📚 Building documentation...")
+
+            # Import sphinx.cmd.build here to avoid import errors if not installed
+            try:
+                from sphinx.cmd.build import main as sphinx_build
+            except ImportError:
+                typer.echo(
+                    "❌ Error: Sphinx not found. Install with: pip install sphinx",
                     err=True,
                 )
                 raise typer.Exit(code=1) from None
 
-        # Build with Sphinx
-        typer.echo("📚 Building documentation...")
+            # Prepare Sphinx arguments
+            verbosity_flags = get_verbosity_flags(config.verbosity)
 
-        # Import sphinx.cmd.build here to avoid import errors if not installed
-        try:
-            from sphinx.cmd.build import main as sphinx_build
-        except ImportError:
-            typer.echo(
-                "❌ Error: Sphinx not found. Install with: pip install sphinx", err=True
-            )
-            raise typer.Exit(code=1) from None
+            # Create build directory if it doesn't exist
+            config.build_dir.parent.mkdir(parents=True, exist_ok=True)
 
-        # Prepare Sphinx arguments
-        verbosity_flags = get_verbosity_flags(config.verbosity)
+            sphinx_args = [
+                "-b",
+                "html",  # HTML builder
+                "-c",
+                str(conf_dir),
+                *verbosity_flags,  # Verbosity flags
+                str(config.source_dir),  # Source directory
+                str(config.build_dir),  # Output directory
+            ]
 
-        # Create build directory if it doesn't exist
-        config.build_dir.parent.mkdir(parents=True, exist_ok=True)
+            # Run Sphinx build
+            with _build_settings(config):
+                exit_code = sphinx_build(sphinx_args)
 
-        sphinx_args = [
-            "-b",
-            "html",  # HTML builder
-            "-c",
-            str(conf_dir),
-            *verbosity_flags,  # Verbosity flags
-            str(config.source_dir),  # Source directory
-            str(config.build_dir),  # Output directory
-        ]
+            if exit_code == 0:
+                typer.echo(f"✅ Build complete! Output: {config.build_dir}")
+            else:
+                typer.echo("❌ Build failed. See errors above.", err=True)
 
-        # Run Sphinx build
-        with _build_settings(config):
-            exit_code = sphinx_build(sphinx_args)
-
-        if exit_code == 0:
-            typer.echo(f"✅ Build complete! Output: {config.build_dir}")
-        else:
-            typer.echo("❌ Build failed. See errors above.", err=True)
-
-        raise typer.Exit(code=exit_code)
+            raise typer.Exit(code=exit_code)
 
     except ConfigError as e:
         typer.echo(str(e), err=True)
@@ -238,6 +246,7 @@ def check() -> None:
     """
     try:
         config = load_config()
+        metadata = ProjectMetadata.from_file()
 
         # Determine which conf.py to use:
         # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
@@ -274,8 +283,9 @@ def check() -> None:
             str(linkcheck_dir),  # Output directory for linkcheck
         ]
 
-        # Run Sphinx linkcheck
-        with _build_settings(config):
+        # A source with no root document of its own gets one generated for
+        # the duration of this check (docs/ROADMAP.md R5).
+        with GeneratedFrontPage(config.source_dir, metadata), _build_settings(config):
             exit_code = sphinx_build(sphinx_args)
 
         output_file = linkcheck_dir / "output.txt"

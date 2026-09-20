@@ -659,6 +659,76 @@ class TestBuild:
         assert "Extension error" not in output
 
 
+class TestGeneratedFrontPage:
+    """Real, end-to-end `fairdm-docs build` runs against a documentation
+    source with no root page of its own (docs/ROADMAP.md R5)."""
+
+    def test_builds_a_source_with_no_root_page_of_its_own(
+        self, documented_portal, run_fairdm_docs
+    ):
+        portal_dir = documented_portal(
+            "no-root-page", "0.1.0", _populate_from_fixture("no_root_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+
+    def test_generated_front_page_carries_the_name_and_links_every_page(
+        self, documented_portal, run_fairdm_docs
+    ):
+        portal_dir = documented_portal(
+            "front-page-portal",
+            "0.1.0",
+            _populate_from_fixture("no_root_page"),
+        )
+        (portal_dir / "pyproject.toml").write_text(
+            '[project]\nname = "front-page-portal"\nversion = "0.1.0"\n'
+            'description = "A portal with no front page of its own."\n'
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        assert "front-page-portal" in html
+        assert "A portal with no front page of its own." in html
+        assert 'href="guide.html"' in html
+
+    def test_the_generated_front_page_does_not_survive_the_build(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """The developer's own docs/ directory carries no generated index
+        once the command returns — only the rendered output does."""
+        portal_dir = documented_portal(
+            "no-leftover-index", "0.1.0", _populate_from_fixture("no_root_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        assert not (portal_dir / "docs" / "index.md").exists()
+
+    def test_a_hand_written_root_page_is_never_overwritten(
+        self, documented_portal, run_fairdm_docs
+    ):
+        portal_dir = documented_portal(
+            "hand-written-front-page",
+            "0.1.0",
+            _populate_from_fixture("single_page"),
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        assert "One page, no links, nothing else in this documentation source." in html
+        # The fixture's own index.rst is untouched on disk after the build.
+        assert (portal_dir / "docs" / "index.rst").read_text() == (
+            FIXTURES_DIR / "single_page" / "index.rst"
+        ).read_text()
+
+
 class TestConfigurationValidationErrors:
     """Test configuration validation error messages."""
 
@@ -946,6 +1016,20 @@ class TestCheck:
         assert exit_code == 0
         output = stdout + stderr
         assert "All links are valid" in output or "Link check complete" in output
+
+    def test_runs_against_a_source_with_no_root_page_of_its_own(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """A source with no root page still gets a front page generated for
+        the check, exactly as `build` does (docs/ROADMAP.md R5)."""
+        portal_dir = documented_portal(
+            "check-no-root-page", "0.1.0", _populate_from_fixture("no_root_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
+
+        assert exit_code == 0
+        assert not (portal_dir / "docs" / "index.md").exists()
 
     def test_names_the_address_and_file_of_a_broken_link(
         self, documented_portal, run_fairdm_docs
