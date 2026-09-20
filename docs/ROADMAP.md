@@ -57,16 +57,9 @@ Serves G1. Out of scope: where the build looks for the portal's files, which is 
 
 ### R4 — Documentation inputs are read from the portal, not from the installed package
 
-*feature · advances G1, G4, G5*
+*delivered in [#29](https://github.com/FAIR-DM/fairdm-docs/issues/29) · advances G1, G4, G5*
 
-When a portal supplies no settings module of its own, the build reads its inputs relative to the installed package rather than to the portal. Three consequences follow, and they are the same fault three times. A portal's logo and icon are ignored and the framework's own are used in their place. A portal's stylesheets and images are not copied into the site. And the metadata behind the site's identity can be read from an entirely different project, so a portal's documentation is published carrying another project's name, version and comment thread. Each of those disappears the moment the developer writes a settings module of their own, which inverts the intended order: the simplest path is the one that misbehaves.
-
-**Deliverables:**
-
-- Brand assets, stylesheets and images are found in the portal's documentation source on the zero-configuration path, and the framework's defaults apply only when the portal has none.
-- The portal being documented is identified unambiguously, and a build cannot pick up an unrelated project's metadata.
-- The behaviour is identical whether or not the portal supplies a settings module of its own.
-- Tests that build a portal from a location where the wrong answer was previously returned, and assert the portal's own inputs are used.
+A portal that supplies no settings module of its own now gets its own inputs regardless: its logo and icon, its stylesheets and images, and the metadata behind the site's identity all come from the portal rather than from the installed package, exactly as they do when the portal supplies a settings module. A test builds a portal from the location where each of the three was previously read from the wrong place, so the fault cannot come back unnoticed.
 
 Serves G1, G4 and G5. Out of scope: bibliography and other inputs beyond branding and static files, which are R8.
 
