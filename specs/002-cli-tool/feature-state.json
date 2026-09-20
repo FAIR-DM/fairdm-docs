@@ -3,7 +3,7 @@
   "feature": "002-cli-tool",
   "branch": "002-cli-tool",
   "repo": "FAIR-DM/fairdm-docs",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -44,6 +44,11 @@
       "state": "PR_READY",
       "at": "2026-09-02T08:52:47Z",
       "note": "S6 review fixes landed and verified; PR body rewritten; R1 verified; 001 record closed"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-07T13:08:05Z",
+      "note": "PR #21 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -89,8 +94,8 @@
       ]
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-03T22:00:37Z"
     }
   },
   "stories": [
@@ -730,6 +735,6 @@
   },
   "pr": {
     "number": 21,
-    "draft": true
+    "draft": false
   }
 }
