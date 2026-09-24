@@ -12,11 +12,11 @@ Thank you for your interest in contributing to fairdm-docs! This document provid
    ```
 3. **Install dependencies**:
    ```bash
-   poetry install
+   uv sync
    ```
 4. **Set up pre-commit hooks**:
    ```bash
-   poetry run pre-commit install
+   uv run pre-commit install
    ```
 
 ## Development Workflow
@@ -33,14 +33,14 @@ Thank you for your interest in contributing to fairdm-docs! This document provid
 3. **Test your changes** with a real FairDM project:
    ```bash
    # In a test project
-   poetry add --group dev /path/to/your/fairdm-docs
+   uv add --dev /path/to/your/fairdm-docs
    cd docs
-   poetry run sphinx-build -b html . _build/html
+   uv run sphinx-build -b html . _build/html
    ```
 
 4. **Format your code**:
    ```bash
-   poetry run black fairdm_docs/
+   uv run ruff format fairdm_docs/
    ```
 
 5. **Commit your changes**:
@@ -146,10 +146,10 @@ Always verify documentation builds successfully:
 
 ```bash
 # In a test project
-poetry run sphinx-build -b html docs docs/_build/html
+uv run sphinx-build -b html docs docs/_build/html
 
 # Check for warnings
-poetry run sphinx-build -W -b html docs docs/_build/html
+uv run sphinx-build -W -b html docs docs/_build/html
 ```
 
 ## Adding Dependencies
@@ -158,7 +158,7 @@ When adding new dependencies:
 
 1. **Add to pyproject.toml**:
    ```bash
-   poetry add sphinx-new-extension
+   uv add sphinx-new-extension
    ```
 
 2. **Update README.md** to document the new feature
@@ -180,7 +180,7 @@ Use clear, descriptive commit messages:
 
 Examples:
 ```
-Add: PyData theme support via poetry extras
+Add: PyData theme support via extras
 Update: Migrate all geoluminate references to fairdm
 Fix: Branding detection fallback path
 Remove: Incomplete modelinfo extension

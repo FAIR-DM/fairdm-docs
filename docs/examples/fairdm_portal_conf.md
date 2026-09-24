@@ -6,8 +6,8 @@ This example shows a **complete production setup** for a FairDM-powered research
 
 ```toml
 [build-system]
-requires = ["poetry-core>=2.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "aus-geoscience-portal"
@@ -39,17 +39,16 @@ Documentation = "https://docs.ausgeo.org"
 "Bug Tracker" = "https://github.com/ausgeo/portal/issues"
 "Changelog" = "https://github.com/ausgeo/portal/blob/main/CHANGELOG.md"
 
-# Dependencies managed by Poetry
-[tool.poetry.dependencies]
-python = "^3.11"
-django = "^5.0"
-fairdm = "^2.0"
-# ... other dependencies
+# Dependencies managed by uv
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "fairdm-docs",
+    # ... other dev dependencies
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0"
-fairdm-docs = {git = "https://github.com/FAIR-DM/fairdm-docs"}
-# ... other dev dependencies
+[tool.uv.sources]
+fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
 
 # Configure fairdm-docs theme
 [tool.fairdm.docs]
@@ -235,16 +234,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Poetry
-        run: pipx install poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
 
       - name: Install dependencies
-        run: poetry install --with dev
+        run: uv sync
 
       - name: Build docs
         run: |
           cd docs
-          poetry run sphinx-build . _build -W --keep-going
+          uv run sphinx-build . _build -W --keep-going
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

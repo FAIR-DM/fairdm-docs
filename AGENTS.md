@@ -10,15 +10,17 @@ decisions are in `docs/adr/`.
 
 ## Stack & commands
 
-- **Stack:** Python 3.12+, Poetry-managed. Sphinx and MyST for rendering, Typer for the
+- **Stack:** Python 3.12+, uv-managed (hatchling build backend). Sphinx and MyST for rendering, Typer for the
   command-line tool. Django is a peer the portal supplies, never a runtime dependency (ADR 0003).
-- **Install:** `poetry install --extras sphinx-book-theme`
-- **Test:** `poetry run pytest`
-- **Lint:** `poetry run ruff check .`
-- **Format:** `poetry run ruff format .`
-- **Type-check:** `poetry run mypy`
-- **Dependency check:** `poetry run deptry .`
-- **Build:** `poetry build`
+- **Install:** `uv sync`
+- **Test:** `uv run pytest`
+- **Lint:** `uv run ruff check .`
+- **Format:** `uv run ruff format .`
+- **Type-check:** `uv run mypy`
+- **Dependency check:** `uv run deptry .`
+- **Build:** `uv build`
+- **Bump the version:** `uv version`. Never edit `pyproject.toml` alone, because `uv.lock`
+  records this package's own version too
 
 ## Agent skills
 
@@ -46,7 +48,7 @@ Required status checks the pipeline reads (exact names):
 - `call-tests / Test Python 3.12, Django 5.2`
 - `call-tests / Test Python 3.13, Django 5.2`
 
-CI calls the shared reusable workflows, pinned at `v0.4.0`. One Django version is deliberate:
+CI calls the shared reusable workflows, pinned at `v0.6.0`. One Django version is deliberate:
 this package touches Django through a narrow, long-stable surface, so the axis that matters is
 Python.
 
