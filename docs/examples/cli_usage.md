@@ -128,7 +128,7 @@ django = true
 ```
 
 **Requirements when `django = true`:**
-- Django must be installed: `poetry add Django`
+- Django must be installed: `uv add Django`
 - Django settings must be configured (via `DJANGO_SETTINGS_MODULE`)
 
 **Without Django:**
@@ -188,14 +188,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install poetry
-          poetry install --with dev
+          pip install uv
+          uv sync
 
       - name: Build documentation
-        run: poetry run fairdm-docs build
+        run: uv run fairdm-docs build
 
       - name: Validate links
-        run: poetry run fairdm-docs check
+        run: uv run fairdm-docs check
 
       - name: Upload documentation
         uses: actions/upload-artifact@v4
@@ -211,10 +211,10 @@ jobs:
 docs:
   image: python:3.11
   script:
-    - pip install poetry
-    - poetry install --with dev
-    - poetry run fairdm-docs build
-    - poetry run fairdm-docs check
+    - pip install uv
+    - uv sync
+    - uv run fairdm-docs build
+    - uv run fairdm-docs check
   artifacts:
     paths:
       - docs/_build/html
@@ -352,7 +352,7 @@ django = true  # Enable Django model auto-documentation
 
 ```bash
 # Make sure Django is installed
-poetry add Django
+uv add Django
 
 # Set Django settings
 export DJANGO_SETTINGS_MODULE=myproject.settings
