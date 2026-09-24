@@ -792,7 +792,7 @@ requires-dist = [
     { name = "sphinx-comments", specifier = ">=0.0.3" },
     { name = "sphinx-copybutton", specifier = ">=0.5" },
     { name = "sphinx-design", specifier = ">=0.7.0" },
-    { name = "sphinx-exec-code", specifier = ">=0.16,<0.17" },
+    { name = "sphinx-exec-code", specifier = ">=0.16,<0.19" },
     { name = "sphinxcontrib-bibtex", specifier = ">=2.7.0,<3.0.0" },
     { name = "sphinxext-opengraph", specifier = ">=0.13.0" },
     { name = "typer", specifier = ">=0.27.2" },
@@ -2129,11 +2129,14 @@ wheels = [
 
 [[package]]
 name = "sphinx-exec-code"
-version = "0.16"
+version = "0.18"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/45/0d/a94b374aef31918bf88af058c10ebf556a199818e30a8fa0df6f952eabc7/sphinx_exec_code-0.16.tar.gz", hash = "sha256:51458982dc7a152802dfac9786af656c7fe35206203452d9f6322cac45534b32", size = 16274, upload-time = "2025-04-01T07:49:32.622Z" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ce/7f/2705ea70eb6d7b9a72f6f035fa85160d0eb53876653f5ed697708eb186d6/sphinx_exec_code-0.18.tar.gz", hash = "sha256:f254c44dfe91a6e1337675535b098296a7bafbcc0d0feb5759f93fb720e8546f", size = 16741, upload-time = "2026-03-18T08:17:49.047Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/5c/a9d7d2407124512be434044e4504b2e62a7a1a0e5863ca384b37241c0ddf/sphinx_exec_code-0.16-py3-none-any.whl", hash = "sha256:b5cd4f8d2d4b929d522e14ccf30ac569f8864a9c241e91cb93fc8324abdd9c52", size = 16936, upload-time = "2025-04-01T07:49:31.312Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/2c/6e0aa56de08a48324eae2f0fda32d4ffc769dd72fafc62da55c1f7f14510/sphinx_exec_code-0.18-py3-none-any.whl", hash = "sha256:257c5847adab86f971c9ec20849df84aec4c8ee05aca787915efaac930586656", size = 17414, upload-time = "2026-03-18T08:17:47.762Z" },
 ]
 
 [[package]]
