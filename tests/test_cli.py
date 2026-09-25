@@ -501,6 +501,38 @@ class TestBuildSettingsLifetime:
 
         assert sphinx.seen["FAIRDM_DOCS_PROJECT_DIR"] == str(tmp_path.resolve())
 
+    def test_the_build_sets_the_source_directory_conf_py_reads(
+        self, tmp_path, monkeypatch
+    ):
+        """conf.py needs the documentation source directory as well as the
+        project directory, since Sphinx has changed cwd to the location of
+        conf.py by the time either is read."""
+        write_minimal_project(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        seen = {}
+
+        def record(*args, **kwargs):
+            seen["FAIRDM_DOCS_SOURCE_DIR"] = os.environ.get("FAIRDM_DOCS_SOURCE_DIR")
+            return 0
+
+        with patch("sphinx.cmd.build.main", side_effect=record):
+            runner.invoke(app, ["build"])
+
+        assert seen["FAIRDM_DOCS_SOURCE_DIR"] == str((tmp_path / "docs").resolve())
+
+    def test_the_source_directory_setting_leaves_the_environment_as_it_found_it(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.delenv("FAIRDM_DOCS_SOURCE_DIR", raising=False)
+        write_minimal_project(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        with patch("sphinx.cmd.build.main", return_value=0):
+            runner.invoke(app, ["build"])
+
+        assert os.environ.get("FAIRDM_DOCS_SOURCE_DIR") is None
+
 
 class TestBuild:
     """Real, end-to-end `fairdm-docs build` runs, via `run_fairdm_docs` rather
@@ -561,6 +593,69 @@ class TestBuild:
         # no conf.py of its own only gets this theme's assets if that file
         # configured the build.
         assert "sphinx-book-theme.css" in html
+
+    def test_reads_project_metadata_not_the_installed_packages_when_no_project_conf_py(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """When a project supplies no docs/conf.py, the package's own
+        fairdm_docs/conf.py runs with Sphinx's working directory set to the
+        package's own location rather than the project's. The declared
+        identity must still come from the project, not from whatever
+        pyproject.toml a plain upward search happens to find from there."""
+        portal_dir = documented_portal(
+            "acme-docs", "9.9.9", _populate_from_fixture("single_page")
+        )
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
+        assert "acme-docs 9.9.9" in html
+
+    def test_uses_the_projects_own_logo_when_no_project_conf_py(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """A project's own logo, placed at the documented `docs/_static/brand/`
+        location, must be used even when the project supplies no conf.py of
+        its own and the build falls back to the package's."""
+
+        def populate(docs_dir: Path) -> None:
+            (docs_dir / "index.rst").write_text("Portal\n======\n")
+            brand_dir = docs_dir / "_static" / "brand"
+            brand_dir.mkdir(parents=True)
+            (brand_dir / "logo.svg").write_text("<svg>PORTAL OWN LOGO</svg>")
+
+        portal_dir = documented_portal("branded-portal", "1.0.0", populate)
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        logo = (
+            portal_dir / "docs" / "_build" / "html" / "_static" / "logo.svg"
+        ).read_text()
+        assert "PORTAL OWN LOGO" in logo
+
+    def test_copies_the_projects_own_static_files_when_no_project_conf_py(
+        self, documented_portal, run_fairdm_docs
+    ):
+        """A project's own docs/_static/ files (stylesheets, images) must be
+        copied into the built site even when the project supplies no conf.py
+        of its own."""
+
+        def populate(docs_dir: Path) -> None:
+            (docs_dir / "index.rst").write_text("Portal\n======\n")
+            static_dir = docs_dir / "_static"
+            static_dir.mkdir(parents=True)
+            (static_dir / "custom.css").write_text("body { color: red; }")
+
+        portal_dir = documented_portal("styled-portal", "1.0.0", populate)
+
+        exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
+
+        assert exit_code == 0
+        custom_css = portal_dir / "docs" / "_build" / "html" / "_static" / "custom.css"
+        assert custom_css.exists()
+        assert "color: red" in custom_css.read_text()
 
     def test_creates_a_missing_parent_of_the_build_directory(
         self, documented_portal, run_fairdm_docs
