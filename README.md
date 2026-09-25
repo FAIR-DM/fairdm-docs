@@ -11,6 +11,8 @@ Sphinx configuration and build tooling for FairDM research data portals.
 
 - **Simple CLI tool** - Build, preview, and validate documentation with `fairdm-docs` command
 - **Zero-config documentation** - Automatically extracts project metadata from `pyproject.toml` (PEP 621)
+- **Generated front page** - A landing page and contents listing are generated when a project has
+  written neither, so a source of nothing but its own pages still builds
 - **Live preview server** - Real-time documentation updates with `fairdm-docs build --live`
 - **Link validation** - Check for broken links with `fairdm-docs check`
 - **Smart defaults** - Missing optional fields don't block builds, sensible defaults provided
@@ -96,13 +98,17 @@ version = "0.1.0"  # Optional
 ```plain
 your-project/
 ├── docs/
-│   ├── index.md          # Required: main documentation file
+│   ├── your-page.md      # Optional: a front page is generated if none exists
 │   ├── conf.py           # Optional: advanced customization
 │   └── _static/          # Optional: custom CSS/images
 │       └── brand/        # Optional: logo.svg and icon.svg
 ├── pyproject.toml        # Required: project metadata
 └── ...
 ```
+
+A page named `index.md` or `index.rst` is used as the front page if you write one. Without it,
+a front page carrying the project's name and description, and a contents listing of every other
+page, is generated for the build.
 
 **2. Build documentation:**
 
@@ -176,7 +182,8 @@ html_theme_options.update({
 **Minimum requirements:**
 
 - `pyproject.toml` with `[project]` section containing `name`
-- `docs/index.md` with some content
+- a `docs/` directory (a front page is generated automatically if it holds no `index.md` or
+  `index.rst` of its own)
 
 ## Features
 
@@ -660,11 +667,11 @@ pip install sphinx-autobuild
 
 **Cause**: Documentation source directory doesn't exist.
 
-**Solution**: Create the directory and add at least an `index.md`:
+**Solution**: Create the directory and add at least one page:
 
 ```bash
 mkdir docs
-echo "# My Documentation" > docs/index.md
+echo "# My Documentation" > docs/getting-started.md
 ```
 
 Or configure a different source directory:

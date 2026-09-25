@@ -73,6 +73,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A front page and contents listing are generated for a documentation source that has neither.**
+  Sphinx requires a root document to build at all, so a source holding only the pages a developer
+  wrote used not to build. A front page carrying the portal's name and description, and a
+  contents listing of every other page in the source, is now generated for the duration of the
+  build whenever the source has none of its own. A developer who writes an `index.md` or
+  `index.rst` of their own keeps it untouched.
 - **CLI Tool (`fairdm-docs`)** - New command-line interface for simplified documentation workflows
   - `fairdm-docs build` - Build documentation with sensible defaults
   - `fairdm-docs build --live` - Live preview server with auto-reload and browser sync
