@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The package is built with hatchling instead of poetry-core and developed with uv instead of
+  Poetry. The wheel contains the same files as before. The source distribution does too, plus the
+  repository's `.gitignore`, which hatchling includes so that a build from it leaves out the same
+  files. Shared CI workflows move to v0.6.0, which adds Django 6.1 to the default test matrix. This
+  repository keeps testing Django 5.2 only. The README and the example configurations show `uv`
+  commands instead of `poetry` ones.
 - **The documentation title is now the declared project name, used verbatim.** It used to be
   reformatted for display — hyphens replaced with spaces and each word capitalized, so a project
   named `fairdm-docs` got the title `Fairdm Docs`. That reformatting guessed at a display form and

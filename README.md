@@ -70,13 +70,13 @@ When those layers pull against each other, the tie-breaks are:
 Add `fairdm-docs` to your development dependencies:
 
 ```bash
-poetry add --group dev git+https://github.com/FAIR-DM/fairdm-docs
+uv add --dev git+https://github.com/FAIR-DM/fairdm-docs
 ```
 
 Or with a specific theme:
 
 ```bash
-poetry add --group dev "git+https://github.com/FAIR-DM/fairdm-docs[pydata-sphinx-theme]"
+uv add --dev "fairdm-docs[pydata-sphinx-theme] @ git+https://github.com/FAIR-DM/fairdm-docs"
 ```
 
 ## Quick Start
@@ -113,7 +113,7 @@ page, is generated for the build.
 **2. Build documentation:**
 
 ```bash
-poetry run fairdm-docs build
+uv run fairdm-docs build
 ```
 
 That's it! Documentation will be built to `docs/_build/html/`.
@@ -121,7 +121,7 @@ That's it! Documentation will be built to `docs/_build/html/`.
 **For live preview during development:**
 
 ```bash
-poetry run fairdm-docs build --live
+uv run fairdm-docs build --live
 ```
 
 This automatically:
@@ -146,7 +146,7 @@ django = false                   # Enable Django integration (default: false)
 Then build as before:
 
 ```bash
-poetry run fairdm-docs build
+uv run fairdm-docs build
 ```
 
 ### Option 3: Advanced Customization
@@ -360,14 +360,14 @@ comments_config = {}  # Disable Utterances
 
 ## Theme Support
 
-The package supports multiple Sphinx themes via poetry extras:
+The package supports multiple Sphinx themes via extras:
 
 ```bash
 # Sphinx Book Theme (default, always installed)
-poetry add --group dev git+https://github.com/FAIR-DM/fairdm-docs
+uv add --dev git+https://github.com/FAIR-DM/fairdm-docs
 
 # PyData Sphinx Theme
-poetry add --group dev "git+https://github.com/FAIR-DM/fairdm-docs[pydata-sphinx-theme]"
+uv add --dev "fairdm-docs[pydata-sphinx-theme] @ git+https://github.com/FAIR-DM/fairdm-docs"
 ```
 
 To change themes:
@@ -462,7 +462,7 @@ This command:
 ```yaml
 # Example GitHub Actions workflow
 - name: Check documentation links
-  run: poetry run fairdm-docs check
+  run: uv run fairdm-docs check
 ```
 
 ### Exit Codes
@@ -500,7 +500,7 @@ When `django = true`:
 
 - Django is imported and configured automatically
 - the `autodoc-model` directive becomes available for documenting Django models
-- Requires Django to be installed: `poetry add Django`
+- Requires Django to be installed: `uv add Django`
 
 When `django = false` (default):
 
@@ -636,7 +636,7 @@ django = false  # Disable Django integration
 Or install Django:
 
 ```bash
-poetry add Django  # If using Poetry
+uv add Django  # If using uv
 pip install Django  # If using pip
 ```
 
@@ -658,7 +658,7 @@ port = 8080  # Or any available port
 **Solution**: Install sphinx-autobuild:
 
 ```bash
-poetry add --group dev sphinx-autobuild
+uv add --dev sphinx-autobuild
 # or
 pip install sphinx-autobuild
 ```
