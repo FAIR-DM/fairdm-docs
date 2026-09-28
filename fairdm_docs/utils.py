@@ -1,13 +1,6 @@
-"""
-Shared utility functions for FairDM-Docs package.
-
-Provides common functionality for finding and loading pyproject.toml files
-used across the package (conf.py, config.py, CLI, etc.).
-"""
+"""Finding and reading the portal's pyproject.toml."""
 
 import os
-
-# Use tomllib for Python 3.11+, tomli for 3.10
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -16,8 +9,7 @@ from typing import Any
 def find_pyproject_toml(
     start_dir: Path | None = None, use_env_var: bool = False
 ) -> Path | None:
-    """
-    Find pyproject.toml by searching upward from a starting directory.
+    """Find pyproject.toml by searching upward from a starting directory.
 
     Args:
         start_dir: Directory to start search from. If None, uses current working directory.
@@ -40,17 +32,14 @@ def find_pyproject_toml(
         >>> find_pyproject_toml(Path("/home/user/project/docs"))
         PosixPath('/home/user/project/pyproject.toml')
     """
-    # Use project dir from environment variable if requested (set by CLI for Sphinx)
     if use_env_var:
         project_dir = os.environ.get("FAIRDM_DOCS_PROJECT_DIR")
         if project_dir:
             start_dir = Path(project_dir)
 
-    # Default to current working directory
     if start_dir is None:
         start_dir = Path.cwd()
 
-    # Search current directory and all parents
     for parent in [start_dir, *list(start_dir.parents)]:
         pyproject = parent / "pyproject.toml"
         if pyproject.exists():
@@ -62,8 +51,7 @@ def find_pyproject_toml(
 def load_pyproject_toml(
     pyproject_path: Path | None = None, start_dir: Path | None = None
 ) -> dict[str, Any]:
-    """
-    Load and parse pyproject.toml file.
+    """Load and parse pyproject.toml file.
 
     Args:
         pyproject_path: Direct path to pyproject.toml. If None, will search for it.

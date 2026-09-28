@@ -30,16 +30,24 @@ class ProjectMetadata:
 
     @property
     def copyright(self) -> str:
+        """The copyright line: the current year, then the authors."""
         return f"{datetime.now().year}, {', '.join(self.authors)}"
 
     @property
     def address(self) -> str:
-        """The address to use where a single one is required: repository, else homepage (FR-005)."""
+        """The address to use where one is required: repository, else homepage (FS-001 FR-005)."""
         return self.repository or self.homepage
 
     @staticmethod
     def display_name(author: str | dict[str, Any]) -> str:
-        """The display name for one PEP 621 author entry, string or table."""
+        """Return the display name for one PEP 621 author entry.
+
+        Args:
+            author: An author entry, either a `"Name <email>"` string or a table.
+
+        Returns:
+            The author's name without any email address.
+        """
         if isinstance(author, dict):
             return str(author.get("name", ""))
         if "<" in author:
@@ -48,7 +56,15 @@ class ProjectMetadata:
 
     @staticmethod
     def resolve_address(urls: dict[str, Any], key: str) -> str:
-        """The [project.urls] value for key, matched without regard to case (FR-004); empty if absent."""
+        """Return the `[project.urls]` value for a key, ignoring case (FS-001 FR-004).
+
+        Args:
+            urls: The `[project.urls]` table.
+            key: The lower-case key to look up.
+
+        Returns:
+            The address, or an empty string when the key is absent.
+        """
         for name, value in urls.items():
             if name.lower() == key:
                 return str(value)
@@ -56,7 +72,15 @@ class ProjectMetadata:
 
     @staticmethod
     def resolve_version(project: dict[str, Any], data: dict[str, Any]) -> str | None:
-        """The declared version, or its `[tool.poetry]` fallback when dynamic, or None."""
+        """Return the declared version, falling back to `[tool.poetry]` when dynamic.
+
+        Args:
+            project: The `[project]` table.
+            data: The whole parsed pyproject.toml.
+
+        Returns:
+            The version, or None when neither table declares one.
+        """
         if "version" in project:
             return str(project["version"])
         if "version" in project.get("dynamic", []):
@@ -67,7 +91,17 @@ class ProjectMetadata:
 
     @classmethod
     def from_toml_data(cls, data: dict[str, Any]) -> "ProjectMetadata":
-        """Build a ProjectMetadata from an already-parsed pyproject.toml mapping."""
+        """Build a ProjectMetadata from an already-parsed pyproject.toml mapping.
+
+        Args:
+            data: The parsed pyproject.toml.
+
+        Returns:
+            The portal's declared identity, with defaults for missing optional fields.
+
+        Raises:
+            ConfigError: There is no `[project]` table, or it has no name.
+        """
         if "project" not in data:
             if "poetry" in data.get("tool", {}):
                 raise ConfigError(
@@ -135,7 +169,17 @@ class ProjectMetadata:
 
     @classmethod
     def from_file(cls, start_dir: Path | None = None) -> "ProjectMetadata":
-        """Locate, read and parse a portal's pyproject.toml, then build from it."""
+        """Locate, read and parse a portal's pyproject.toml, then build from it.
+
+        Args:
+            start_dir: Where to start searching upward. Defaults to the current directory.
+
+        Returns:
+            The portal's declared identity.
+
+        Raises:
+            ConfigError: No pyproject.toml was found, or it is not valid TOML.
+        """
         path = find_pyproject_toml(start_dir)
         if path is None:
             searched_from = start_dir if start_dir is not None else Path.cwd()

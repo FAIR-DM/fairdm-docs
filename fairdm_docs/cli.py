@@ -1,9 +1,4 @@
-"""
-FairDM Documentation CLI Tool
-
-Provides command-line interface for building and validating Sphinx documentation
-with sensible defaults for FairDM-powered research data portals.
-"""
+"""The `fairdm-docs` command: build, preview and check a portal's documentation."""
 
 import os
 import socket
@@ -31,8 +26,7 @@ app = typer.Typer(
 
 
 def is_port_available(port: int) -> bool:
-    """
-    Check if a port is available for binding.
+    """Check if a port is available for binding.
 
     Args:
         port: Port number to check
@@ -60,6 +54,9 @@ def _build_settings(config: BuildConfiguration) -> Iterator[None]:
     Both values are restored when the build finishes. A command that left them behind
     would go on deciding the project directory for every later build in the same
     process, from a directory those builds have nothing to do with.
+
+    Args:
+        config: The build configuration whose Django setting conf.py needs.
     """
     settings = {
         "FAIRDM_DOCS_DJANGO": "true" if config.django else "false",
@@ -77,9 +74,23 @@ def _build_settings(config: BuildConfiguration) -> Iterator[None]:
                 os.environ[name] = was_set_to
 
 
-def get_verbosity_flags(verbosity: str) -> list[str]:
+def _conf_dir(config: BuildConfiguration) -> Path:
+    """Return the directory holding the conf.py Sphinx should read.
+
+    Args:
+        config: The build configuration naming the documentation source.
+
+    Returns:
+        The source directory when the project has its own conf.py, otherwise the
+        package directory holding the built-in one.
     """
-    Convert verbosity level to Sphinx command-line flags.
+    if (config.source_dir / "conf.py").exists():
+        return config.source_dir
+    return Path(__file__).parent
+
+
+def get_verbosity_flags(verbosity: str) -> list[str]:
+    """Convert verbosity level to Sphinx command-line flags.
 
     Args:
         verbosity: Verbosity level (full, quiet, errors-only)
@@ -91,7 +102,7 @@ def get_verbosity_flags(verbosity: str) -> list[str]:
         return ["-q"]
     elif verbosity == "errors-only":
         return ["-Q"]
-    else:  # full
+    else:
         return []
 
 
@@ -105,23 +116,15 @@ def build(
         ),
     ] = False,
 ) -> None:
-    """
-    Build Sphinx documentation with sensible defaults.
+    """Build Sphinx documentation with sensible defaults.
 
     Reads configuration from [tool.fairdm.docs] in pyproject.toml.
     Falls back to convention-based defaults if not configured.
     """
     try:
-        # Load and validate configuration
         config = load_config()
 
-        # Determine which conf.py to use:
-        # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
-        local_conf_py = config.source_dir / "conf.py"
-        # Falls back to the package's built-in conf.py when the project has none.
-        conf_dir = (
-            config.source_dir if local_conf_py.exists() else Path(__file__).parent
-        )
+        conf_dir = _conf_dir(config)
 
         if live:
             if not is_port_available(config.port):
@@ -136,7 +139,6 @@ def build(
             )
             typer.echo("   Press Ctrl+C to stop the server\n")
 
-            # Prepare sphinx-autobuild command
             sphinx_autobuild_args = [
                 sys.executable,
                 "-m",
@@ -150,17 +152,15 @@ def build(
                 str(config.build_dir),
             ]
 
-            # Add verbosity flags
             verbosity_flags = get_verbosity_flags(config.verbosity)
             if verbosity_flags:
                 sphinx_autobuild_args.extend(verbosity_flags)
 
             try:
-                # Don't capture output so user can see what's happening
+                # Output is not captured, so the developer sees the server's own log.
                 with _build_settings(config):
                     process = subprocess.run(sphinx_autobuild_args, check=False)  # noqa: S603 - argv is built from sys.executable and validated build settings
 
-                # If process exited with error, show helpful message
                 if process.returncode != 0:
                     typer.echo(
                         f"\n❌ Live server exited with code {process.returncode}\n"
@@ -179,10 +179,9 @@ def build(
                 )
                 raise typer.Exit(code=1) from None
 
-        # Build with Sphinx
         typer.echo("📚 Building documentation...")
 
-        # Import sphinx.cmd.build here to avoid import errors if not installed
+        # Imported late so a missing Sphinx gets a message, not a traceback.
         try:
             from sphinx.cmd.build import main as sphinx_build
         except ImportError:
@@ -191,23 +190,19 @@ def build(
             )
             raise typer.Exit(code=1) from None
 
-        # Prepare Sphinx arguments
         verbosity_flags = get_verbosity_flags(config.verbosity)
-
-        # Create build directory if it doesn't exist
         config.build_dir.parent.mkdir(parents=True, exist_ok=True)
 
         sphinx_args = [
             "-b",
-            "html",  # HTML builder
+            "html",
             "-c",
             str(conf_dir),
-            *verbosity_flags,  # Verbosity flags
-            str(config.source_dir),  # Source directory
-            str(config.build_dir),  # Output directory
+            *verbosity_flags,
+            str(config.source_dir),
+            str(config.build_dir),
         ]
 
-        # Run Sphinx build
         with _build_settings(config):
             exit_code = sphinx_build(sphinx_args)
 
@@ -228,8 +223,7 @@ def build(
 
 @app.command()
 def check() -> None:
-    """
-    Validate documentation for quality issues.
+    """Validate documentation for quality issues.
 
     Currently checks:
     - Broken external links (linkcheck)
@@ -239,17 +233,10 @@ def check() -> None:
     try:
         config = load_config()
 
-        # Determine which conf.py to use:
-        # Prefer local docs/conf.py if it exists, otherwise use package's conf.py
-        local_conf_py = config.source_dir / "conf.py"
-        # Falls back to the package's built-in conf.py when the project has none.
-        conf_dir = (
-            config.source_dir if local_conf_py.exists() else Path(__file__).parent
-        )
+        conf_dir = _conf_dir(config)
 
         typer.echo("🔍 Checking documentation for broken links...")
 
-        # Import sphinx.cmd.build here to avoid import errors if not installed
         try:
             from sphinx.cmd.build import main as sphinx_build
         except ImportError:
@@ -261,20 +248,18 @@ def check() -> None:
         linkcheck_dir = config.build_dir.parent / "linkcheck"
         linkcheck_dir.mkdir(parents=True, exist_ok=True)
 
-        # Prepare Sphinx linkcheck arguments
         verbosity_flags = get_verbosity_flags(config.verbosity)
 
         sphinx_args = [
             "-b",
-            "linkcheck",  # Linkcheck builder
+            "linkcheck",
             "-c",
             str(conf_dir),
-            *verbosity_flags,  # Verbosity flags
-            str(config.source_dir),  # Source directory
-            str(linkcheck_dir),  # Output directory for linkcheck
+            *verbosity_flags,
+            str(config.source_dir),
+            str(linkcheck_dir),
         ]
 
-        # Run Sphinx linkcheck
         with _build_settings(config):
             exit_code = sphinx_build(sphinx_args)
 
@@ -288,18 +273,14 @@ def check() -> None:
                     line = line.strip()
                     if not line:
                         continue
-                    # Parse linkcheck output format: "filename.rst:line: [status] url: error".
-                    # The builder's redirect text varies by status code — "redirected
-                    # permanently" (301, 308), "redirected temporarily" (307), "redirected
-                    # with Found" (302), "with See Other" (303), "with unknown code" — so
-                    # match the common prefix rather than any one variant.
+                    # The redirect text varies by status code ("redirected permanently",
+                    # "redirected with Found", ...), so match the common prefix (#21).
                     if ": [broken]" in line:
                         broken_links.append(line)
                     elif ": [redirected " in line:
                         redirected_links.append(line)
 
-            # Write the classified report alongside the HTML output, not
-            # inside it — mirrors where linkcheck_dir sits.
+            # Written beside the HTML output, not inside it, like linkcheck_dir.
             report_file = config.build_dir.parent / "check-report.txt"
             report_lines = []
             if broken_links:
@@ -315,8 +296,7 @@ def check() -> None:
             report_file.write_text("\n".join(report_lines) + "\n", encoding="utf-8")
 
             if redirected_links:
-                # Redirects are reported under their own heading, separately
-                # from failures (D5, FR-013) — they never affect the exit code.
+                # Redirects never affect the exit code (FS-002 FR-013).
                 typer.echo(f"\n⚠️  Found {len(redirected_links)} redirect(s):\n")
                 for link in redirected_links:
                     typer.echo(f"   {link}")
@@ -334,7 +314,6 @@ def check() -> None:
                 typer.echo("✅ All links are valid!")
                 raise typer.Exit(code=0)
         else:
-            # If no output file, check exit code
             if exit_code == 0:
                 typer.echo("✅ Link check complete!")
                 raise typer.Exit(code=0)

@@ -42,7 +42,6 @@ def render_declaration(declaration: str | dict[str, Any]) -> str:
 
 @pytest.fixture
 def portal(tmp_path: Path):
-    """Write a temporary portal from a declaration, given as a string or a mapping."""
 
     def write(declaration: str | dict[str, Any]) -> Path:
         (tmp_path / "pyproject.toml").write_text(render_declaration(declaration))
@@ -57,8 +56,6 @@ def portal(tmp_path: Path):
 
 @pytest.fixture
 def documented_portal(tmp_path: Path):
-    """Write a temporary portal from a declared name and version, with the docs/
-    directory left for the caller to populate."""
 
     def write(name: str, version: str, populate) -> Path:
         (tmp_path / "pyproject.toml").write_text(
@@ -74,12 +71,6 @@ def documented_portal(tmp_path: Path):
 
 @pytest.fixture
 def run_fairdm_docs(monkeypatch):
-    """Invoke a `fairdm-docs` command for real against a portal directory.
-
-    Sets sys.argv and calls the CLI's entry point directly, catching the
-    SystemExit Typer raises to exit. Nothing here mocks sphinx.cmd.build.main
-    or any other part of the build — this runs a real Sphinx build or check.
-    """
 
     def run(portal_dir: Path, args: list[str]) -> tuple[int, str, str]:
         monkeypatch.chdir(portal_dir)
@@ -99,10 +90,6 @@ def run_fairdm_docs(monkeypatch):
 
 @pytest.fixture
 def built_portal(portal):
-    """Build a temporary portal's documentation for real.
-
-    Returns the rendered HTML of its index page together with the build output.
-    """
 
     def build(declaration: str | dict[str, Any]) -> tuple[str, str]:
         portal_dir = portal(declaration)
@@ -148,11 +135,6 @@ class _RedirectHandler(BaseHTTPRequestHandler):
 
 @pytest.fixture
 def redirect_server():
-    """Start a tiny local HTTP server that responds to every GET with a 302
-    redirect, for the `redirected_link` documentation source.
-
-    Yields the server's base URL. No new dependency: `http.server` is stdlib.
-    """
     server = HTTPServer(("127.0.0.1", 0), _RedirectHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

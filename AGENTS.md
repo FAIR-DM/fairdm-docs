@@ -13,7 +13,8 @@ decisions are in `docs/adr/`.
 - **Stack:** Python 3.12+, uv-managed (hatchling build backend). Sphinx and MyST for rendering, Typer for the
   command-line tool. Django is a peer the portal supplies, never a runtime dependency (ADR 0003).
 - **Install:** `uv sync`
-- **Test:** `uv run pytest`
+- **Test (full suite):** `uv run pytest -n auto --dist loadscope`
+- **Test (one class or file, while iterating):** `uv run pytest <path> -x`
 - **Lint:** `uv run ruff check .`
 - **Format:** `uv run ruff format .`
 - **Type-check:** `uv run mypy`

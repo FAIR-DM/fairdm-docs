@@ -1,9 +1,4 @@
-"""
-Configuration loading and validation for FairDM-Docs CLI.
-
-Reads configuration from [tool.fairdm.docs] section in pyproject.toml,
-merges with sensible defaults, and validates all settings.
-"""
+"""The command's build configuration, read from `[tool.fairdm.docs]` in pyproject.toml."""
 
 import tomllib
 from dataclasses import dataclass, field
@@ -21,8 +16,7 @@ class ConfigError(Exception):
 
 @dataclass
 class BuildConfiguration:
-    """
-    Configuration for documentation builds.
+    """Configuration for documentation builds.
 
     Attributes:
         source_dir: Documentation source directory
@@ -39,9 +33,8 @@ class BuildConfiguration:
     django: bool = False
 
 
-# Error message templates from data-model.md. The values are deliberately a
-# mix: one ready-made string and two that need a value interpolated, so the
-# annotation has to admit both.
+# A mix of ready-made strings and templates that need a value interpolated,
+# so the annotation has to admit both.
 ERROR_MESSAGES: dict[str, Any] = {
     "no_pyproject": (
         "❌ Error: No pyproject.toml found.\n"
@@ -69,8 +62,7 @@ ERROR_MESSAGES: dict[str, Any] = {
 
 
 def load_pyproject() -> dict[str, Any]:
-    """
-    Load and parse pyproject.toml.
+    """Load and parse pyproject.toml.
 
     Returns:
         Parsed TOML data as dictionary
@@ -92,8 +84,7 @@ def load_pyproject() -> dict[str, Any]:
 
 
 def load_config() -> BuildConfiguration:
-    """
-    Load configuration from pyproject.toml and merge with defaults.
+    """Load configuration from pyproject.toml and merge with defaults.
 
     Reads [tool.fairdm.docs] section if present, otherwise uses all defaults.
     User configuration always takes precedence over defaults.
@@ -104,16 +95,10 @@ def load_config() -> BuildConfiguration:
     Raises:
         ConfigError: If pyproject.toml not found or configuration invalid
     """
-    # Load pyproject.toml (raises ConfigError if not found)
     data = load_pyproject()
-
-    # Start with defaults
     config = BuildConfiguration()
-
-    # Extract user configuration if present
     tool_config = data.get("tool", {}).get("fairdm", {}).get("docs", {})
 
-    # Merge user config (user values override defaults)
     if "source_dir" in tool_config:
         config.source_dir = Path(tool_config["source_dir"])
 
@@ -129,15 +114,13 @@ def load_config() -> BuildConfiguration:
     if "django" in tool_config:
         config.django = bool(tool_config["django"])
 
-    # Validate merged configuration
     validate_config(config)
 
     return config
 
 
 def validate_config(config: BuildConfiguration) -> None:
-    """
-    Validate configuration, raise clear errors on issues.
+    """Check a merged configuration and raise a clear error for the first problem.
 
     Args:
         config: Configuration to validate
@@ -145,15 +128,12 @@ def validate_config(config: BuildConfiguration) -> None:
     Raises:
         ConfigError: If validation fails
     """
-    # Rule 1: Source directory must exist
     if not config.source_dir.exists():
         raise ConfigError(ERROR_MESSAGES["missing_source"](config.source_dir))
 
-    # Rule 2: Port must be in valid range
     if not (1024 <= config.port <= 65535):
         raise ConfigError(f"❌ Error: Invalid port: {config.port}. Must be 1024-65535.")
 
-    # Rule 3: Verbosity must be valid option
     valid_verbosity = ["full", "quiet", "errors-only"]
     if config.verbosity not in valid_verbosity:
         raise ConfigError(

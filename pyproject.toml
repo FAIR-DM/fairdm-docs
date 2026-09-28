@@ -52,7 +52,7 @@ pydata-sphinx-theme = ['pydata-sphinx-theme (>=0.21.0)']
 fairdm-docs = "fairdm_docs.cli:main"
 
 [dependency-groups]
-# Family toolchain bundle; the pin tag is the shared-tooling version. Dev
+# Shared development toolchain; the pin tag is the tooling version. Dev
 # tooling never ships to consumers.
 dev = [
     "mvp-shared[dev,test]",
