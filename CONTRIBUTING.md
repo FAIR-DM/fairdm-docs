@@ -58,38 +58,10 @@ Thank you for your interest in contributing to fairdm-docs! This document provid
 
 ## Code Style Guidelines
 
-- Follow **PEP 8** conventions
-- Use **Black** for formatting (120 character line length)
-- Use **type hints** where appropriate
-- Write **comprehensive docstrings** for all public functions and classes
-- Keep functions focused and modular
-
-### Example Function Style
-
-```python
-def extract_metadata(toml_path: str) -> dict[str, Any]:
-    """
-    Extract project metadata from pyproject.toml file.
-
-    Args:
-        toml_path: Path to the pyproject.toml file
-
-    Returns:
-        Dictionary containing project metadata
-
-    Raises:
-        FileNotFoundError: If toml_path doesn't exist
-        tomllib.TOMLDecodeError: If file is not valid TOML
-
-    Example:
-        >>> metadata = extract_metadata("../pyproject.toml")
-        >>> metadata["name"]
-        'my-project'
-    """
-    with open(toml_path, "rb") as f:
-        data = tomllib.load(f)
-    return data.get("tool", {}).get("poetry", {})
-```
+- Format and lint with `uv run ruff format .` and `uv run ruff check .` (88 columns).
+- Use type hints. Types live in the annotations, not in docstrings.
+- Docstrings and comments follow
+  [docs/contributing/standards/code-documentation.md](docs/contributing/standards/code-documentation.md).
 
 ## Documentation Guidelines
 
@@ -102,9 +74,8 @@ When adding features, update the README.md:
 
 ### Code Comments
 
-- Use comments to explain **why**, not **what**
-- Keep comments up-to-date with code changes
-- Use docstrings for public APIs
+Comments explain why, never what. The full rules are in
+[docs/contributing/standards/code-documentation.md](docs/contributing/standards/code-documentation.md).
 
 ### Examples
 
@@ -116,29 +87,9 @@ When adding new features, create an example in `docs/examples/`:
 
 ## Testing
 
-### Manual Testing
-
-Since this is a documentation package, testing involves:
-
-1. **Test with minimal config**:
-   ```python
-   from fairdm_docs.conf import *
-   ```
-
-2. **Test with overrides**:
-   ```python
-   from fairdm_docs.conf import *
-   html_theme = "pydata_sphinx_theme"
-   ```
-
-3. **Test extension functionality**:
-   - Verify auto-generation of data model docs
-   - Check that directive renders correctly
-   - Ensure Django integration works
-
-4. **Test branding detection**:
-   - With project branding present
-   - Without project branding (fallback)
+Tests follow [docs/contributing/standards/testing.md](docs/contributing/standards/testing.md):
+what gets a test, the test-first cycle, test structure and the coverage floors. Run the full
+suite with `uv run pytest -n auto --dist loadscope`.
 
 ### Build Testing
 

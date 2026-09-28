@@ -1,4 +1,4 @@
-# Family Dependabot configuration — materialized into each repo at onboarding.
+# Dependabot configuration.
 #
 # The load-bearing choice is the grouping: one group per ecosystem matching "*",
 # so a cycle's updates arrive as a SINGLE pull request. That is what makes
