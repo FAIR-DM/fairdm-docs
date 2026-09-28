@@ -58,9 +58,6 @@ class _TerminatingRedirectHandler(BaseHTTPRequestHandler):
 
 @pytest.fixture
 def terminating_redirect_server():
-    """Start a tiny local HTTP server whose one redirect resolves to a real
-    200, so a real Sphinx linkcheck run can classify it as `redirected`
-    rather than exhausting the redirect limit. Yields the server's base URL."""
     server = HTTPServer(("127.0.0.1", 0), _TerminatingRedirectHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -94,8 +91,6 @@ class _PermanentRedirectHandler(_TerminatingRedirectHandler):
 
 @pytest.fixture
 def permanent_redirect_server():
-    """A local server whose redirect is a 301, so the builder writes
-    `[redirected permanently]` rather than `[redirected with Found]`."""
     server = HTTPServer(("127.0.0.1", 0), _PermanentRedirectHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -144,10 +139,7 @@ class SphinxRecorder:
 
 
 class TestBuildCommand:
-    """Test the build command functionality."""
-
     def test_build_with_defaults(self, tmp_path, monkeypatch):
-        """Test building documentation with default configuration."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -175,7 +167,6 @@ class TestBuildCommand:
             assert "docs" in args or str(docs_dir) in args
 
     def test_build_creates_output_directory(self, tmp_path, monkeypatch):
-        """Test that build creates output directory if it doesn't exist."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
 
@@ -195,7 +186,6 @@ class TestBuildCommand:
             assert build_dir.parent.exists()
 
     def test_build_displays_progress_messages(self, tmp_path, monkeypatch):
-        """Test that build shows progress messages to user."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
 
@@ -216,7 +206,6 @@ class TestBuildCommand:
             assert "✅" in result.stdout
 
     def test_build_exits_zero_on_success(self, tmp_path, monkeypatch):
-        """Test that successful build exits with code 0."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
 
@@ -232,7 +221,6 @@ class TestBuildCommand:
             assert result.exit_code == 0
 
     def test_build_error_when_no_pyproject(self, tmp_path, monkeypatch):
-        """Test that build errors when pyproject.toml not found."""
         monkeypatch.chdir(tmp_path)
 
         result = runner.invoke(app, ["build"])
@@ -246,7 +234,6 @@ class TestBuildCommand:
         assert "Run this command from your project root" in output
 
     def test_build_error_when_source_missing(self, tmp_path, monkeypatch):
-        """Test that build errors when source directory doesn't exist."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
 
@@ -265,7 +252,6 @@ class TestBuildCommand:
         assert "[tool.fairdm.docs]" in output
 
     def test_build_with_custom_source_dir(self, tmp_path, monkeypatch):
-        """Test building with custom source directory from config (T067)."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -291,7 +277,6 @@ source_dir = "documentation"
             assert "documentation" in args
 
     def test_build_with_custom_build_dir(self, tmp_path, monkeypatch):
-        """Test building with custom build directory from config (T066)."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -317,7 +302,6 @@ build_dir = "build/output"
             assert "output" in " ".join(args)
 
     def test_build_with_verbosity_quiet(self, tmp_path, monkeypatch):
-        """Test build with quiet verbosity setting."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -341,7 +325,6 @@ verbosity = "quiet"
             assert "-q" in args
 
     def test_build_with_verbosity_errors_only(self, tmp_path, monkeypatch):
-        """Test build with errors-only verbosity setting."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -365,7 +348,6 @@ verbosity = "errors-only"
             assert "-Q" in args
 
     def test_build_failure_returns_nonzero(self, tmp_path, monkeypatch):
-        """Test that Sphinx build failure returns non-zero exit code."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
 
@@ -384,7 +366,6 @@ verbosity = "errors-only"
             assert "Build failed" in output
 
     def test_build_uses_package_conf_py(self, tmp_path, monkeypatch):
-        """Test that build uses package's built-in conf.py."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
 
@@ -409,7 +390,6 @@ verbosity = "errors-only"
             assert "fairdm_docs" in config_dir
 
     def test_build_sets_django_env_var_false_by_default(self, tmp_path, monkeypatch):
-        """Test that Django environment variable is set to false by default."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
 
@@ -427,7 +407,6 @@ verbosity = "errors-only"
             assert sphinx.seen["FAIRDM_DOCS_DJANGO"] == "false"
 
     def test_build_sets_django_env_var_true_when_enabled(self, tmp_path, monkeypatch):
-        """Test that Django environment variable is set to true when enabled in config."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -452,8 +431,6 @@ django = true
 
 
 class TestBuildSettingsLifetime:
-    """The settings a command puts in the environment last as long as the build, no longer."""
-
     def test_build_leaves_the_environment_as_it_found_it(self, tmp_path, monkeypatch):
         for name in BUILD_SETTINGS:
             monkeypatch.delenv(name, raising=False)
@@ -503,15 +480,7 @@ class TestBuildSettingsLifetime:
 
 
 class TestBuild:
-    """Real, end-to-end `fairdm-docs build` runs, via `run_fairdm_docs` rather
-    than a mocked `sphinx.cmd.build.main` (constitution Article IV).
-    `TestBuildCommand` above proves the argv Sphinx is handed; this class
-    proves the build itself works."""
-
     def test_renders_a_root_page_to_html(self, documented_portal, run_fairdm_docs):
-        """T004: a documentation source with a root page and zero
-        configuration renders a site whose HTML carries the page's own
-        content."""
         portal_dir = documented_portal(
             "zero-config-portal", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -529,8 +498,6 @@ class TestBuild:
     def test_uses_the_portals_own_conf_py_when_present(
         self, documented_portal, run_fairdm_docs
     ):
-        """T005: a documentation source with its own docs/conf.py is built
-        with that configuration, not the package's."""
         portal_dir = documented_portal(
             "uses-own-conf", "0.1.0", _populate_from_fixture("with_own_conf")
         )
@@ -547,8 +514,6 @@ class TestBuild:
     def test_uses_the_packages_own_conf_py_when_none_is_provided(
         self, documented_portal, run_fairdm_docs
     ):
-        """T006: a documentation source with no conf.py of its own still
-        builds, using the package's own fairdm_docs/conf.py."""
         portal_dir = documented_portal(
             "no-own-conf", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -565,8 +530,6 @@ class TestBuild:
     def test_creates_a_missing_parent_of_the_build_directory(
         self, documented_portal, run_fairdm_docs
     ):
-        """T007: the build directory's parent is created if it does not
-        already exist, without the test pre-creating it."""
         portal_dir = documented_portal(
             "missing-parent", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -587,8 +550,6 @@ class TestBuild:
     def test_reports_where_it_started_and_where_it_wrote_the_site(
         self, documented_portal, run_fairdm_docs
     ):
-        """T008: the command's own output names the build as started and, on
-        success, names where the site was written."""
         portal_dir = documented_portal(
             "progress-messages", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -604,9 +565,6 @@ class TestBuild:
     def test_full_verbosity_passes_sphinxs_own_output_through(
         self, documented_portal, run_fairdm_docs
     ):
-        """T009: the default (full) verbosity does not suppress Sphinx's own
-        build output, unlike the existing mocked quiet/errors-only tests,
-        which only prove the -q/-Q flags are passed."""
         portal_dir = documented_portal(
             "full-verbosity", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -619,10 +577,6 @@ class TestBuild:
     def test_sets_fairdm_docs_project_dir_to_the_portals_own_directory(
         self, documented_portal, run_fairdm_docs
     ):
-        """T010 (S3R SPEC-001): FAIRDM_DOCS_PROJECT_DIR, the mechanism FR-004
-        names, is set to the invoking portal's own directory during a real
-        build, not the package's, not something else. The value is read from
-        inside the build, which is the only point at which it is defined."""
         portal_dir = documented_portal(
             "project-dir-env-var", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -639,9 +593,6 @@ class TestBuild:
     def test_the_documented_minimum_builds_and_exits_zero(
         self, documented_portal, run_fairdm_docs
     ):
-        """A project name plus one Markdown page — the README's Quick Start
-        minimum — renders a site and exits zero, with no warning the
-        developer has no way to act on (docs/ROADMAP.md R3)."""
         portal_dir = documented_portal(
             "markdown-minimum", "0.1.0", _populate_from_fixture("markdown_single_page")
         )
@@ -660,10 +611,7 @@ class TestBuild:
 
 
 class TestConfigurationValidationErrors:
-    """Test configuration validation error messages."""
-
     def test_invalid_port_shows_clear_error(self, tmp_path, monkeypatch):
-        """Test that invalid port triggers clear error message (T072)."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -688,7 +636,6 @@ port = 100000
         assert "100000" in output or "invalid" in output.lower()
 
     def test_invalid_verbosity_shows_clear_error(self, tmp_path, monkeypatch):
-        """Test that invalid verbosity triggers clear error message (T073)."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -713,7 +660,6 @@ verbosity = "invalid"
         assert "invalid" in output or "full" in output or "quiet" in output
 
     def test_config_validation_error_message_format(self, tmp_path, monkeypatch):
-        """Test that config validation errors have clear format (T071)."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -741,8 +687,6 @@ port = -1
 
 
 class TestConfigurationFailures:
-    """A project-metadata failure is reported as a message, not a traceback (T026)."""
-
     def test_metadata_failure_reported_as_message_not_traceback(
         self, tmp_path, monkeypatch
     ):
@@ -770,8 +714,6 @@ class TestConfigurationFailures:
     def test_malformed_toml_reported_as_message_not_traceback(
         self, tmp_path, monkeypatch
     ):
-        """T012: a pyproject.toml that isn't valid TOML stops the command
-        with a message naming the file as unreadable, never a traceback."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project\nname = probe\n")
 
@@ -791,10 +733,7 @@ class TestConfigurationFailures:
 
 
 class TestCheckCommand:
-    """Test the check command functionality."""
-
     def test_check_passes_with_no_errors(self, tmp_path, monkeypatch):
-        """Test check command with valid links (T061)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -825,7 +764,6 @@ class TestCheckCommand:
             )
 
     def test_check_reports_broken_links(self, tmp_path, monkeypatch):
-        """Test check command detects broken links (T062)."""
         # Create project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -855,7 +793,6 @@ class TestCheckCommand:
             assert "broken link" in output.lower()
 
     def test_check_exits_zero_on_success(self, tmp_path, monkeypatch):
-        """Test check command exits with code 0 when no errors (T063)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -873,7 +810,6 @@ class TestCheckCommand:
             assert result.exit_code == 0
 
     def test_check_exits_one_on_errors(self, tmp_path, monkeypatch):
-        """Test check command exits with code 1 when errors found (T064)."""
         # Create project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -896,7 +832,6 @@ class TestCheckCommand:
             assert result.exit_code == 1
 
     def test_check_displays_file_and_line_numbers(self, tmp_path, monkeypatch):
-        """Test check command displays file locations for broken links (T065)."""
         # Create project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -926,17 +861,9 @@ class TestCheckCommand:
 
 
 class TestCheck:
-    """Real, end-to-end `fairdm-docs check` runs, via `run_fairdm_docs` rather
-    than a mocked `sphinx.cmd.build.main` (constitution Article IV).
-    `TestCheckCommand` above proves the parsing logic against hand-written
-    output.txt files; this class proves the command's own behaviour against a
-    real Sphinx linkcheck build."""
-
     def test_reports_success_when_every_address_resolves(
         self, documented_portal, run_fairdm_docs
     ):
-        """T031: a documentation source with no external addresses at all
-        reports success and exits 0. (FR-011, FR-012, SC-006)"""
         portal_dir = documented_portal(
             "check-all-resolve", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -950,9 +877,6 @@ class TestCheck:
     def test_names_the_address_and_file_of_a_broken_link(
         self, documented_portal, run_fairdm_docs
     ):
-        """T032: an address that does not resolve is named together with the
-        file it appears in, and the command exits non-zero. (FR-011, FR-012,
-        SC-006)"""
         portal_dir = documented_portal(
             "check-broken-link", "0.1.0", _populate_from_fixture("broken_link")
         )
@@ -967,12 +891,6 @@ class TestCheck:
     def test_reports_a_redirect_under_its_own_heading_and_exits_zero(
         self, documented_portal, run_fairdm_docs, terminating_redirect_server
     ):
-        """T033: an address that redirects is reported separately from any
-        failures, under its own heading, and does not by itself fail the
-        check (D5, FR-013). The redirected_link fixture holds a
-        __REDIRECT_URL__ placeholder (D14) substituted here with the running
-        server's URL — terminating_redirect_server rather than conftest.py's
-        redirect_server; see decisions.md for why."""
 
         def populate(docs_dir):
             source = (FIXTURES_DIR / "redirected_link" / "index.rst").read_text()
@@ -993,11 +911,6 @@ class TestCheck:
     def test_reports_a_permanent_redirect_the_same_as_a_temporary_one(
         self, documented_portal, run_fairdm_docs, permanent_redirect_server
     ):
-        """A 301 is reported exactly as a 302 is. The builder writes
-        `[redirected permanently]` for it rather than `[redirected with
-        Found]`, and a classifier keyed to one variant drops the other from
-        both the console and the report while still exiting 0 — the address
-        is then neither confirmed working nor flagged, it just disappears."""
 
         def populate(docs_dir):
             source = (FIXTURES_DIR / "redirected_link" / "index.rst").read_text()
@@ -1021,9 +934,6 @@ class TestCheck:
     def test_writes_its_report_alongside_the_html_output(
         self, documented_portal, run_fairdm_docs
     ):
-        """T034: the report lands at build_dir.parent / 'check-report.txt'
-        (plan.md), next to where linkcheck_dir already sits — not inside the
-        HTML output directory. (FR-014)"""
         portal_dir = documented_portal(
             "check-report-location", "0.1.0", _populate_from_fixture("broken_link")
         )
@@ -1041,12 +951,6 @@ class TestCheck:
 
 
 class TestExitCodes:
-    """T017: every configuration failure (T011-T015) exits non-zero through
-    `check`, not just `build` — the existing coverage in TestBuildCommand,
-    TestConfigurationValidationErrors and TestConfigurationFailures only
-    invokes `build` (S3R REC-001). Runs through the real `run_fairdm_docs`
-    fixture rather than a mocked Sphinx, per constitution Article IV."""
-
     def test_check_exits_nonzero_when_no_pyproject(self, tmp_path, run_fairdm_docs):
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
@@ -1121,9 +1025,6 @@ class TestExitCodes:
         assert "verbosity" in output.lower()
 
     def test_check_exits_zero_on_success(self, documented_portal, run_fairdm_docs):
-        """A successful `build` exiting 0 is already proven exhaustively by
-        TestBuild (US1); `check` has no equivalent real-invocation coverage
-        yet, only the mocked-Sphinx one in TestCheckCommand."""
         portal_dir = documented_portal(
             "exit-codes-check-success", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -1136,10 +1037,7 @@ class TestExitCodes:
 
 
 class TestLiveServerCommand:
-    """Test the build --live command functionality."""
-
     def test_build_live_starts_server(self, tmp_path, monkeypatch):
-        """Test that --live flag starts sphinx-autobuild server (T048)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -1169,7 +1067,6 @@ class TestLiveServerCommand:
                 assert "--open-browser" in args
 
     def test_build_live_checks_port_availability(self, tmp_path, monkeypatch):
-        """Test that live server checks port availability before starting (T049)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -1194,7 +1091,6 @@ class TestLiveServerCommand:
                 assert mock_check.call_args[0][0] == 5000  # Default port
 
     def test_build_live_error_when_port_occupied(self, tmp_path, monkeypatch):
-        """Test error handling when port is already in use (T050)."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -1217,7 +1113,6 @@ class TestLiveServerCommand:
             assert "[tool.fairdm.docs]" in output  # Config guidance
 
     def test_build_live_uses_custom_port_from_config(self, tmp_path, monkeypatch):
-        """Test that live server uses custom port from config (T051)."""
         # Create project with custom port configuration
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text(
@@ -1244,7 +1139,6 @@ class TestLiveServerCommand:
                 assert args[port_index] == "8080"
 
     def test_build_live_handles_missing_sphinx_autobuild(self, tmp_path, monkeypatch):
-        """Test error handling when sphinx-autobuild is not installed."""
         # Create minimal project structure
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -1268,22 +1162,9 @@ class TestLiveServerCommand:
 
 
 class TestLivePreview:
-    """T028-T029: closes two coverage gaps S3R found in TestLiveServerCommand
-    above. T028 proves every configured setting reaches the live server's
-    argv, not just port and --open-browser. T029 proves is_port_available's
-    own socket-based detection against a real bound socket, rather than the
-    code path that reads its mocked return value. Mocking subprocess.run is
-    the legitimate boundary per D10 — the server's own rebuild, reload and
-    browser behaviour belongs to sphinx-autobuild, not this package."""
-
     def test_live_launches_against_every_configured_setting(
         self, documented_portal, run_fairdm_docs
     ):
-        """T028: source_dir, build_dir and port are all set to non-default
-        values in [tool.fairdm.docs]; every one of them, plus --open-browser,
-        must reach subprocess.run's argv. test_build_live_starts_server
-        (TestLiveServerCommand) only asserts port and --open-browser, leaving
-        source_dir and build_dir unproven."""
         portal_dir = documented_portal(
             "live-all-settings", "0.1.0", lambda docs_dir: None
         )
@@ -1318,12 +1199,6 @@ class TestLivePreview:
     def test_live_stops_before_launching_when_the_configured_port_is_taken(
         self, documented_portal, run_fairdm_docs
     ):
-        """T029: a real socket is bound and listening on the configured port
-        before the command runs, exercising is_port_available's actual
-        socket.bind() detection rather than a mock of its return value —
-        every port-conflict test in TestLiveServerCommand mocks
-        is_port_available itself, proving the code path but not that the
-        detection works. subprocess.run must never be called."""
         portal_dir = documented_portal(
             "live-port-taken", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -1354,12 +1229,6 @@ class TestLivePreview:
 
 
 class TestInterrupt:
-    """T018: an interrupt during an ordinary build, a live preview, or a
-    check stops the command without a traceback and exits 130 in every
-    mode (D6). Each mocks the narrowest point that can raise
-    KeyboardInterrupt (`sphinx.cmd.build.main` or `subprocess.run`), per
-    constitution Article IV."""
-
     def test_build_interrupted_exits_130(self, tmp_path, monkeypatch):
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -1391,8 +1260,6 @@ class TestInterrupt:
         assert "Traceback" not in output
 
     def test_live_preview_interrupted_exits_130(self, tmp_path, monkeypatch):
-        """The live-mode interrupt handler exits 130, like the other two.
-        It exited 0 before this feature; see decisions.md D6."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
         docs_dir = tmp_path / "docs"
@@ -1410,10 +1277,7 @@ class TestInterrupt:
 
 
 class TestCLIHelp:
-    """Test CLI help output."""
-
     def test_app_help(self):
-        """Test main app help message."""
         result = runner.invoke(app, ["--help"])
 
         assert result.exit_code == 0
@@ -1422,7 +1286,6 @@ class TestCLIHelp:
         assert "check" in result.stdout
 
     def test_build_help(self):
-        """Test build command help message."""
         result = runner.invoke(app, ["build", "--help"])
 
         assert result.exit_code == 0
@@ -1430,7 +1293,6 @@ class TestCLIHelp:
         assert "--live" in result.stdout
 
     def test_check_help(self):
-        """Test check command help message."""
         result = runner.invoke(app, ["check", "--help"])
 
         assert result.exit_code == 0
@@ -1438,18 +1300,9 @@ class TestCLIHelp:
 
 
 class TestSettings:
-    """Real, end-to-end proof that each `[tool.fairdm.docs]` setting changes
-    build behaviour, and that a setting a portal does not name keeps its
-    documented default (FR-015 through FR-019, SC-003). `TestBuildCommand`
-    above proves the argv Sphinx is handed for these settings; this class
-    proves the settings actually change what the build does."""
-
     def test_source_dir_setting_changes_where_the_build_reads_from(
         self, documented_portal, run_fairdm_docs
     ):
-        """T020: source_dir named in the table is read from instead of the
-        default docs/ — proven by content that exists only there, not just
-        that the build succeeded."""
         portal_dir = documented_portal(
             "custom-source-dir", "0.1.0", lambda docs_dir: None
         )
@@ -1472,8 +1325,6 @@ class TestSettings:
     def test_build_dir_setting_changes_where_the_build_writes_to(
         self, documented_portal, run_fairdm_docs
     ):
-        """T021: build_dir named in the table is written to instead of the
-        default docs/_build/html, and the default path is never created."""
         portal_dir = documented_portal(
             "custom-build-dir", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -1491,11 +1342,6 @@ class TestSettings:
     def test_port_setting_changes_which_port_live_checks(
         self, documented_portal, run_fairdm_docs
     ):
-        """T022: the port named in the table, not the default 5000, is the
-        one the live preview's availability check examines — proven by
-        occupying 5000 with a real bound socket and configuring a free port
-        elsewhere. Goes beyond test_build_live_uses_custom_port_from_config
-        (TestLiveServerCommand), which mocks is_port_available entirely."""
         portal_dir = documented_portal(
             "custom-port", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -1528,9 +1374,6 @@ class TestSettings:
     def test_quiet_verbosity_suppresses_informational_output(
         self, documented_portal, run_fairdm_docs
     ):
-        """T023: verbosity = quiet suppresses Sphinx's informational output
-        but keeps its warnings, checked against a real build's captured
-        stdout and stderr rather than the -q flag reaching argv."""
         portal_dir = documented_portal(
             "quiet-verbosity",
             "0.1.0",
@@ -1552,8 +1395,6 @@ class TestSettings:
     def test_errors_only_verbosity_suppresses_everything_but_errors(
         self, documented_portal, run_fairdm_docs
     ):
-        """T023: verbosity = errors-only suppresses Sphinx's informational
-        output and its warnings too, keeping only real errors."""
         portal_dir = documented_portal(
             "errors-only-verbosity",
             "0.1.0",
@@ -1575,10 +1416,6 @@ class TestSettings:
     def test_django_true_sets_up_django_before_the_build(
         self, documented_portal, monkeypatch, run_fairdm_docs
     ):
-        """T024: django = true results in django.setup() genuinely running
-        before the build, not just the FAIRDM_DOCS_DJANGO env var being set —
-        checked by spying on the real fairdm_docs/conf.py mechanism (a
-        wrapped django.setup) and by the resulting app registry state."""
         portal_dir = documented_portal(
             "django-setting", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -1605,9 +1442,6 @@ class TestSettings:
     def test_django_false_leaves_django_untouched(
         self, documented_portal, run_fairdm_docs
     ):
-        """T024: django = false never invokes django.setup(). The absent
-        case (the key missing entirely) is covered by
-        test_no_table_uses_every_documented_default below."""
         portal_dir = documented_portal(
             "django-untouched", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -1625,13 +1459,6 @@ class TestSettings:
     def test_no_table_uses_every_documented_default(
         self, documented_portal, run_fairdm_docs
     ):
-        """T025: a project with no [tool.fairdm.docs] table at all builds
-        successfully using every documented default: docs/, docs/_build/html
-        (proven by a real build), full verbosity (proven by real,
-        unsuppressed Sphinx output) and django=false (proven by the real env
-        var the build runs under). Port 5000 is asserted directly off
-        load_config, since an ordinary `build` never exercises the port
-        check."""
         portal_dir = documented_portal(
             "no-table", "0.1.0", _populate_from_fixture("single_page")
         )
@@ -1655,9 +1482,6 @@ class TestSettings:
     def test_partial_table_overrides_only_the_named_setting(
         self, documented_portal, run_fairdm_docs
     ):
-        """T026: a table naming only port leaves source_dir and build_dir at
-        their documented defaults — proven by a real build that still reads
-        docs/ and writes docs/_build/html, plus the loaded configuration."""
         portal_dir = documented_portal(
             "partial-override", "0.1.0", _populate_from_fixture("single_page")
         )

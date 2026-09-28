@@ -6,7 +6,7 @@ Did: added `tests/conftest.py` with two fixtures — `portal` (writes a temporar
 declaration given as a string or a mapping) and `built_portal` (builds one for real with
 `sphinx.application.Sphinx`, returning the rendered HTML and the build output).
 Verified: exercised by every test in `tests/test_conf.py` (below); no dedicated test of the
-fixtures themselves, per Article X (fixtures are proven by their consumers).
+fixtures themselves, per the testing standards (fixtures are proven by their consumers).
 Next: T003 fixtures, then T004-T008 (`ProjectMetadata`).
 Watch: `docs/conf.py` does `from fairdm_docs.conf import *`, which reuses a cached module across
 tests in the same process rather than re-executing it. `built_portal` pops

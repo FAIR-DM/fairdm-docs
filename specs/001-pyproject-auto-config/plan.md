@@ -21,7 +21,7 @@ reads, and one test builds a real site and reads the values back out of the HTML
 | Storage | none — one file read |
 | Target | a Sphinx build on a developer's machine or in CI |
 | Performance | not a factor; the file is read once per build |
-| Constraints | the module is executed by Sphinx as a configuration file, so its module-level namespace is the interface (Article XI) |
+| Constraints | the module is executed by Sphinx as a configuration file, so its module-level namespace is the interface (Article X) |
 
 ## Constitution check
 
@@ -105,7 +105,7 @@ are defective; R3, R4, R5 and R6 own them.
 
 ### `tests/conftest.py`
 
-Two fixtures, because Article X puts construction boilerplate here rather than in the assertions:
+Two fixtures, because the testing standards put construction boilerplate here rather than in the assertions:
 
 - one that writes a temporary project from a declaration given as a string or a mapping,
 - one that builds such a project's documentation for real, through `from fairdm_docs.conf import *`,
@@ -126,7 +126,7 @@ from it runs the whole chain. That is measured, not asserted — the module is 1
 coverage, and the coverage is 0% because there is no way in.
 
 What is being added is one concrete class with two constructors, directly instantiated. No base
-class, no interface, no registry, no indirection, and no second way to do anything. Article XI
+class, no interface, no registry, no indirection, and no second way to do anything. Article X
 independently requires the class, because the three functions being moved share one subject.
 
 **What is deliberately not done.** `pyproject.toml` is read in two places in this package, and the

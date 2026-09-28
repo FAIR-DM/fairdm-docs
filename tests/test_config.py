@@ -25,10 +25,7 @@ from fairdm_docs.utils import find_pyproject_toml
 
 
 class TestConfigurationLoading:
-    """Test configuration loading from pyproject.toml."""
-
     def test_build_configuration_defaults(self):
-        """Test BuildConfiguration has correct default values."""
         config = BuildConfiguration()
 
         assert config.source_dir == Path("docs")
@@ -38,7 +35,6 @@ class TestConfigurationLoading:
         assert config.django is False  # Django should be disabled by default
 
     def test_find_pyproject_in_current_dir(self, tmp_path, monkeypatch):
-        """Test finding pyproject.toml in current directory."""
         # Create a pyproject.toml in temp directory
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -51,7 +47,6 @@ class TestConfigurationLoading:
         assert found.exists()
 
     def test_find_pyproject_in_parent_dir(self, tmp_path, monkeypatch):
-        """Test finding pyproject.toml in parent directory."""
         # Create pyproject.toml in parent
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -65,14 +60,12 @@ class TestConfigurationLoading:
         assert found == pyproject
 
     def test_find_pyproject_not_found(self, tmp_path, monkeypatch):
-        """Test find_pyproject returns None when not found."""
         monkeypatch.chdir(tmp_path)
 
         found = find_pyproject_toml()
         assert found is None
 
     def test_load_pyproject_success(self, tmp_path, monkeypatch):
-        """Test successfully loading pyproject.toml."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -87,7 +80,6 @@ version = "1.0.0"
         assert data["project"]["version"] == "1.0.0"
 
     def test_load_pyproject_raises_when_missing(self, tmp_path, monkeypatch):
-        """Test load_pyproject raises ConfigError when not found."""
         monkeypatch.chdir(tmp_path)
 
         with pytest.raises(ConfigError) as exc_info:
@@ -96,7 +88,6 @@ version = "1.0.0"
         assert "No pyproject.toml found" in str(exc_info.value)
 
     def test_load_config_with_defaults(self, tmp_path, monkeypatch):
-        """Test loading config with no [tool.fairdm.docs] section uses defaults."""
         # Create minimal pyproject.toml
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
@@ -119,7 +110,6 @@ name = "test"
         assert config.verbosity == "full"
 
     def test_load_config_with_custom_values(self, tmp_path, monkeypatch):
-        """Test loading config with custom [tool.fairdm.docs] section."""
         # Create pyproject.toml with custom config
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
@@ -148,7 +138,6 @@ verbosity = "quiet"
         assert config.verbosity == "quiet"
 
     def test_load_config_validates_source_dir(self, tmp_path, monkeypatch):
-        """Test that missing source directory raises clear error."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -167,7 +156,6 @@ name = "test"
         assert "[tool.fairdm.docs]" in error_msg
 
     def test_load_config_validates_port_range(self, tmp_path, monkeypatch):
-        """Test that invalid port number raises error."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -190,7 +178,6 @@ port = 99999
         assert "1024-65535" in error_msg
 
     def test_load_config_validates_verbosity(self, tmp_path, monkeypatch):
-        """Test that invalid verbosity level raises error."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -213,7 +200,6 @@ verbosity = "invalid-level"
         assert "full, quiet, errors-only" in error_msg
 
     def test_no_pyproject_raises_error(self, tmp_path, monkeypatch):
-        """Test that missing pyproject.toml raises appropriate error."""
         monkeypatch.chdir(tmp_path)
 
         with pytest.raises(ConfigError) as exc_info:
@@ -225,7 +211,6 @@ verbosity = "invalid-level"
         assert "Run this command from your project root" in error_msg
 
     def test_user_config_overrides_defaults(self, tmp_path, monkeypatch):
-        """Test that user configuration takes precedence over defaults."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -249,7 +234,6 @@ port = 7000
         assert config.verbosity == "full"
 
     def test_load_config_with_django_enabled(self, tmp_path, monkeypatch):
-        """Test loading config with Django integration enabled."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -270,7 +254,6 @@ django = true
         assert config.django is True
 
     def test_load_config_django_disabled_by_default(self, tmp_path, monkeypatch):
-        """Test that Django is disabled by default when not specified."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [project]
@@ -289,10 +272,7 @@ name = "test"
 
 
 class TestConfigurationValidation:
-    """Test configuration validation rules."""
-
     def test_validate_config_success(self, tmp_path):
-        """Test validation passes with valid configuration."""
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
 
@@ -307,7 +287,6 @@ class TestConfigurationValidation:
         validate_config(config)
 
     def test_validate_missing_source_dir(self):
-        """Test validation fails when source directory doesn't exist."""
         config = BuildConfiguration(
             source_dir=Path("/nonexistent/path"),
         )
@@ -320,7 +299,6 @@ class TestConfigurationValidation:
         assert "not found" in error_msg
 
     def test_validate_port_too_low(self, tmp_path):
-        """Test validation fails when port number is too low."""
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
 
@@ -335,7 +313,6 @@ class TestConfigurationValidation:
         assert "Invalid port" in str(exc_info.value)
 
     def test_validate_port_too_high(self, tmp_path):
-        """Test validation fails when port number is too high."""
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
 
@@ -350,7 +327,6 @@ class TestConfigurationValidation:
         assert "Invalid port" in str(exc_info.value)
 
     def test_validate_invalid_verbosity(self, tmp_path):
-        """Test validation fails with invalid verbosity level."""
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
 
@@ -365,7 +341,6 @@ class TestConfigurationValidation:
         assert "Invalid verbosity" in str(exc_info.value)
 
     def test_validate_all_verbosity_options(self, tmp_path):
-        """Test all valid verbosity options pass validation."""
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
 
@@ -380,7 +355,6 @@ class TestConfigurationValidation:
             validate_config(config)
 
     def test_error_message_templates(self):
-        """Test error message templates are properly formatted."""
         # Test no_pyproject message
         msg = ERROR_MESSAGES["no_pyproject"]
         assert "No pyproject.toml found" in msg

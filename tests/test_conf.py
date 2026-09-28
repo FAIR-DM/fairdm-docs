@@ -24,8 +24,6 @@ def load_site_config(portal_dir):
 
 
 class TestSiteIdentity:
-    """The Sphinx namespace fairdm_docs.conf assigns from ProjectMetadata."""
-
     @pytest.mark.parametrize("name", ["GHFDB", "sample-portal"])
     def test_project_is_the_declared_name_verbatim(self, portal, name):
         portal_dir = portal(
@@ -97,8 +95,6 @@ authors = ["Jane Doe <jane@example.com>", "John Smith"]
 
 
 class TestRenderedSite:
-    """A real build of a portal whose identity is fully declared."""
-
     def test_title_version_and_copyright_reach_the_rendered_html(self, built_portal):
         html, _ = built_portal(
             """
@@ -175,8 +171,6 @@ def start_building(docs_dir, outdir):
 
 
 class TestConfigurationFailures:
-    """A real build reports a project-metadata failure as a message, not a traceback (T032a)."""
-
     def test_invalid_toml_is_reported_without_a_traceback(self, portal):
         portal_dir = portal("[project\nname = 'broken'")
 

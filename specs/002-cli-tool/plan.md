@@ -36,7 +36,7 @@ was already mostly right, plus three real fixes.
 | IV — Integration-First | Every acceptance scenario in US1 through US3 is proven by running the real command against a real project, per `research.md` Q1 and Q4. The one exception is US2's rebuild/reload behaviour, scoped out in D10. |
 | VI — Documentation | The `check` command's docstring currently claims internal-link validation it does not perform (A1); corrected in the same change that narrows FR-011. README's CLI section is checked against the rewritten requirements and updated wherever it repeats the old claim. |
 | VII — Dependency discipline | Nothing added. |
-| X — Test structure | `fairdm_docs/cli.py` → `tests/test_cli.py` (existing); `fairdm_docs/config.py` → `tests/test_config.py` (existing). Real-build tests join the existing modules rather than starting new ones — Article X asks for one module per source module, not one per test *kind*. |
+| I — Testing | `fairdm_docs/cli.py` → `tests/test_cli.py` (existing); `fairdm_docs/config.py` → `tests/test_config.py` (existing). Real-build tests join the existing modules rather than starting new ones — the testing standards ask for one module per source module, not one per test *kind*. |
 | XI — Cohesion | `cli.py`'s two commands are Typer callbacks, the article's named exception. No change to that shape. |
 | XIII — Zero configuration is the measured path | US1's P1 acceptance scenario — build with no arguments, no configuration file — is the first real-build test written. |
 | XIV — Backward compatibility | FR-022's exit-code unification (130 in every mode, D6) changes live behaviour: today a live-mode interrupt exits 0. Below 1.0.0 this is advisory; recorded in CHANGELOG as a fix, not silently. |

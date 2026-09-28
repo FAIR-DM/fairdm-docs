@@ -42,12 +42,9 @@ class Conductivity(models.Model):
 
 
 class TestGenerateModelDocs:
-    """Building data_models/samples.md and measurements.md from the registry."""
-
     def test_writes_sample_and_measurement_pages_from_model_classes(
         self, tmp_path, monkeypatch
     ):
-        """The registry yields model classes; the extension must read them as such."""
         fake_registry = SimpleNamespace(
             samples=[HeatFlowSite], measurements=[Conductivity]
         )
@@ -65,7 +62,6 @@ class TestGenerateModelDocs:
         assert "{autodoc-model} heat_flow.Conductivity" in measurements
 
     def test_skips_generation_when_registry_unavailable(self, tmp_path, monkeypatch):
-        """No FairDM install: the extension warns and writes nothing, per its own contract."""
         monkeypatch.setattr(autodoc_models, "registry", None)
 
         app = SimpleNamespace(srcdir=str(tmp_path))

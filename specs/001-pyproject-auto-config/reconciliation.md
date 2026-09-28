@@ -88,8 +88,8 @@ the argument for writing the task list before reading the implementation rather 
 ### Every fixture file in the suite is dead
 
 `tests/fixtures/` holds five declarations. No test in the repository loads any of them; the
-configuration and command tests write their TOML inline. Article X: *"A fixture file no test loads
-is not test data, it is dead weight that reads as coverage."*
+configuration and command tests write their TOML inline. The testing standards remove a fixture file no test
+loads, because it reads as coverage it does not provide.
 
 They are also all about the settings table rather than the metadata, so none of them is a
 declaration this specification's tests need.

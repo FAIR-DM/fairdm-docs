@@ -74,7 +74,7 @@ out of the HTML.
   only `name`, assert the build succeeds, and assert the build output names each defaulted field.
   (SC-003, FR-014)
 
-**Checkpoint**: the zero-configuration path is the tested path (Article XIII).
+**Checkpoint**: the zero-configuration path is the tested path (Article XII).
 
 ## Phase 4 — US3: a portal that cannot be identified is told exactly why (P3)
 
@@ -140,7 +140,7 @@ out of the HTML.
 
 - **T034** [P] `README.md` and `CHANGELOG.md` — the site title is now the declared name rather than a
   prettied version of it, what a portal sees change, and what it does if it wanted the old title.
-  (Article VI, Article XIV)
+  (Article VI, Article XIII)
 - **T035** The whole suite, the lint and type gates, and coverage. The configuration module's
   coverage is no longer zero. (SC-006)
 
