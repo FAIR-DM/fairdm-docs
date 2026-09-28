@@ -1,15 +1,11 @@
-"""
-Sphinx extension for auto-documenting Django models using Jinja2 templates.
-
-This extension provides the `autodoc-model` directive that automatically
-generates documentation for Django models using configurable Jinja2 templates.
-"""
+"""The `autodoc-model` Sphinx directive, which documents a Django model from a template."""
 
 from pathlib import Path
 from typing import Any
 
 import django
 from django.apps import apps
+from django.db.models import Model
 from docutils import nodes
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from sphinx.application import Sphinx
@@ -25,8 +21,7 @@ logger = getLogger(__name__)
 
 
 class AutoDocModelDirective(SphinxDirective):
-    """
-    Sphinx directive for auto-documenting Django models.
+    """Sphinx directive for auto-documenting Django models.
 
     Usage:
         .. autodoc-model:: myapp.MyModel
@@ -37,7 +32,7 @@ class AutoDocModelDirective(SphinxDirective):
     has_content = False
 
     def run(self) -> list[nodes.Node]:
-        """Execute the directive."""
+        """Render the named model through the model template."""
         if not apps.ready:
             django.setup()
 
@@ -56,13 +51,8 @@ class AutoDocModelDirective(SphinxDirective):
         if model is None:
             return [self._error_node(f"Model not found: '{model_path}'")]
 
-        # Get the template environment
         template_env = self._get_template_env()
-
-        # Prepare context for template
         context = self._prepare_context(model)
-
-        # Render the template
         try:
             template = template_env.get_template("model.md.jinja")
             rendered_content = template.render(**context)
@@ -86,13 +76,27 @@ class AutoDocModelDirective(SphinxDirective):
         return list(document.children)
 
     def _error_node(self, message: str) -> nodes.Node:
-        """Create an error node."""
+        """Wrap a message in an error node.
+
+        Args:
+            message: The error to show in the rendered page.
+
+        Returns:
+            An error node holding the message.
+        """
         error = nodes.error("", nodes.paragraph("", message))
         return error
 
     def _get_template_env(self) -> Environment:
-        """Get the Jinja2 template environment."""
-        # Find the templates directory (in the parent package, not extensions subpackage)
+        """Build the Jinja2 environment that loads the model template.
+
+        Returns:
+            The template environment.
+
+        Raises:
+            FileNotFoundError: The package's templates directory is missing.
+        """
+        # Templates live in the parent package, not this subpackage.
         current_dir = Path(__file__).parent.parent
         templates_dir = current_dir / "_templates"
 
@@ -107,23 +111,27 @@ class AutoDocModelDirective(SphinxDirective):
             lstrip_blocks=True,
         )
 
-        # Add custom filters
         env.filters["title"] = lambda s: s.title() if s else s
 
         return env
 
-    def _prepare_context(self, model) -> dict[str, Any]:
-        """Prepare the context dictionary for template rendering."""
-        # Just pass the model class - template handles everything else
+    def _prepare_context(self, model: type[Model]) -> dict[str, Any]:
+        """Build the template context for a model.
+
+        Args:
+            model: The Django model class to document.
+
+        Returns:
+            The context, holding the model class.
+        """
         return {"model": model}
 
 
 def generate_model_docs(app: Sphinx) -> None:
-    """
-    Generate model documentation files at build time.
+    """Write a page per registered model type into the data_models directory.
 
-    This function creates individual markdown files for all registered models
-    in the data_models directory.
+    Args:
+        app: The Sphinx application whose source directory receives the pages.
     """
     if not registry:
         logger.warning("FairDM registry not available, skipping auto-generation")
@@ -133,7 +141,6 @@ def generate_model_docs(app: Sphinx) -> None:
     out_dir = docs_dir / "data_models"
     out_dir.mkdir(exist_ok=True)
 
-    # Create index file
     index_path = out_dir / "index.md"
     with open(index_path, "w", encoding="utf-8") as f:
         f.write("# Data Models\n\n")
@@ -143,7 +150,6 @@ def generate_model_docs(app: Sphinx) -> None:
         f.write("measurements\n")
         f.write("```\n")
 
-    # Create samples index
     samples_path = out_dir / "samples.md"
     with open(samples_path, "w", encoding="utf-8") as f:
         f.write("# Sample Types\n\n")
@@ -152,7 +158,6 @@ def generate_model_docs(app: Sphinx) -> None:
             f.write(f"## {model._meta.verbose_name}\n\n")
             f.write(f"```{{autodoc-model}} {model_path}\n```\n\n")
 
-    # Create measurements index
     measurements_path = out_dir / "measurements.md"
     with open(measurements_path, "w", encoding="utf-8") as f:
         f.write("# Measurement Types\n\n")
@@ -163,9 +168,7 @@ def generate_model_docs(app: Sphinx) -> None:
 
 
 def setup(app: Sphinx) -> dict[str, Any]:
-    """
-    Setup the autodoc-models extension.
-    """
+    """Register the autodoc-model directive and the model page generator."""
     app.add_directive("autodoc-model", AutoDocModelDirective)
     app.connect("builder-inited", generate_model_docs)
 
