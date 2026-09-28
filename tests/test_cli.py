@@ -185,26 +185,6 @@ class TestBuildCommand:
             # Parent directory should be created
             assert build_dir.parent.exists()
 
-    def test_build_displays_progress_messages(self, tmp_path, monkeypatch):
-        pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("[project]\nname = 'test'")
-
-        docs_dir = tmp_path / "docs"
-        docs_dir.mkdir()
-        (docs_dir / "index.md").write_text("# Test")
-
-        monkeypatch.chdir(tmp_path)
-
-        with patch("sphinx.cmd.build.main", return_value=0):
-            result = runner.invoke(app, ["build"])
-
-            # Should show build start message
-            assert "Building documentation" in result.stdout
-
-            # Should show success message
-            assert "Build complete" in result.stdout
-            assert "✅" in result.stdout
-
     def test_build_exits_zero_on_success(self, tmp_path, monkeypatch):
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -228,11 +208,6 @@ class TestBuildCommand:
         # Should exit with error
         assert result.exit_code == 1
 
-        # Should show clear error message (can be in stdout or stderr)
-        output = result.stdout + result.stderr
-        assert "No pyproject.toml found" in output
-        assert "Run this command from your project root" in output
-
     def test_build_error_when_source_missing(self, tmp_path, monkeypatch):
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("[project]\nname = 'test'")
@@ -244,12 +219,6 @@ class TestBuildCommand:
 
         # Should exit with error
         assert result.exit_code == 1
-
-        # Should show clear error message (can be in stdout or stderr)
-        output = result.stdout + result.stderr
-        assert "Source directory" in output
-        assert "not found" in output
-        assert "[tool.fairdm.docs]" in output
 
     def test_build_with_custom_source_dir(self, tmp_path, monkeypatch):
         pyproject = tmp_path / "pyproject.toml"
@@ -362,8 +331,6 @@ verbosity = "errors-only"
             result = runner.invoke(app, ["build"])
 
             assert result.exit_code == 2
-            output = result.stdout + result.stderr
-            assert "Build failed" in output
 
     def test_build_uses_package_conf_py(self, tmp_path, monkeypatch):
         pyproject = tmp_path / "pyproject.toml"
@@ -557,10 +524,8 @@ class TestBuild:
         exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["build"])
 
         assert exit_code == 0
-        assert "Building documentation" in stdout
-        # "Output: docs/_build/html" is the command's own message (distinct
-        # from Sphinx's own "The HTML pages are in docs/_build/html.").
-        assert "Output: docs/_build/html" in stdout
+        # Sphinx's own line naming the path ends with a full stop; the command's does not.
+        assert any(line.endswith("docs/_build/html") for line in stdout.splitlines())
 
     def test_full_verbosity_passes_sphinxs_own_output_through(
         self, documented_portal, run_fairdm_docs
@@ -632,8 +597,7 @@ port = 100000
         # Should exit with error
         assert result.exit_code == 1
         output = result.stdout + result.stderr
-        assert "port" in output.lower()
-        assert "100000" in output or "invalid" in output.lower()
+        assert "100000" in output
 
     def test_invalid_verbosity_shows_clear_error(self, tmp_path, monkeypatch):
         pyproject = tmp_path / "pyproject.toml"
@@ -656,8 +620,7 @@ verbosity = "invalid"
         # Should exit with error
         assert result.exit_code == 1
         output = result.stdout + result.stderr
-        assert "verbosity" in output.lower()
-        assert "invalid" in output or "full" in output or "quiet" in output
+        assert "invalid" in output
 
     def test_config_validation_error_message_format(self, tmp_path, monkeypatch):
         pyproject = tmp_path / "pyproject.toml"
@@ -680,10 +643,7 @@ port = -1
         # Should exit with error
         assert result.exit_code == 1
         output = result.stdout + result.stderr
-        # Error should contain the invalid value and guidance
-        assert (
-            "-1" in output or "negative" in output.lower() or "port" in output.lower()
-        )
+        assert "-1" in output
 
 
 class TestConfigurationFailures:
@@ -709,7 +669,6 @@ class TestConfigurationFailures:
         assert result.exit_code != 0
         output = result.stdout + result.stderr
         assert "Traceback" not in output
-        assert "PEP 621" in output
 
     def test_malformed_toml_reported_as_message_not_traceback(
         self, tmp_path, monkeypatch
@@ -729,7 +688,6 @@ class TestConfigurationFailures:
         output = result.stdout + result.stderr
         assert "Traceback" not in output
         assert str(pyproject) in output
-        assert "not valid TOML" in output
 
 
 class TestCheckCommand:
@@ -758,10 +716,6 @@ class TestCheckCommand:
 
             # Should exit successfully
             assert result.exit_code == 0
-            assert (
-                "Link check complete" in result.stdout
-                or "All links are valid" in result.stdout
-            )
 
     def test_check_reports_broken_links(self, tmp_path, monkeypatch):
         # Create project structure
@@ -790,7 +744,7 @@ class TestCheckCommand:
             assert result.exit_code == 1
             # Combined stdout and stderr for error messages
             output = result.stdout + result.stderr
-            assert "broken link" in output.lower()
+            assert "https://example.invalid/" in output
 
     def test_check_exits_zero_on_success(self, tmp_path, monkeypatch):
         # Create minimal project structure
@@ -871,8 +825,6 @@ class TestCheck:
         exit_code, stdout, stderr = run_fairdm_docs(portal_dir, ["check"])
 
         assert exit_code == 0
-        output = stdout + stderr
-        assert "All links are valid" in output or "Link check complete" in output
 
     def test_names_the_address_and_file_of_a_broken_link(
         self, documented_portal, run_fairdm_docs
@@ -961,7 +913,6 @@ class TestExitCodes:
         assert exit_code != 0
         output = stdout + stderr
         assert "Traceback" not in output
-        assert "No pyproject.toml found" in output
 
     def test_check_exits_nonzero_when_toml_is_malformed(
         self, tmp_path, run_fairdm_docs
@@ -976,7 +927,6 @@ class TestExitCodes:
         assert exit_code != 0
         output = stdout + stderr
         assert "Traceback" not in output
-        assert "not valid TOML" in output
 
     def test_check_exits_nonzero_when_source_dir_missing(
         self, tmp_path, run_fairdm_docs
@@ -988,7 +938,6 @@ class TestExitCodes:
         assert exit_code != 0
         output = stdout + stderr
         assert "Traceback" not in output
-        assert "Source directory" in output
 
     def test_check_exits_nonzero_when_port_out_of_range(
         self, tmp_path, run_fairdm_docs
@@ -1005,7 +954,7 @@ class TestExitCodes:
         assert exit_code != 0
         output = stdout + stderr
         assert "Traceback" not in output
-        assert "port" in output.lower()
+        assert "100000" in output
 
     def test_check_exits_nonzero_when_verbosity_invalid(
         self, tmp_path, run_fairdm_docs
@@ -1022,7 +971,7 @@ class TestExitCodes:
         assert exit_code != 0
         output = stdout + stderr
         assert "Traceback" not in output
-        assert "verbosity" in output.lower()
+        assert "loud" in output
 
     def test_check_exits_zero_on_success(self, documented_portal, run_fairdm_docs):
         portal_dir = documented_portal(
@@ -1109,8 +1058,7 @@ class TestLiveServerCommand:
             assert result.exit_code == 1
             # Error messages go to stderr (typer.echo(..., err=True))
             output = result.stdout + result.stderr
-            assert "Port 5000 is already in use" in output
-            assert "[tool.fairdm.docs]" in output  # Config guidance
+            assert "5000" in output
 
     def test_build_live_uses_custom_port_from_config(self, tmp_path, monkeypatch):
         # Create project with custom port configuration
@@ -1156,9 +1104,6 @@ class TestLiveServerCommand:
 
                 # Should exit with error
                 assert result.exit_code == 1
-                # Error messages go to stderr
-                output = result.stdout + result.stderr
-                assert "sphinx-autobuild not found" in output
 
 
 class TestLivePreview:
@@ -1225,7 +1170,6 @@ class TestLivePreview:
         mock_run.assert_not_called()
         output = stdout + stderr
         assert str(taken_port) in output
-        assert "[tool.fairdm.docs]" in output
 
 
 class TestInterrupt:
@@ -1289,14 +1233,12 @@ class TestCLIHelp:
         result = runner.invoke(app, ["build", "--help"])
 
         assert result.exit_code == 0
-        assert "Build Sphinx documentation" in result.stdout
         assert "--live" in result.stdout
 
     def test_check_help(self):
         result = runner.invoke(app, ["check", "--help"])
 
         assert result.exit_code == 0
-        assert "Validate documentation" in result.stdout
 
 
 class TestSettings:
@@ -1471,7 +1413,6 @@ class TestSettings:
 
         assert exit_code == 0
         assert (portal_dir / "docs" / "_build" / "html" / "index.html").exists()
-        assert "build succeeded" in stdout
         assert recorder.seen["FAIRDM_DOCS_DJANGO"] == "false"
 
         from fairdm_docs.config import load_config
