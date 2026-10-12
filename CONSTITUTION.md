@@ -88,6 +88,9 @@ reads.
 
 **This does not license abstraction.** Article III still holds.
 
+**Django standards.** Where code lives in a Django codebase, and when a new abstraction is worth
+adding, is set out in [`docs/contributing/standards/django.md`](docs/contributing/standards/django.md).
+
 ## Project articles
 
 ### Article XI — Convention over configuration
@@ -161,4 +164,4 @@ lower the bar.
 
 ---
 
-**Version**: 3.0.0 | **Ratified**: 2026-02-10 | **Last Amended**: 2026-09-28
+**Version**: 3.1.0 | **Ratified**: 2026-02-10 | **Last Amended**: 2026-10-12
