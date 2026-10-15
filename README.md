@@ -1,9 +1,17 @@
 # FairDM Documentation Tools
 
-Sphinx configuration and build tooling for FairDM research data portals.
+[![Tests](https://github.com/FAIR-DM/fairdm-docs/actions/workflows/tests.yml/badge.svg)](https://github.com/FAIR-DM/fairdm-docs/actions/workflows/tests.yml)
+[![Build](https://github.com/FAIR-DM/fairdm-docs/actions/workflows/build.yml/badge.svg)](https://github.com/FAIR-DM/fairdm-docs/actions/workflows/build.yml)
+[![Publish](https://github.com/FAIR-DM/fairdm-docs/actions/workflows/publish.yml/badge.svg)](https://github.com/FAIR-DM/fairdm-docs/actions/workflows/publish.yml)
+[![Coverage](https://codecov.io/gh/FAIR-DM/fairdm-docs/branch/main/graph/badge.svg)](https://codecov.io/gh/FAIR-DM/fairdm-docs)
+[![PyPI](https://img.shields.io/pypi/v/fairdm-docs)](https://pypi.org/project/fairdm-docs/)
+[![Development status](https://img.shields.io/pypi/status/fairdm-docs)](https://pypi.org/project/fairdm-docs/)
+[![Python](https://img.shields.io/pypi/pyversions/fairdm-docs)](https://pypi.org/project/fairdm-docs/)
+[![Django](https://img.shields.io/pypi/djversions/fairdm-docs)](https://pypi.org/project/fairdm-docs/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Licence](https://img.shields.io/github/license/FAIR-DM/fairdm-docs)](https://github.com/FAIR-DM/fairdm-docs/blob/main/LICENSE)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+Sphinx configuration and build tooling for FairDM research data portals.
 
 ## Overview
 
@@ -710,16 +718,20 @@ fairdm-docs build
 If you encounter issues not covered here:
 
 1. Check the [GitHub Issues](https://github.com/FAIR-DM/fairdm-docs/issues)
-2. Review the [docs/examples/](docs/examples/) directory for working configurations
+2. Review the [docs/examples/](https://github.com/FAIR-DM/fairdm-docs/tree/main/docs/examples/) directory for working configurations
 3. Open a new issue with details about your setup and error message
 
 ## Contributing
 
-Issues and pull requests are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Issues and pull requests are welcome! Please see [CONTRIBUTING.md](https://github.com/FAIR-DM/fairdm-docs/blob/main/CONTRIBUTING.md) for guidelines.
+
+## Changelog
+
+See [CHANGELOG.md](https://github.com/FAIR-DM/fairdm-docs/blob/main/CHANGELOG.md).
 
 ## License
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see [LICENSE](https://github.com/FAIR-DM/fairdm-docs/blob/main/LICENSE) file for details.
 
 ## Credits
 
