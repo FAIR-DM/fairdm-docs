@@ -166,16 +166,20 @@ from fairdm_docs.conf import *
 html_theme = "furo"  # Change theme
 
 # Add custom extensions
-extensions.extend([
-    "sphinx.ext.graphviz",
-    "sphinxcontrib.mermaid",
-])
+extensions.extend(
+    [
+        "sphinx.ext.graphviz",
+        "sphinxcontrib.mermaid",
+    ]
+)
 
 # Customize theme options
-html_theme_options.update({
-    "show_toc_level": 2,
-    "navbar_align": "left",
-})
+html_theme_options.update(
+    {
+        "show_toc_level": 2,
+        "navbar_align": "left",
+    }
+)
 ```
 
 **Configuration precedence** (highest to lowest):
@@ -347,10 +351,12 @@ html_theme_options.update({
 # docs/conf.py
 from fairdm_docs.conf import *
 
-extensions.extend([
-    "sphinx.ext.graphviz",
-    "sphinxcontrib.mermaid",
-])
+extensions.extend(
+    [
+        "sphinx.ext.graphviz",
+        "sphinxcontrib.mermaid",
+    ]
+)
 ```
 
 ### Customize Static Files

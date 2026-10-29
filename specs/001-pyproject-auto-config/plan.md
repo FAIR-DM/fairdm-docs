@@ -89,11 +89,11 @@ value object:
 ```python
 metadata = ProjectMetadata.from_file(find_pyproject_toml())
 
-project = metadata.name          # verbatim — FR-007, and the D7 defect closed
-version = metadata.version       # FR-008
+project = metadata.name  # verbatim — FR-007, and the D7 defect closed
+version = metadata.version  # FR-008
 release = metadata.version
-author = ", ".join(metadata.authors)   # FR-010
-copyright = metadata.copyright   # FR-009
+author = ", ".join(metadata.authors)  # FR-010
+copyright = metadata.copyright  # FR-009
 ```
 
 The theme configuration reads `metadata.repository` and `metadata.homepage` (FR-011). Whether

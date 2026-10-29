@@ -12,6 +12,7 @@ original specification said Python's `logging`; the code uses `warnings.warn`. N
 
 ```python
 from sphinx.util import logging as sphinx_logging
+
 sphinx_logging.getLogger("conf-probe").warning("PROBE-SPHINX-LOGGER at module exec")
 warnings.warn("PROBE-WARNINGS-WARN at module exec", UserWarning, stacklevel=2)
 ```

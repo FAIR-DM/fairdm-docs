@@ -132,7 +132,7 @@ def extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
     Raises:
         SphinxConfigError: theme_options is not a table.
     """
-    config = data.get("tool", {}).get("fairdm", {}).get("docs", {})
+    config: dict[str, Any] = data.get("tool", {}).get("fairdm", {}).get("docs", {})
 
     logger = getLogger(__name__)
     for key in sorted(config.keys() - DECLARATIVE_KEYS):

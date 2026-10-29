@@ -221,7 +221,6 @@ class TestConfigurationFailures:
         assert "Traceback" not in message
 
 
-
 REPOSITORY = "https://github.com/example/sample-portal"
 
 
@@ -243,9 +242,7 @@ class TestThemeSelection:
 
         assert "alabaster.css" in html
 
-    def test_a_theme_that_is_not_installed_fails_with_sphinxs_own_error(
-        self, portal
-    ):
+    def test_a_theme_that_is_not_installed_fails_with_sphinxs_own_error(self, portal):
         portal_dir = portal(declaration('theme = "no_such_theme"\n'))
 
         with pytest.raises(ThemeError):
