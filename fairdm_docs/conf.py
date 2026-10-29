@@ -200,7 +200,9 @@ branding = _resolve_branding_assets()
 # override html_theme after importing this one.
 html_theme = fairdm_config.get("theme") or PYDATA_THEME
 
-html_static_path = ["_static"]
+# Sphinx reads conf.py from its own directory, so this is the project's _static.
+# Listing one that does not exist is a build warning.
+html_static_path = ["_static"] if Path("_static").is_dir() else []
 html_css_files: list[str] = []
 html_logo = branding["logo_path"]
 html_favicon = branding["favicon_path"]
