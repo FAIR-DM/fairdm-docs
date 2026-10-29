@@ -2,6 +2,7 @@
 
 import io
 import os
+import subprocess
 import sys
 
 import pytest
@@ -372,3 +373,52 @@ class TestHeadingAnchors:
         start_building(docs_dir, portal_dir / "_build", warnings).build()
 
         assert "install-the-front-end" not in warnings.getvalue()
+
+
+class TestProjectStaticFiles:
+    def test_a_project_without_static_files_builds_with_warnings_as_errors(
+        self, portal
+    ):
+        portal_dir = portal(
+            {
+                "project": {
+                    "name": "sample-portal",
+                    "version": "1.0.0",
+                    "description": "A sample research data portal",
+                    "authors": ["Jane Doe"],
+                }
+            }
+        )
+
+        # A separate process, as sphinx-build runs: builds earlier in this one
+        # leave docutils node classes registered, which is itself a warning.
+        build = subprocess.run(
+            [sys.executable, "-m", "sphinx", "-W", "-b", "html", "docs", "_build"],
+            cwd=portal_dir,
+            capture_output=True,
+            text=True,
+        )
+
+        assert build.returncode == 0, build.stderr
+
+    def test_a_projects_own_static_files_are_copied(self, portal):
+        portal_dir = portal(declaration())
+        static = portal_dir / "docs" / "_static"
+        static.mkdir()
+        (static / "portal.css").write_text("body {}\n")
+
+        start_building(portal_dir / "docs", portal_dir / "_build").build()
+
+        assert (portal_dir / "_build" / "html" / "_static" / "portal.css").exists()
+
+    def test_a_projects_file_replaces_the_packages_file_of_the_same_name(self, portal):
+        portal_dir = portal(declaration())
+        stylesheet = load_site_config(portal_dir).NAVBAR_STYLESHEET
+        static = portal_dir / "docs" / "_static"
+        static.mkdir()
+        (static / stylesheet).write_text("/* the portal's own */\n")
+
+        start_building(portal_dir / "docs", portal_dir / "_build").build()
+
+        copied = portal_dir / "_build" / "html" / "_static" / stylesheet
+        assert copied.read_text() == (static / stylesheet).read_text()

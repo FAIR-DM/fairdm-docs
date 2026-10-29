@@ -68,6 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A project with no `docs/_static` directory no longer gets a build warning.** Its `_static` is
+  added to `html_static_path` only when the directory exists, so a build run with warnings as
+  errors no longer fails on `html_static_path entry '_static' does not exist`.
 - **A `build` or `check` command no longer changes the environment of whatever ran it.** Both
   commands pass two settings to `conf.py` as environment variables, and both used to leave them
   behind. In a process that runs more than one command — a test suite, or a tool that calls the
