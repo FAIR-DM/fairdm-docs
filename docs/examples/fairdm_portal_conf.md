@@ -50,9 +50,9 @@ dev = [
 [tool.uv.sources]
 fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
 
-# Configure fairdm-docs theme
+# The name the site shows
 [tool.fairdm.docs]
-theme = "pydata_sphinx_theme"
+title = "Australian Geoscience Data Portal"
 ```
 
 ## Minimal docs/conf.py
@@ -87,7 +87,8 @@ With this `pyproject.toml`, `fairdm-docs` automatically sets up:
 
 ### Basic Sphinx Settings
 
-- `project = "aus-geoscience-portal"` — the declared name, exactly as written
+- `project = "Australian Geoscience Data Portal"` and `html_title` to match — the declared
+  `title`. Without one, `project` is the declared name, exactly as written.
 - `version = "2.5.1"`
 - `copyright = "2026, Australian Geoscience Collaboration"`
 - `author = "Australian Geoscience Collaboration"`
@@ -99,7 +100,8 @@ With this `pyproject.toml`, `fairdm-docs` automatically sets up:
 html_theme = "pydata_sphinx_theme"
 
 html_theme_options = {
-    "github_url": "https://github.com/ausgeo/portal",
+    "navbar_align": "left",
+    "header_links_before_dropdown": 6,
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "icon_links": [
         {
@@ -113,6 +115,10 @@ html_theme_options = {
 
 The address comes from `[project.urls]`: the repository where one is declared, the homepage
 otherwise. Declare neither and `icon_links` is empty rather than pointing nowhere.
+
+When `CHANGELOG.md` exists at the project root and an address is declared, `external_links` adds
+a "Changelog" entry pointing at `<address>/blob/main/CHANGELOG.md`. A stylesheet the package
+ships highlights the homepage's own navbar entry on the homepage.
 
 ### Branding
 
@@ -275,7 +281,6 @@ With this setup, you get:
 ✅ **Custom branding** - Your logo and icon throughout docs
 ✅ **Social sharing** - OpenGraph cards for Twitter/LinkedIn
 ✅ **Community engagement** - Utterances comments on each page
-✅ **Edit workflow** - "Edit on GitHub" button on every page
 ✅ **Auto-deployment** - GitHub Pages via Actions
 ✅ **Search** - Full-text search built-in
 ✅ **Mobile-responsive** - Works on all devices

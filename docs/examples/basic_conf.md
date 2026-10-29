@@ -71,7 +71,7 @@ Repository = "https://github.com/myorg/my-project"
 This will:
 - Show version "1.0.0" in docs
 - Generate copyright "2026, Your Name"
-- Point the theme's repository buttons at the declared `Repository` address
+- Link the navbar's GitHub icon to the declared `Repository` address
 - Enable Utterances comments (if repository is public)
 
 Where both a `Homepage` and a `Repository` are declared, the repository address is the one used. Declare only a `Homepage` and that is used instead.

@@ -38,7 +38,7 @@ missing and required stops the build with a message naming what to add and where
   which covers all of it rather than the one key this specification previously mentioned.
 - Q: When the declared name and the site title disagree, which is right? → A: The declared name.
   The title is the portal's name, not a prettied version of it. A portal that wants a different
-  display title is asking for a setting, and settings are R10.
+  display title sets `title` under `[tool.fairdm.docs]`.
 - Q: Should key lookups be case-insensitive everywhere? → A: Only under `[project.urls]`, whose key
   names are chosen by whoever wrote the file. PEP 621's own field names are matched as the standard
   spells them.
@@ -248,8 +248,8 @@ extracted each time.
 - **Risk**: using the declared name verbatim changes the title of sites that build today, from
   "Fairdm Docs" to "fairdm-docs".
   **Mitigation**: accepted, and it is the point. The declared name is the portal's own and the
-  transformed one is not. A portal wanting a different display title is asking for a setting, which
-  R10 covers. No consumer has pinned a release of this package, so no published site changes without
+  transformed one is not. A portal wanting a different display title sets `title` under
+  `[tool.fairdm.docs]`. No consumer has pinned a release of this package, so no published site changes without
   a deliberate update.
 
 - **Risk**: this feature's requirements are stated against a parsed file, while the file itself is

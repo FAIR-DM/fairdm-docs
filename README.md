@@ -79,11 +79,8 @@ Add `fairdm-docs` to your development dependencies:
 uv add --dev git+https://github.com/FAIR-DM/fairdm-docs
 ```
 
-Or with a specific theme:
-
-```bash
-uv add --dev "fairdm-docs[pydata-sphinx-theme] @ git+https://github.com/FAIR-DM/fairdm-docs"
-```
+This installs the [PyData Sphinx Theme](https://pydata-sphinx-theme.readthedocs.io/), which the
+site uses by default.
 
 ## Quick Start
 
@@ -143,7 +140,14 @@ build_dir = "docs/_build/html"   # Output directory (default: "docs/_build/html"
 port = 5000                      # Live server port (default: 5000)
 verbosity = "full"               # Options: "full", "quiet", "errors-only"
 django = false                   # Enable Django integration (default: false)
+title = "My Research Portal"     # Name the site shows (default: the project name)
+theme = "pydata_sphinx_theme"    # Any installed Sphinx theme (default: PyData)
+
+[tool.fairdm.docs.theme_options]
+header_links_before_dropdown = 8 # Merged over the default theme options
 ```
+
+A key the table does not accept is reported as a warning when the site builds.
 
 Then build as before:
 
@@ -159,8 +163,7 @@ For advanced users who need to override Sphinx settings directly, create a `docs
 from fairdm_docs.conf import *
 
 # Override specific settings
-project = "My Custom Project Name"  # Override name from pyproject.toml
-html_theme = "pydata_sphinx_theme"  # Change theme
+html_theme = "furo"  # Change theme
 
 # Add custom extensions
 extensions.extend([
@@ -196,8 +199,8 @@ The package automatically extracts metadata from the PEP 621 standard `[project]
 
 - `name` - The declared project name, used verbatim as the documentation title with no
   reformatting. A portal named `fairdm-docs` gets the title `fairdm-docs`, not `Fairdm Docs`. A
-  different title is a `docs/conf.py` override — see [Option 3: Advanced
-  Customization](#option-3-advanced-customization).
+  different title is set with `title` under `[tool.fairdm.docs]`, as in
+  [Option 2: Add Configuration](#option-2-add-configuration).
 
 **Optional fields** (with sensible defaults if missing):
 
@@ -236,8 +239,19 @@ Configure documentation settings in your `pyproject.toml` without writing Python
 
 ```toml
 [tool.fairdm.docs]
-theme = "pydata_sphinx_theme"  # or "sphinx_book_theme"
+title = "My Research Portal"
+theme = "furo"
+
+[tool.fairdm.docs.theme_options]
+sidebar_hide_name = true
 ```
+
+- `title` sets the name the site shows. Without it the project name is used.
+- `theme` accepts the name of any installed Sphinx theme. The default is
+  `pydata_sphinx_theme`. A theme that is not installed stops the build with Sphinx's own error.
+- `[tool.fairdm.docs.theme_options]` is merged into `html_theme_options`, key by key, over the
+  defaults described in [Theme Support](#theme-support). It applies under any theme.
+- Any other key is reported as a warning when the site builds.
 
 **Configuration precedence:**
 
@@ -345,9 +359,7 @@ extensions.extend([
 # docs/conf.py
 from fairdm_docs.conf import *
 
-html_css_files = [
-    "custom.css",
-]
+html_css_files.append("custom.css")
 ```
 
 ### Disable Comments
@@ -361,24 +373,25 @@ comments_config = {}  # Disable Utterances
 
 ## Theme Support
 
-The package supports multiple Sphinx themes via extras:
+The site uses the [PyData Sphinx Theme](https://pydata-sphinx-theme.readthedocs.io/), which is
+installed with this package. Under it, the navbar is set up as follows:
 
-```bash
-# Sphinx Book Theme (default, always installed)
-uv add --dev git+https://github.com/FAIR-DM/fairdm-docs
+- It is aligned left, against the logo, and shows six entries before the "More" dropdown.
+- The declared repository address gets one GitHub icon.
+- The homepage's own entry is highlighted on the homepage, by a stylesheet this package ships.
+- A "Changelog" entry links to `CHANGELOG.md` in the repository, when the file exists at the
+  project root and the project declares its repository address. The changelog is linked, never
+  copied into the site.
 
-# PyData Sphinx Theme
-uv add --dev "fairdm-docs[pydata-sphinx-theme] @ git+https://github.com/FAIR-DM/fairdm-docs"
+To use another theme, install it and name it in `pyproject.toml`:
+
+```toml
+[tool.fairdm.docs]
+theme = "furo"
 ```
 
-To change themes:
-
-```python
-# docs/conf.py
-from fairdm_docs.conf import *
-
-html_theme = "pydata_sphinx_theme"
-```
+Under any theme but PyData, this package sets no theme options of its own. Only the ones declared
+under `[tool.fairdm.docs.theme_options]` apply.
 
 ## Project Structure Requirements
 
@@ -486,7 +499,14 @@ build_dir = "docs/_build/html"   # Output directory (default: "docs/_build/html"
 port = 5000                      # Port for live server (default: 5000)
 verbosity = "full"               # Output verbosity: "full", "quiet", or "errors-only"
 django = false                   # Enable Django integration (default: false)
+title = "My Research Portal"     # Name the site shows (default: the project name)
+theme = "pydata_sphinx_theme"    # Any installed Sphinx theme (default: PyData)
+
+[tool.fairdm.docs.theme_options]
+header_links_before_dropdown = 8 # Merged over the default theme options
 ```
+
+A key the table does not accept is reported as a warning when the site builds.
 
 ### Django Integration
 
@@ -562,7 +582,7 @@ source_dir = "documentation"
 | `project`                               | `project.name`           | "fairdm"               |
 | `version`                               | `project.version`        | "0.1.0"                |
 | `copyright`                             | `project.authors`        | "2026, Sam"            |
-| `html_theme_options["repository_url"]`  | `project.urls.repository`| "github.com/org/repo"  |
+| `html_theme_options["icon_links"]`      | `project.urls.repository`| "github.com/org/repo"  |
 
 **Note:** URL keys are case-insensitive (e.g., `homepage`, `Homepage`, `HOMEPAGE` all work).
 
@@ -571,7 +591,8 @@ source_dir = "documentation"
 | Config | Default Value |
 |--------|---------------|
 | `language` | "en" |
-| `html_theme` | "sphinx_book_theme" |
+| `html_theme` | "pydata_sphinx_theme" |
+| `myst_heading_anchors` | 3 |
 | `master_doc` | "index" |
 
 ## Migration from [tool.poetry]

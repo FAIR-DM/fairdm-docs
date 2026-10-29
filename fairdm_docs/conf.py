@@ -3,12 +3,14 @@
 import os
 import sys
 import warnings
+from dataclasses import fields
 from pathlib import Path
 from typing import Any
 
 from sphinx.errors import ConfigError as SphinxConfigError
+from sphinx.util.logging import getLogger
 
-from fairdm_docs.config import ConfigError
+from fairdm_docs.config import BuildConfiguration, ConfigError
 from fairdm_docs.metadata import ProjectMetadata
 from fairdm_docs.utils import find_pyproject_toml, load_pyproject_toml
 
@@ -64,102 +66,102 @@ def _resolve_branding_assets() -> dict[str, str]:
     }
 
 
-def _apply_theme_config(theme: str, metadata: ProjectMetadata) -> dict[str, Any]:
-    """Generate theme-specific options based on selected theme.
+PYDATA_THEME = "pydata_sphinx_theme"
+
+# Shipped in this package's _static. It styles the navbar entry for the current
+# page as PyData styles the current section's, so the homepage's own entry is
+# highlighted on the homepage, which belongs to no section.
+NAVBAR_STYLESHEET = "fairdm-docs-navbar.css"
+
+# The keys [tool.fairdm.docs] accepts: the command's build settings, and the ones
+# this module reads.
+DECLARATIVE_KEYS = {setting.name for setting in fields(BuildConfiguration)} | {
+    "theme",
+    "title",
+    "theme_options",
+}
+
+
+def pydata_theme_options(
+    metadata: ProjectMetadata, project_root: Path
+) -> dict[str, Any]:
+    """Return this package's own PyData theme options for a portal.
 
     Args:
-        theme: Theme name (sphinx_book_theme or pydata_sphinx_theme)
-        metadata: The portal's declared identity, whose address the theme links to
+        metadata: The portal's declared identity, whose address the navbar links to
+        project_root: The directory holding the portal's pyproject.toml
 
     Returns:
-        Dictionary of theme-specific options
+        Dictionary of PyData theme options
     """
-    repository_url = metadata.address
-
-    if theme == "pydata_sphinx_theme":
-        return {
-            "github_url": repository_url,
-            "navbar_end": ["theme-switcher", "navbar-icon-links"],
-            "icon_links": [
-                {
-                    "name": "GitHub",
-                    "url": repository_url,
-                    "icon": "fa-brands fa-github",
-                }
-            ]
-            if repository_url
-            else [],
-        }
-    else:
-        # The repository, issue and edit buttons all read the same address. A
-        # portal that has declared none gets none of them, rather than buttons
-        # the theme cannot resolve.
-        has_repository = bool(repository_url)
-        return {
-            "repository_url": repository_url,
-            "use_repository_button": has_repository,
-            "use_issues_button": has_repository,
-            "use_edit_page_button": has_repository,
-            "home_page_in_toc": True,
-            "collapse_navbar": True,
-            "extra_footer": (
-                '<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">'
-                '<img alt="Creative Commons License" style="border-width:0" '
-                'src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />'
-                "This documentation is licensed under a "
-                '<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">'
-                "Creative Commons Attribution 4.0 International License</a>."
-            ),
-        }
+    address = metadata.address
+    options: dict[str, Any] = {
+        "navbar_align": "left",
+        "header_links_before_dropdown": 6,
+        "navbar_end": ["theme-switcher", "navbar-icon-links"],
+        "icon_links": [
+            {
+                "name": "GitHub",
+                "url": address,
+                "icon": "fa-brands fa-github",
+            }
+        ]
+        if address
+        else [],
+    }
+    # The changelog is linked where it lives, never copied into the site.
+    if address and (project_root / "CHANGELOG.md").exists():
+        options["external_links"] = [
+            {
+                "name": "Changelog",
+                "url": f"{address.rstrip('/')}/blob/main/CHANGELOG.md",
+            }
+        ]
+    return options
 
 
-def _extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
-    """Extract optional configuration from [tool.fairdm.docs] section.
+def extract_fairdm_config(data: dict[str, Any]) -> dict[str, Any]:
+    """Return the [tool.fairdm.docs] table, warning about any key it does not accept.
 
     Args:
         data: Parsed pyproject.toml data
 
     Returns:
-        Dictionary with optional configuration (theme, etc.)
+        The table, or an empty one when the portal declares none
+
+    Raises:
+        SphinxConfigError: theme_options is not a table.
     """
-    if (
-        "tool" not in data
-        or "fairdm" not in data["tool"]
-        or "docs" not in data["tool"]["fairdm"]
-    ):
-        return {}
+    config = data.get("tool", {}).get("fairdm", {}).get("docs", {})
 
-    config = data["tool"]["fairdm"]["docs"]
+    logger = getLogger(__name__)
+    for key in sorted(config.keys() - DECLARATIVE_KEYS):
+        logger.warning(
+            f"Unknown key {key!r} in [tool.fairdm.docs] is ignored. "
+            f"Known keys: {', '.join(sorted(DECLARATIVE_KEYS))}."
+        )
 
-    theme = config.get("theme")
-    if theme:
-        theme = theme.replace("-", "_")
-        known_themes = ["sphinx_book_theme", "pydata_sphinx_theme"]
-        if theme not in known_themes:
-            warnings.warn(
-                f"Unknown theme '{theme}' in [tool.fairdm.docs], using default sphinx_book_theme. "
-                f"Known themes: {', '.join(known_themes)}",
-                UserWarning,
-                stacklevel=2,
-            )
-            theme = None
+    if not isinstance(config.get("theme_options", {}), dict):
+        raise SphinxConfigError(
+            "theme_options in [tool.fairdm.docs] must be a table, such as "
+            "[tool.fairdm.docs.theme_options]."
+        )
 
-    return {
-        "theme": theme,
-    }
+    return config
 
 
-def _read_declaration() -> tuple[ProjectMetadata, dict[str, Any]]:
-    """Read the portal's declaration once, for both the identity and the options.
+def read_declaration() -> tuple[ProjectMetadata, dict[str, Any], Path]:
+    """Read the portal's declaration once, for the identity and the options.
 
     Search from cwd first. FAIRDM_DOCS_PROJECT_DIR, set by the command, is only
     consulted when that fails, e.g. because Sphinx changed cwd to the conf.py
-    location (#12). Both return values come from the same file, so the optional
+    location (#12). Every return value comes from the same file, so the optional
     configuration cannot be read from one pyproject.toml while the identity comes
     from another.
 
     Returns:
-        The portal's declared identity, and its [tool.fairdm.docs] configuration
+        The portal's declared identity, its [tool.fairdm.docs] configuration, and
+        the directory holding its pyproject.toml
 
     Raises:
         SphinxConfigError: The declaration is missing, unreadable or incomplete.
@@ -168,20 +170,24 @@ def _read_declaration() -> tuple[ProjectMetadata, dict[str, Any]]:
     if path is None:
         path = find_pyproject_toml(use_env_var=True)
 
+    # Sphinx prints its own ConfigError as a message. Anything else it re-wraps
+    # with a traceback embedded (#12).
+    if path is None:
+        raise SphinxConfigError(f"No pyproject.toml found. Searched from: {Path.cwd()}")
     try:
-        metadata = ProjectMetadata.from_file(path.parent if path is not None else None)
+        metadata = ProjectMetadata.from_file(path.parent)
     except ConfigError as exc:
-        # Sphinx prints its own ConfigError as a message. Anything else it re-wraps
-        # with a traceback embedded (#12).
         raise SphinxConfigError(str(exc)) from exc
 
-    return metadata, _extract_fairdm_config(load_pyproject_toml(path))
+    return metadata, extract_fairdm_config(load_pyproject_toml(path)), path.parent
 
 
-metadata, fairdm_config = _read_declaration()
+metadata, fairdm_config, project_root = read_declaration()
 
 # Used exactly as declared (docs/adr/0007-a-declaration-is-used-exactly-as-written.md).
-project = metadata.name
+project = fairdm_config.get("title") or metadata.name
+if "title" in fairdm_config:
+    html_title = project
 version = metadata.version
 release = version
 author = ", ".join(metadata.authors)
@@ -190,10 +196,12 @@ language = "en"
 
 branding = _resolve_branding_assets()
 
-# A project's own conf.py can still override html_theme after importing this one.
-html_theme = fairdm_config.get("theme") or "sphinx_book_theme"
+# Any installed theme, named as Sphinx names it. A project's own conf.py can still
+# override html_theme after importing this one.
+html_theme = fairdm_config.get("theme") or PYDATA_THEME
 
 html_static_path = ["_static"]
+html_css_files: list[str] = []
 html_logo = branding["logo_path"]
 html_favicon = branding["favicon_path"]
 html_short_title = ""
@@ -201,7 +209,15 @@ html_short_title = ""
 html_show_copyright = True
 html_last_updated_fmt = "%b %d, %Y"
 
-html_theme_options = _apply_theme_config(html_theme, metadata)
+# This package's own theme options are written for PyData. Under any other theme
+# the portal's declared options are all there is.
+html_theme_options: dict[str, Any] = {}
+if html_theme == PYDATA_THEME:
+    html_theme_options = pydata_theme_options(metadata, project_root)
+    # Listed first, so a file of the same name in the portal's own _static wins.
+    html_static_path.insert(0, str(Path(__file__).parent / "_static"))
+    html_css_files.append(NAVBAR_STYLESHEET)
+html_theme_options.update(fairdm_config.get("theme_options", {}))
 
 comments_config = {}
 repository_url = metadata.address
@@ -277,6 +293,9 @@ myst_enable_extensions = [
 
 autosectionlabel_prefix_document = True
 
+# Section links such as installation.md#install-the-front-end resolve to headings.
+myst_heading_anchors = 3
+
 htmlhelp_basename = f"{metadata.name}_docs"
 
 latex_elements: dict[str, str] = {}
@@ -314,4 +333,3 @@ texinfo_documents = [
 ]
 
 epub_title = project
-epub_theme = "sphinx_book_theme"
