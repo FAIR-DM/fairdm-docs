@@ -7,8 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`title` under `[tool.fairdm.docs]`** sets the name the site shows, such as
+  `title = "Django Literature"`. Without it the declared project name is used, as before.
+- **`[tool.fairdm.docs.theme_options]`** is merged into `html_theme_options`, key by key, over the
+  defaults, under any theme.
+- **An unknown key under `[tool.fairdm.docs]` is reported** as a warning when the site builds,
+  instead of being ignored.
+- **Under PyData, the navbar is aligned left and shows six entries before "More".** The
+  homepage's own entry is highlighted on the homepage, and a "Changelog" entry links to
+  `CHANGELOG.md` in the repository when the file exists and a repository address is declared.
+- **`myst_heading_anchors = 3`**, so a link such as `installation.md#install-the-front-end`
+  resolves.
+
 ### Changed
 
+- **The PyData Sphinx Theme is the default theme** and a direct dependency. The
+  `sphinx-book-theme` and `pydata-sphinx-theme` extras are removed. `theme` accepts the name of any
+  installed theme, used as written. It is no longer checked against a list with a silent fallback,
+  and a theme that is not installed stops the build with Sphinx's own error.
+- **Under any theme but PyData, no theme options are set** other than those declared in
+  `[tool.fairdm.docs.theme_options]`. This includes the repository buttons and licence footer
+  previously set for `sphinx-book-theme`.
+- **Under PyData the repository gets one GitHub icon.** `github_url` is no longer set alongside
+  the GitHub entry in `icon_links`, which drew a second icon.
 - The package is built with hatchling instead of poetry-core and developed with uv instead of
   Poetry. The wheel contains the same files as before. The source distribution does too, plus the
   repository's `.gitignore`, which hatchling includes so that a build from it leaves out the same
@@ -19,9 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reformatted for display — hyphens replaced with spaces and each word capitalized, so a project
   named `fairdm-docs` got the title `Fairdm Docs`. That reformatting guessed at a display form and
   got it wrong for any name with an acronym or deliberate casing of its own, so it is gone: the
-  title is now exactly what `pyproject.toml` declares. A portal that wants a different title can
-  still set `project` (or `html_title`) in its own `docs/conf.py`, after the
-  `from fairdm_docs.conf import *` line.
+  title is now exactly what `pyproject.toml` declares. A portal that wants a different title sets
+  `title` under `[tool.fairdm.docs]`.
 - **Version reset to `0.0.1`.** Nothing was ever tagged, released or published, so the earlier
   numbers described intent rather than a released artefact. The package now works towards `0.1.0`
   and `1.0.0` milestones from a clean base, and `pyproject.toml` is the single source of truth for

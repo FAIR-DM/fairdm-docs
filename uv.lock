@@ -751,6 +751,7 @@ dependencies = [
     { name = "jinja2" },
     { name = "markdown" },
     { name = "myst-parser" },
+    { name = "pydata-sphinx-theme" },
     { name = "sphinx" },
     { name = "sphinx-autobuild" },
     { name = "sphinx-autodoc2" },
@@ -763,19 +764,10 @@ dependencies = [
     { name = "typer" },
 ]
 
-[package.optional-dependencies]
-pydata-sphinx-theme = [
-    { name = "pydata-sphinx-theme" },
-]
-sphinx-book-theme = [
-    { name = "sphinx-book-theme" },
-]
-
 [package.dev-dependencies]
 dev = [
     { name = "django" },
     { name = "mvp-shared", extra = ["dev", "test"] },
-    { name = "sphinx-book-theme" },
 ]
 
 [package.metadata]
@@ -784,11 +776,10 @@ requires-dist = [
     { name = "jinja2" },
     { name = "markdown" },
     { name = "myst-parser", specifier = ">=5.1.0" },
-    { name = "pydata-sphinx-theme", marker = "extra == 'pydata-sphinx-theme'", specifier = ">=0.21.0" },
+    { name = "pydata-sphinx-theme", specifier = ">=0.21.0" },
     { name = "sphinx", specifier = ">=9.1.0" },
     { name = "sphinx-autobuild", specifier = ">=2025.8.25" },
     { name = "sphinx-autodoc2", specifier = ">=0.5" },
-    { name = "sphinx-book-theme", marker = "extra == 'sphinx-book-theme'", specifier = ">1.1" },
     { name = "sphinx-comments", specifier = ">=0.0.3" },
     { name = "sphinx-copybutton", specifier = ">=0.5" },
     { name = "sphinx-design", specifier = ">=0.7.0" },
@@ -797,13 +788,11 @@ requires-dist = [
     { name = "sphinxext-opengraph", specifier = ">=0.13.0" },
     { name = "typer", specifier = ">=0.27.2" },
 ]
-provides-extras = ["sphinx-book-theme", "pydata-sphinx-theme"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "django", specifier = ">=6.1.1" },
     { name = "mvp-shared", extras = ["dev", "test"], git = "https://github.com/django-mvp/shared.git?tag=v0.6.0" },
-    { name = "sphinx-book-theme", specifier = ">1.1" },
 ]
 
 [[package]]
@@ -2076,19 +2065,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/17/5f/5350046d1aa1a56b063ae08b9ad871025335c9d55fe2372896ea48711da9/sphinx_autodoc2-0.5.0.tar.gz", hash = "sha256:7d76044aa81d6af74447080182b6868c7eb066874edc835e8ddf810735b6565a", size = 115077, upload-time = "2023-11-27T07:27:51.407Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/19/e6/48d47961bbdae755ba9c17dfc65d89356312c67668dcb36c87cfadfa1964/sphinx_autodoc2-0.5.0-py3-none-any.whl", hash = "sha256:e867013b1512f9d6d7e6f6799f8b537d6884462acd118ef361f3f619a60b5c9e", size = 43385, upload-time = "2023-11-27T07:27:49.929Z" },
-]
-
-[[package]]
-name = "sphinx-book-theme"
-version = "1.1.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pydata-sphinx-theme" },
-    { name = "sphinx" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/89/69/61dfa3b3851610b5f45960737bd99f8c5b2d70ba73f9ac84a527e0c564ae/sphinx_book_theme-1.1.3.tar.gz", hash = "sha256:1f25483b1846cb3d353a6bc61b3b45b031f4acf845665d7da90e01ae0aef5b4d", size = 434230, upload-time = "2024-06-12T14:11:22.128Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/80/90574e2e82c955b9c6f6b77f7badb2cf2ef4ef77599e4343cced2d098681/sphinx_book_theme-1.1.3-py3-none-any.whl", hash = "sha256:a554a9a7ac3881979a87a2b10f633aa2a5706e72218a10f71be38b3c9e831ae9", size = 430129, upload-time = "2024-06-12T14:11:20.002Z" },
 ]
 
 [[package]]

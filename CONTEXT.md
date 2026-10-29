@@ -44,8 +44,9 @@ expected to be rarer than declarative configuration.
 interface, and its documentation is expected to carry the same ones without the developer
 copying files by hand.
 
-**Theme** — the Sphinx theme the rendered site uses. This package supports a fixed, small set of
-them and ships one as the default.
+**Theme** — the Sphinx theme the rendered site uses. The PyData Sphinx Theme is the default and
+is installed with this package. A portal may name any other installed theme, under which this
+package sets none of its own theme options.
 
 ## The Django-facing nouns
 

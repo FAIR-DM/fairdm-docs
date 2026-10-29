@@ -489,10 +489,10 @@ class TestBuild:
 
         assert exit_code == 0
         html = (portal_dir / "docs" / "_build" / "html" / "index.html").read_text()
-        # The package's own conf.py selects sphinx_book_theme; a source with
+        # The package's own conf.py selects pydata_sphinx_theme; a source with
         # no conf.py of its own only gets this theme's assets if that file
         # configured the build.
-        assert "sphinx-book-theme.css" in html
+        assert "pydata-sphinx-theme.css" in html
 
     def test_creates_a_missing_parent_of_the_build_directory(
         self, documented_portal, run_fairdm_docs

@@ -26,6 +26,7 @@ dependencies = [
     'sphinx (>=9.1.0)',
     'markdown',
     'myst-parser (>=5.1.0)',
+    'pydata-sphinx-theme (>=0.21.0)',
     'sphinx-autobuild (>=2025.8.25)',
     'sphinx-autodoc2 (>=0.5)',
     'sphinx-comments (>=0.0.3)',
@@ -44,10 +45,6 @@ homepage = "https://github.com/FAIR-DM/fairdm-docs"
 repository = "https://github.com/FAIR-DM/fairdm-docs"
 documentation = "https://github.com/FAIR-DM/fairdm-docs#readme"
 
-[project.optional-dependencies]
-sphinx-book-theme = ['sphinx-book-theme (>1.1)']
-pydata-sphinx-theme = ['pydata-sphinx-theme (>=0.21.0)']
-
 [project.scripts]
 fairdm-docs = "fairdm_docs.cli:main"
 
@@ -60,11 +57,6 @@ dev = [
     # build enables Django. Never a runtime dependency of this package: a portal
     # already supplies Django, and a non-portal build must not need it installed.
     "django>=6.1.1",
-    # The default html_theme. Without it a real Sphinx build in the suite falls
-    # back and stops exercising the shipped configuration. Consumers get it
-    # through the sphinx-book-theme extra, which a plain `uv sync` does not
-    # install.
-    "sphinx-book-theme>1.1",
 ]
 
 [tool.uv.sources]
@@ -150,9 +142,7 @@ DEP002 = [
     "sphinx-exec-code",
     "sphinxcontrib-bibtex",
     "sphinxext-opengraph",
-    # Themes are named as strings in the theme setting, and each ships behind an
-    # optional extra, so no import of them exists to find.
-    "sphinx-book-theme",
+    # The default theme, named as a string in html_theme.
     "pydata-sphinx-theme",
 ]
 # Django is a peer the portal supplies, so it is imported by the source but
@@ -168,3 +158,9 @@ DEP001 = ["fairdm"]
 # counterpart to mirror, the same reasoning that exempts tests/factories.py
 # and its own test module by default.
 non-mirror-paths = ["tests/test_conftest.py"]
+
+[tool.forge.docs]
+# conf.py is a Sphinx configuration module. What it offers a portal is the
+# settings it assigns, which the README documents. Its functions only compute
+# those settings and are not called from outside it.
+exempt-paths = ["fairdm_docs/conf.py"]
