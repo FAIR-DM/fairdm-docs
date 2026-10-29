@@ -158,3 +158,9 @@ DEP001 = ["fairdm"]
 # counterpart to mirror, the same reasoning that exempts tests/factories.py
 # and its own test module by default.
 non-mirror-paths = ["tests/test_conftest.py"]
+
+[tool.forge.docs]
+# conf.py is a Sphinx configuration module. What it offers a portal is the
+# settings it assigns, which the README documents. Its functions only compute
+# those settings and are not called from outside it.
+exempt-paths = ["fairdm_docs/conf.py"]
