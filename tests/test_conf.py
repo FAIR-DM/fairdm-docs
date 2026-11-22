@@ -233,10 +233,10 @@ def declaration(docs_table: str = "", repository: str = REPOSITORY) -> str:
 
 
 class TestThemeSelection:
-    def test_the_default_theme_is_pydata(self, portal):
+    def test_the_default_theme_is_daisyui(self, portal):
         conf = load_site_config(portal(declaration()))
 
-        assert conf.html_theme == "pydata_sphinx_theme"
+        assert conf.html_theme == "daisyui"
 
     def test_a_declared_theme_is_used_as_written(self, built_portal):
         html, _ = built_portal(declaration('theme = "alabaster"\n'))
@@ -318,13 +318,13 @@ class TestUnknownSettings:
         assert "verbosity" not in output
 
 
-class TestPyDataNavbar:
+class TestDaisyuiNavbar:
     def test_the_repository_gets_one_github_icon(self, built_portal):
         html, _ = built_portal(declaration())
 
         # The theme draws the navbar a second time in the narrow-screen sidebar.
         header = html[html.index("<header") : html.index("</header>")]
-        assert header.count("fa-brands fa-github") == 1
+        assert header.count('aria-label="GitHub"') == 1
 
     def test_a_changelog_is_linked_from_the_navbar(self, tmp_path, built_portal):
         (tmp_path / "CHANGELOG.md").write_text("# Changelog\n")
@@ -344,16 +344,6 @@ class TestPyDataNavbar:
         conf = load_site_config(portal(declaration(repository="")))
 
         assert "external_links" not in conf.html_theme_options
-
-    def test_the_current_page_stylesheet_is_shipped_and_linked(
-        self, tmp_path, portal, built_portal
-    ):
-        stylesheet = load_site_config(portal(declaration())).NAVBAR_STYLESHEET
-
-        html, _ = built_portal(declaration())
-
-        assert (tmp_path / "_build" / "html" / "_static" / stylesheet).exists()
-        assert f"_static/{stylesheet}" in html
 
 
 class TestHeadingAnchors:
@@ -410,15 +400,3 @@ class TestProjectStaticFiles:
         start_building(portal_dir / "docs", portal_dir / "_build").build()
 
         assert (portal_dir / "_build" / "html" / "_static" / "portal.css").exists()
-
-    def test_a_projects_file_replaces_the_packages_file_of_the_same_name(self, portal):
-        portal_dir = portal(declaration())
-        stylesheet = load_site_config(portal_dir).NAVBAR_STYLESHEET
-        static = portal_dir / "docs" / "_static"
-        static.mkdir()
-        (static / stylesheet).write_text("/* the portal's own */\n")
-
-        start_building(portal_dir / "docs", portal_dir / "_build").build()
-
-        copied = portal_dir / "_build" / "html" / "_static" / stylesheet
-        assert copied.read_text() == (static / stylesheet).read_text()

@@ -22,7 +22,7 @@ Sphinx configuration and build tooling for FairDM research data portals.
 - **Live preview server** - Real-time documentation updates with `fairdm-docs build --live`
 - **Link validation** - Check for broken links with `fairdm-docs check`
 - **Smart defaults** - Missing optional fields don't block builds, sensible defaults provided
-- **Flexible theming** - Pre-configured support for Sphinx Book Theme and PyData Sphinx Theme
+- **Flexible theming** - The [sphinx-daisyui](https://github.com/SamuelJennings/sphinx-daisyui) theme by default, or any other installed Sphinx theme
 - **Django model documentation** - Custom directives for auto-documenting Sample and Measurement models
 - **Modern features** - MyST Markdown, math support, code copy buttons, social sharing, and more
 - **Developer-friendly** - Works out of the box, easy to customize when needed
@@ -79,8 +79,8 @@ Add `fairdm-docs` to your development dependencies:
 uv add --dev git+https://github.com/FAIR-DM/fairdm-docs
 ```
 
-This installs the [PyData Sphinx Theme](https://pydata-sphinx-theme.readthedocs.io/), which the
-site uses by default.
+This installs the [sphinx-daisyui](https://github.com/SamuelJennings/sphinx-daisyui) theme, which
+the site uses by default.
 
 ## Quick Start
 
@@ -141,7 +141,7 @@ port = 5000                      # Live server port (default: 5000)
 verbosity = "full"               # Options: "full", "quiet", "errors-only"
 django = false                   # Enable Django integration (default: false)
 title = "My Research Portal"     # Name the site shows (default: the project name)
-theme = "pydata_sphinx_theme"    # Any installed Sphinx theme (default: PyData)
+theme = "daisyui"                # Any installed Sphinx theme (default: daisyui)
 
 [tool.fairdm.docs.theme_options]
 header_links_before_dropdown = 8 # Merged over the default theme options
@@ -248,7 +248,7 @@ sidebar_hide_name = true
 
 - `title` sets the name the site shows. Without it the project name is used.
 - `theme` accepts the name of any installed Sphinx theme. The default is
-  `pydata_sphinx_theme`. A theme that is not installed stops the build with Sphinx's own error.
+  `daisyui`. A theme that is not installed stops the build with Sphinx's own error.
 - `[tool.fairdm.docs.theme_options]` is merged into `html_theme_options`, key by key, over the
   defaults described in [Theme Support](#theme-support). It applies under any theme.
 - Any other key is reported as a warning when the site builds.
@@ -373,12 +373,13 @@ comments_config = {}  # Disable Utterances
 
 ## Theme Support
 
-The site uses the [PyData Sphinx Theme](https://pydata-sphinx-theme.readthedocs.io/), which is
-installed with this package. Under it, the navbar is set up as follows:
+The site uses the [sphinx-daisyui](https://github.com/SamuelJennings/sphinx-daisyui) theme
+(`html_theme = "daisyui"`), which is installed with this package. Under it, the navbar is set up
+as follows:
 
 - It is aligned left, against the logo, and shows six entries before the "More" dropdown.
+- The theme switcher and the icon links sit at the end.
 - The declared repository address gets one GitHub icon.
-- The homepage's own entry is highlighted on the homepage, by a stylesheet this package ships.
 - A "Changelog" entry links to `CHANGELOG.md` in the repository, when the file exists at the
   project root and the project declares its repository address. The changelog is linked, never
   copied into the site.
@@ -390,8 +391,12 @@ To use another theme, install it and name it in `pyproject.toml`:
 theme = "furo"
 ```
 
-Under any theme but PyData, this package sets no theme options of its own. Only the ones declared
-under `[tool.fairdm.docs.theme_options]` apply.
+Under any theme but sphinx-daisyui, this package sets no theme options of its own. Only the ones
+declared under `[tool.fairdm.docs.theme_options]` apply.
+
+A portal that names `pydata_sphinx_theme` keeps working only if it installs that theme itself,
+like any other theme. This package no longer installs it. Add `pydata-sphinx-theme` to the
+portal's own dependencies and set `theme = "pydata_sphinx_theme"`.
 
 ## Project Structure Requirements
 
@@ -500,7 +505,7 @@ port = 5000                      # Port for live server (default: 5000)
 verbosity = "full"               # Output verbosity: "full", "quiet", or "errors-only"
 django = false                   # Enable Django integration (default: false)
 title = "My Research Portal"     # Name the site shows (default: the project name)
-theme = "pydata_sphinx_theme"    # Any installed Sphinx theme (default: PyData)
+theme = "daisyui"                # Any installed Sphinx theme (default: daisyui)
 
 [tool.fairdm.docs.theme_options]
 header_links_before_dropdown = 8 # Merged over the default theme options
@@ -591,7 +596,7 @@ source_dir = "documentation"
 | Config | Default Value |
 |--------|---------------|
 | `language` | "en" |
-| `html_theme` | "pydata_sphinx_theme" |
+| `html_theme` | "daisyui" |
 | `myst_heading_anchors` | 3 |
 | `master_doc` | "index" |
 

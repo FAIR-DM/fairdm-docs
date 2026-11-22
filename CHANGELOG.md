@@ -15,23 +15,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   defaults, under any theme.
 - **An unknown key under `[tool.fairdm.docs]` is reported** as a warning when the site builds,
   instead of being ignored.
-- **Under PyData, the navbar is aligned left and shows six entries before "More".** The
-  homepage's own entry is highlighted on the homepage, and a "Changelog" entry links to
-  `CHANGELOG.md` in the repository when the file exists and a repository address is declared.
+- **Under sphinx-daisyui, the navbar is aligned left and shows six entries before "More".** A
+  "Changelog" entry links to `CHANGELOG.md` in the repository when the file exists and a
+  repository address is declared.
 - **`myst_heading_anchors = 3`**, so a link such as `installation.md#install-the-front-end`
   resolves.
 
 ### Changed
 
-- **The PyData Sphinx Theme is the default theme** and a direct dependency. The
-  `sphinx-book-theme` and `pydata-sphinx-theme` extras are removed. `theme` accepts the name of any
+- **The [sphinx-daisyui](https://github.com/SamuelJennings/sphinx-daisyui) theme (`daisyui`) is
+  the default theme** and a direct dependency. The `sphinx-book-theme` and `pydata-sphinx-theme`
+  extras are removed, and the PyData Sphinx Theme is no longer installed with this package. A
+  portal that sets `theme = "pydata_sphinx_theme"` keeps working only if it installs that theme
+  itself, like any other theme. `theme` accepts the name of any
   installed theme, used as written. It is no longer checked against a list with a silent fallback,
   and a theme that is not installed stops the build with Sphinx's own error.
-- **Under any theme but PyData, no theme options are set** other than those declared in
+- **Under any theme but sphinx-daisyui, no theme options are set** other than those declared in
   `[tool.fairdm.docs.theme_options]`. This includes the repository buttons and licence footer
   previously set for `sphinx-book-theme`.
-- **Under PyData the repository gets one GitHub icon.** `github_url` is no longer set alongside
-  the GitHub entry in `icon_links`, which drew a second icon.
+- **Under sphinx-daisyui the repository gets one GitHub icon**, set as the entry `github` in
+  `icon_links`.
+- **The sphinx-daisyui theme options are this package's own.** They keep the earlier navbar:
+  aligned left, six entries before "More", the theme switcher and the icon links at the end, and
+  one GitHub icon link. sphinx-daisyui draws no section links in the navbar unless asked, so
+  `navbar_center` lists `navbar-nav`. Nothing was dropped for want of an equivalent: every option
+  the PyData defaults set has one of the same name.
+- **The navbar stylesheet is removed.** `fairdm-docs-navbar.css` highlighted the homepage's own
+  navbar entry, which sphinx-daisyui already does. A portal that overrode that file in its own
+  `_static` can delete its copy.
 - The package is built with hatchling instead of poetry-core and developed with uv instead of
   Poetry. The wheel contains the same files as before. The source distribution does too, plus the
   repository's `.gitignore`, which hatchling includes so that a build from it leaves out the same

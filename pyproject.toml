@@ -26,7 +26,7 @@ dependencies = [
     'sphinx (>=9.1.0)',
     'markdown',
     'myst-parser (>=5.1.0)',
-    'pydata-sphinx-theme (>=0.21.0)',
+    'sphinx-daisyui (>=0.1.0)',
     'sphinx-autobuild (>=2025.8.25)',
     'sphinx-autodoc2 (>=0.5)',
     'sphinx-comments (>=0.0.3)',
@@ -143,7 +143,7 @@ DEP002 = [
     "sphinxcontrib-bibtex",
     "sphinxext-opengraph",
     # The default theme, named as a string in html_theme.
-    "pydata-sphinx-theme",
+    "sphinx-daisyui",
 ]
 # Django is a peer the portal supplies, so it is imported by the source but
 # declared only as a dev dependency. Promoting it to a runtime dependency would
