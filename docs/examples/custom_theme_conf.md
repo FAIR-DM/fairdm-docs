@@ -4,7 +4,7 @@ This example shows how to use **declarative configuration** via `[tool.fairdm.do
 
 ## Choosing a Different Theme
 
-By default, `fairdm-docs` uses the PyData Sphinx Theme, which it installs. To use another theme, install it and name it:
+By default, `fairdm-docs` uses the sphinx-daisyui theme (`daisyui`), which it installs. To use another theme, install it and name it. A portal that names `pydata_sphinx_theme` must add `pydata-sphinx-theme` to its own dependencies, because this package no longer installs it:
 
 ### pyproject.toml
 
@@ -37,7 +37,7 @@ sidebar_hide_name = true
 from fairdm_docs.conf import *
 ```
 
-`theme` takes the name of any installed Sphinx theme. A theme that is not installed stops the build with Sphinx's own error. Under any theme but PyData the package sets no theme options of its own, so the site gets exactly the options declared under `[tool.fairdm.docs.theme_options]`.
+`theme` takes the name of any installed Sphinx theme. A theme that is not installed stops the build with Sphinx's own error. Under any theme but sphinx-daisyui the package sets no theme options of its own, so the site gets exactly the options declared under `[tool.fairdm.docs.theme_options]`.
 
 `title` is the name the site shows. Without it, the declared project name is used.
 
@@ -79,17 +79,16 @@ html_sidebars = {
 2. `[tool.fairdm.docs]` in `pyproject.toml`
 3. Package defaults in `fairdm_docs/conf.py`
 
-## The PyData Defaults
+## The sphinx-daisyui Defaults
 
-Under the PyData theme the package sets these theme options:
+Under the sphinx-daisyui theme the package sets these theme options:
 
-- `navbar_align = "left"` and `header_links_before_dropdown = 6`
+- `navbar_align = "left"`, `navbar_center` with the section links and
+  `header_links_before_dropdown = 6`
 - `navbar_end` with the theme switcher and the icon links
 - `icon_links` with one GitHub link, where an address is declared
 - `external_links` with a "Changelog" entry pointing at `CHANGELOG.md` in the repository, where
   the file exists at the project root and an address is declared
-
-It also adds a stylesheet that highlights the homepage's own navbar entry on the homepage.
 
 Each key under `[tool.fairdm.docs.theme_options]` replaces the default of the same name and leaves
 the others alone:
@@ -137,7 +136,7 @@ Documentation = "https://docs.geohub.org"
 "Bug Tracker" = "https://github.com/geohub/platform/issues"
 
 [tool.fairdm.docs]
-theme = "pydata_sphinx_theme"
+theme = "daisyui"
 ```
 
 Then in `docs/conf.py`, add only what you need to change:

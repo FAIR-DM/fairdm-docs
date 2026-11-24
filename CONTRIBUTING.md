@@ -131,7 +131,7 @@ Use clear, descriptive commit messages:
 
 Examples:
 ```
-Add: PyData theme support via extras
+Add: Theme selection in pyproject.toml
 Update: Migrate all geoluminate references to fairdm
 Fix: Branding detection fallback path
 Remove: Incomplete modelinfo extension

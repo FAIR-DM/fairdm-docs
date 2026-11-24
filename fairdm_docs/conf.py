@@ -66,12 +66,7 @@ def _resolve_branding_assets() -> dict[str, str]:
     }
 
 
-PYDATA_THEME = "pydata_sphinx_theme"
-
-# Shipped in this package's _static. It styles the navbar entry for the current
-# page as PyData styles the current section's, so the homepage's own entry is
-# highlighted on the homepage, which belongs to no section.
-NAVBAR_STYLESHEET = "fairdm-docs-navbar.css"
+DAISYUI_THEME = "daisyui"
 
 # The keys [tool.fairdm.docs] accepts: the command's build settings, and the ones
 # this module reads.
@@ -82,28 +77,29 @@ DECLARATIVE_KEYS = {setting.name for setting in fields(BuildConfiguration)} | {
 }
 
 
-def pydata_theme_options(
+def daisyui_theme_options(
     metadata: ProjectMetadata, project_root: Path
 ) -> dict[str, Any]:
-    """Return this package's own PyData theme options for a portal.
+    """Return this package's own sphinx-daisyui theme options for a portal.
 
     Args:
         metadata: The portal's declared identity, whose address the navbar links to
         project_root: The directory holding the portal's pyproject.toml
 
     Returns:
-        Dictionary of PyData theme options
+        Dictionary of sphinx-daisyui theme options
     """
     address = metadata.address
     options: dict[str, Any] = {
         "navbar_align": "left",
+        "navbar_center": ["navbar-nav"],
         "header_links_before_dropdown": 6,
         "navbar_end": ["theme-switcher", "navbar-icon-links"],
         "icon_links": [
             {
                 "name": "GitHub",
                 "url": address,
-                "icon": "fa-brands fa-github",
+                "icon": "github",
             }
         ]
         if address
@@ -198,7 +194,7 @@ branding = _resolve_branding_assets()
 
 # Any installed theme, named as Sphinx names it. A project's own conf.py can still
 # override html_theme after importing this one.
-html_theme = fairdm_config.get("theme") or PYDATA_THEME
+html_theme = fairdm_config.get("theme") or DAISYUI_THEME
 
 # Sphinx reads conf.py from its own directory, so this is the project's _static.
 # Listing one that does not exist is a build warning.
@@ -211,14 +207,11 @@ html_short_title = ""
 html_show_copyright = True
 html_last_updated_fmt = "%b %d, %Y"
 
-# This package's own theme options are written for PyData. Under any other theme
-# the portal's declared options are all there is.
+# This package's own theme options are written for sphinx-daisyui. Under any other
+# theme the portal's declared options are all there is.
 html_theme_options: dict[str, Any] = {}
-if html_theme == PYDATA_THEME:
-    html_theme_options = pydata_theme_options(metadata, project_root)
-    # Listed first, so a file of the same name in the portal's own _static wins.
-    html_static_path.insert(0, str(Path(__file__).parent / "_static"))
-    html_css_files.append(NAVBAR_STYLESHEET)
+if html_theme == DAISYUI_THEME:
+    html_theme_options = daisyui_theme_options(metadata, project_root)
 html_theme_options.update(fairdm_config.get("theme_options", {}))
 
 comments_config = {}

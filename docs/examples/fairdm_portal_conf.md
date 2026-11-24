@@ -94,20 +94,21 @@ With this `pyproject.toml`, `fairdm-docs` automatically sets up:
 - `author = "Australian Geoscience Collaboration"`
 - `language = "en"`
 
-### Theme Configuration (PyData Sphinx Theme)
+### Theme Configuration (sphinx-daisyui)
 
 ```python
-html_theme = "pydata_sphinx_theme"
+html_theme = "daisyui"
 
 html_theme_options = {
     "navbar_align": "left",
+    "navbar_center": ["navbar-nav"],
     "header_links_before_dropdown": 6,
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "icon_links": [
         {
             "name": "GitHub",
             "url": "https://github.com/ausgeo/portal",
-            "icon": "fa-brands fa-github",
+            "icon": "github",
         },
     ],
 }
@@ -117,8 +118,7 @@ The address comes from `[project.urls]`: the repository where one is declared, t
 otherwise. Declare neither and `icon_links` is empty rather than pointing nowhere.
 
 When `CHANGELOG.md` exists at the project root and an address is declared, `external_links` adds
-a "Changelog" entry pointing at `<address>/blob/main/CHANGELOG.md`. A stylesheet the package
-ships highlights the homepage's own navbar entry on the homepage.
+a "Changelog" entry pointing at `<address>/blob/main/CHANGELOG.md`.
 
 ### Branding
 
@@ -277,7 +277,7 @@ jobs:
 With this setup, you get:
 
 ✅ **Zero-config documentation** - Just write Markdown files
-✅ **Professional theme** - PyData Sphinx Theme with GitHub integration
+✅ **Professional theme** - sphinx-daisyui theme with GitHub integration
 ✅ **Custom branding** - Your logo and icon throughout docs
 ✅ **Social sharing** - OpenGraph cards for Twitter/LinkedIn
 ✅ **Community engagement** - Utterances comments on each page
