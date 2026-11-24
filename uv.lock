@@ -778,7 +778,7 @@ requires-dist = [
     { name = "sphinx-autodoc2", specifier = ">=0.5" },
     { name = "sphinx-comments", specifier = ">=0.0.3" },
     { name = "sphinx-copybutton", specifier = ">=0.5" },
-    { name = "sphinx-daisyui", specifier = ">=0.1.0" },
+    { name = "sphinx-daisyui", specifier = ">=0.2.0" },
     { name = "sphinx-design", specifier = ">=0.7.0" },
     { name = "sphinx-exec-code", specifier = ">=0.16,<0.19" },
     { name = "sphinxcontrib-bibtex", specifier = ">=2.7.0,<3.0.0" },
@@ -2195,17 +2195,18 @@ wheels = [
 
 [[package]]
 name = "sphinx-daisyui"
-version = "0.1.0"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "docutils" },
     { name = "markupsafe" },
     { name = "pygments" },
     { name = "sphinx" },
+    { name = "sphinxcontrib-serializinghtml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3d/09/3999befbcaa8c171da3d8d388feef88e1e5d57c0f790a0fbe334d9ec1925/sphinx_daisyui-0.1.0.tar.gz", hash = "sha256:bb54a6f136f56cfe78b941ff9129eba95e47d2ff3e56f9e6432f41e37a5f48f9", size = 107869, upload-time = "2026-11-17T22:26:20.755Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/0b/7573ef57017d50f7550c814276b3921ff57fb81acf86a70f92589d90e39e/sphinx_daisyui-0.2.0.tar.gz", hash = "sha256:2f4671007febe13adc1a2d5414158e248032222afac23c94a5d0ffeb0876ce5b", size = 116148, upload-time = "2026-11-22T19:25:34.892Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/76/fa1038f390ee64480202b0d913c5431d66f02c6978be0eb87e4101e7a86e/sphinx_daisyui-0.1.0-py3-none-any.whl", hash = "sha256:742500ccec64264af762a68017569bb42379e908e28336c8e044d2d15a9eb165", size = 103344, upload-time = "2026-11-17T22:26:19.163Z" },
+    { url = "https://files.pythonhosted.org/packages/07/1b/d5a71b0550af74586b7866c9f2b2f4f3ab8480c0afdce6c8bd4f7ce842f5/sphinx_daisyui-0.2.0-py3-none-any.whl", hash = "sha256:166a1e64719376d21b8e6417f9e223cc37de22893f9c274e03d92e34c75a091c", size = 112124, upload-time = "2026-11-22T19:25:33.67Z" },
 ]
 
 [[package]]
